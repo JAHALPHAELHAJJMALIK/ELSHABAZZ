@@ -1,118 +1,108 @@
-#import emojis #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-#import datetime #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-import random, os, time #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
+import csv, os, random, time #import emojis #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
 
-#from getpass import getpass as input #'BLINDED DATA ENTRY'
+my_intro = """ROI ΜΟΛΩΝ ΛΑΒΕ (Molon labe) 'come and take it
 
-os.system("clear")
-#myNumber = random.randint(11,13)
-my_intro = """ROI
+🥊 🌧  🌎️  ⚔️  🃏 ☑ 🤤 🍭 ❣ 🐫 😍👍 🏆  💆 😎 🔥 👩 🎨 💡 🏡 📈 🚀 💰 🛢 🔪 👋 ✔ 🔆 ⚡ ☕ 🙏 🏡 🚀 🚗  🎉 😅 🏠 🙅 💰 🎮 ☕️ 🤯 🤬 💰 😐 😭 💸🦌 ☠💋🌈👽🍩🧁🌻☀️💦💋☠ ❤️ 🏃♂️ 🥊 🥑  🦋 ☕  🎵 ✂️ 🍒🍊🍉🥝 ★ ⚠ ⛈️ 🍀 🌷 🦅 👉 🚧 🚗 🏆  ⚠️ Dangerous Curves Ahead ⚠️ ("🐮 Moo") ("🐷 Oink") ("🐑 Baaa") ("🦆 Quack") ("🐶 Woof") ("🐱 Meow") ✈️ - 👢Country lover - ⛳Golfer - 💪Fitness 🍾 '\VANTA BLACK DARK THEME AS BACKGROUND'   LISTEN READ THINK WRITE ⚓️ 🐍 💰 🐻 💬 🧙🏾 🐶 ,'STAY READY' ⚔️ 👾 🎊 🌀 🏪 ♟️  🦋  📓  🌮   安野由美 'EMINENT DOMAIN PUBLIC DOMAIN' - 1ST FIRST PRINCIPLE ALGORITHM 🎓 💸 💲 🚀 🔊 🔆 ☘️ 🥊  🔋 🐟 🏥 🍹 💼 🚙  👑  🥇 🌲 ♾ 🎲 ⛏️ 🏰  👟 🦞 ☁️  🌴 
 
-⚔️ ☑ 🤤 🍭 ❣ 🐫 😍👍 🏆  💆 😎 🔥 👩‍🎨 💡 🏡 📈 🚀 💰 🛢 🔪 👋 ✔ 🔆 ⚡ ☕ 🙏 🏡 🚀 🚗  🎉 😅 🏠 🙅 💰 🎮 ☕️ 🤯 🤬 💰 😐 😭 💸🦌 ☠💋🌈👽🍩🧁🌻☀️💦💋☠ ❤️ 🏃‍♂️ 🥊 🥑  🦋 ☕  🎵 ✂️ 🍒🍊🍉🥝 ★ ⚠ ⛈️ 🍀 🌷 🦅 👉 🚧 🚗 🏆  ⚠️ Dangerous Curves Ahead ⚠️ ("🐮 Moo") ("🐷 Oink") ("🐑 Baaa") ("🦆 Quack") ("🐶 Woof") ("🐱 Meow") ✈️ - 👢Country lover - ⛳Golfer - 💪Fitness 🍾 '\VANTA BLACK AS BACKGROUND'  Anastacia🌷 Ice Spice ☆ @icespicee_ fap  ⚓️ ★  🐍
+🦇🍂🎃     🎃🍂🦇
+     🎃              🍂              🍁
+     🍂 Happy October  🎃
+        🍁            1st!         🦇
+             🦇                  🍂        
+                  🍂        🍁 
+                         🎃
+ 
+coco温美月大姐姐 @wenmeiyue520 30而立，coco香奈儿负责人，已婚人士👭，玩推特不久，想交灵魂摆渡人，人的精神世界需要有人来慰藉，高不高冷取决于你的素质，无聊的人请走开，有兴趣可私信
 
-Do for #WCE is delicious!!!"""
+		⏎ Translated from Chinese by ... 30 years old, head of Coco Chanel, married 👭 , started using Twitter not long ago, looking for a soul ferryman, people spiritual world needs someone to comfort them, whether you are high and cold depends on your quality, boring people please stay away, if you are interested, you can send me a private message"""
 
-print()#print(myNumber)
-print("""\033[5;33;40m""",my_intro,"""\033[0m""")
-#print("\033[5;33;40m" + my_intro + "\033[0m") #AGGREAGTION ATTEMPTED ... WORKS WITH [string] NOT [int]
-print()
-time.sleep(1)
+def colorChange(color):
+    """
+    Change text color for terminal output.
+    Supported colors: red, white, blue, yellow, green, purple, cyan.
+    """
+    colors = {
+        "red": "\033[31m",
+        "white": "\033[0m",
+        "blue": "\033[34m",
+        "yellow": "\033[33m",
+        "green": "\033[32m",
+        "purple": "\033[35m",
+        "cyan": "\033[36m"
+    }
+    return colors.get(color, "\033[0m")  # Default to white if color not found
 
-initial_investment = float(input("What is your Investment Amount $?: "))
-expected_roi = float(input("Expected ROI (Return on Investment as an Annual % Rate)?: "))
-mpr = expected_roi / 12 / 100 #MONTHLY APR %
-apr = expected_roi / 100 #MONTHLY APR %
-num_years = 3 #int(input("How many years is the investment for?: "))
-num_months = num_years*12
+def clear_screen():
+    """
+    Clears the terminal screen.
+    """
+    os.system("clear" if os.name == "posix" else "cls")
 
-print("""\033[5;33;40m With an Initial Investment of \033[0m : $""",round(initial_investment,2),"""\033[5;33;40m at an APR of \033[0m :""",expected_roi,"""%""",""" \033[5;33;40mfor\033[0m""",num_years,"""\033[5;33;40mYear(s)\033[0m""")
-time.sleep(1)
-print(f"Initial Investment: ${initial_investment}")
-print(f"Expected Annual ROI: {expected_roi}%")
+def get_float_input(prompt):
+    """
+    Safely get a float input from the user.
+    """
+    while True:
+        try:
+            return float(input(prompt))
+        except ValueError:
+            print("Please enter a valid number.")
 
-interest_earned = 0
+def get_int_input(prompt):
+    """
+    Safely get an integer input from the user.
+    """
+    while True:
+        try:
+            return int(input(prompt))
+        except ValueError:
+            print("Please enter a valid integer.")
+
+# Clear the screen
+clear_screen()
+
+# User Input
+name = input("May I know your Name? ")
+
+# GREETINGS
+greetings = ["Hello", "Konnichiwa", "Guten Tag!", "Bore Da!", "Hola"]
+index = random.randint(0, len(greetings) - 1)
+print(f"{colorChange('red')}={colorChange('white')}={colorChange('blue')}= {colorChange('white')} {greetings[index]} {colorChange('cyan')} {name} {colorChange('blue')}={colorChange('white')}={colorChange('red')}=\n\n\033[5;33;40m {my_intro} \033[0m {colorChange('yellow')} \n") #'f' STRING() WITH() ... {} ...
+
+# Investment Details Input with Error Handling
+initial_investment = get_float_input("What is your Investment Amount $?: ")
+expected_roi = get_float_input("Expected ROI (Return on Investment as an Annual % Rate)?: ")
+num_years = get_int_input("How many years is the investment for?: ")
+
+# Calculations
+num_months = num_years * 12
+mpr = expected_roi / 12 / 100  # Monthly Percentage % Rate
+apr = expected_roi / 100       # Annual Percentage % Rate
+monthly_interest = []
+annual_interest = []
+total_interest = 0
+
 for month in range(num_months):
-  interest_this_month = initial_investment * mpr  
-  interest_earned += interest_this_month
-  initial_investment += interest_this_month
-print(f"Total interest earned: ${round(interest_earned,2)}")  #'f' STRING() 
+    interest_this_month = initial_investment * mpr  
+    total_interest += interest_this_month
+    initial_investment += interest_this_month
+    monthly_interest.append(round(initial_investment, 2))
+    if (month + 1) % 12 == 0:
+        annual_interest.append(round(initial_investment, 2))
 
+# Display Results
+print(f"With an Initial Investment of: ${round(initial_investment, 2)} at an APR of: {expected_roi}% for {num_years} Year(s)")
+print("\nMonthly Balances:")
+for month, balance in enumerate(monthly_interest):
+    print(f"Month {month + 1}: ${balance}")
 
+print("\nEOY Annual Balances:")
+for annum, balance in enumerate(annual_interest):
+    print(f"Year {annum + 1}: ${balance}")
 
-
-
-
-
-#import emojis #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-#import datetime #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-import random, os, time #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-
-#from getpass import getpass as input #'BLINDED DATA ENTRY'
-
-os.system("clear")
-#myNumber = random.randint(11,13)
-my_intro = """The POWER OF COMPOUND INT (MONTHLY)
-
-⚔️ ☑ 🤤 🍭 ❣ 🐫 😍👍 🏆  💆 😎 🔥 👩‍🎨 💡 🏡 📈 🚀 💰 🛢 🔪 👋 ✔ 🔆 ⚡ ☕ 🙏 🏡 🚀 🚗  🎉 😅 🏠 🙅 💰 🎮 ☕️ 🤯 🤬 💰 😐 😭 💸🦌 ☠💋🌈👽🍩🧁🌻☀️💦💋☠ ❤️ 🏃‍♂️ 🥊 🥑  🦋 ☕  🎵 ✂️ 🍒🍊🍉🥝 ★ ⚠ ⛈️ 🍀 🌷 🦅 👉 🚧 🚗 🏆  ⚠️ Dangerous Curves Ahead ⚠️ ("🐮 Moo") ("🐷 Oink") ("🐑 Baaa") ("🦆 Quack") ("🐶 Woof") ("🐱 Meow") ✈️ - 👢Country lover - ⛳Golfer - 💪Fitness 🍾 '\VANTA BLACK AS BACKGROUND'  Anastacia🌷 Ice Spice ☆ @icespicee_ fap  ⚓️ ★  🐍
-
-Do for #WCE is delicious!!!"""
-
-print()#print(myNumber)
-print("""\033[5;33;40m""",my_intro,"""\033[0m""")
-#print("\033[5;33;40m" + my_intro + "\033[0m") #AGGREAGTION ATTEMPTED ... WORKS WITH [string] NOT [int]
+print(f"\nTotal Interest Earned Over Investment Period: ${round(total_interest, 2)}")
 print()
-time.sleep(1)
-
-initial_investment = random.randint(5000,5000) #5000 #float(input("What is your Investment Amount $?: "))
-expected_roi = random.randint(10,20) #20 #float(input("Expected ROI (Return on Investment as an Annual % Rate)?: "))
-mpr = expected_roi / 12 / 100 #MONTHLY APR %
-apr = expected_roi / 100 #MONTHLY APR %
-num_years = 3 #int(input("How many years is the investment for?: "))
-num_months = num_years*12
-
-print("""\033[5;33;40m With an Initial Investment of \033[0m : $""",round(initial_investment,2),"""\033[5;33;40m at an APR of \033[0m :""",expected_roi,"""%""",""" \033[5;33;40mfor\033[0m""",num_years,"""\033[5;33;40mYear(s)\033[0m""")
+# print(f"Final Balance: ${round(initial_investment, 2)}")
+# print()
+print(f"{colorChange('yellow')}Witness the POWER of COMPOUND INTEREST !!! {colorChange('white')}")
 print()
-for flwl in range(0,num_months): #PYTHON FOR LOOP() v WHILE LOOP() ... IMPLICIT '<' LESS THAN
-
-  initial_investment += (initial_investment*mpr)
-  print("Month", flwl+1, "BAL() is $", round(initial_investment,2))
-
-
-
-
-
-
-
-#import emojis #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-#import datetime #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-import random, os, time #'import' Library LIKE '%[sp]%' LIKE '%ENGINE%' LIKE '%SUBROUTINE%'
-
-#from getpass import getpass as input #'BLINDED DATA ENTRY'
-
-os.system("clear")
-#myNumber = random.randint(11,13) 
-my_intro = """The POWER OF COMPOUND INT (ANNUALLY)
-⚔️ ☑ 🤤 🍭 ❣ 🐫 😍👍 🏆  💆 😎 🔥 👩‍🎨 💡 🏡 📈 🚀 💰 🛢 🔪 👋 ✔ 🔆 ⚡ ☕ 🙏 🏡 🚀 🚗  🎉 😅 🏠 🙅 💰 🎮 ☕️ 🤯 🤬 💰 😐 😭 💸🦌 ☠💋🌈👽🍩🧁🌻☀️💦💋☠ ❤️ 🏃‍♂️ 🥊 🥑  🦋 ☕  🎵 ✂️ 🍒🍊🍉🥝 ★ ⚠ ⛈️ 🍀 🌷 🦅 👉 🚧 🚗 🏆  ⚠️ Dangerous Curves Ahead ⚠️ ("🐮 Moo") ("🐷 Oink") ("🐑 Baaa") ("🦆 Quack") ("🐶 Woof") ("🐱 Meow") ✈️ - 👢Country lover - ⛳Golfer - 💪Fitness 🍾 '\VANTA BLACK AS BACKGROUND'  Anastacia🌷 Ice Spice ☆ @icespicee_ fap  ⚓️ ★  🐍
-
-Do for #WCE is delicious!!!"""
-
-print()#print(myNumber)
-print("""\033[5;33;40m""",my_intro,"""\033[0m""")
-#print("\033[5;33;40m" + my_intro + "\033[0m") #AGGREAGTION ATTEMPTED ... WORKS WITH [string] NOT [int]
-print()
-time.sleep(1)
-
-initial_investment = random.randint(5000,5000) #5000 #float(input("What is your Investment Amount $?: "))
-expected_roi = random.randint(10,20) #20 #float(input("Expected ROI (Return on Investment as an Annual % Rate)?: "))
-mpr = expected_roi / 12 / 100 #MONTHLY APR %
-apr = expected_roi / 100 #MONTHLY APR %
-num_years = 3 #int(input("How many years is the investment for?: "))
-num_months = num_years*12
-
-print("""\033[5;33;40m With an Initial Investment of \033[0m : $""",round(initial_investment,2),"""\033[5;33;40m at an APR of \033[0m :""",expected_roi,"""%""",""" \033[5;33;40mfor\033[0m""",num_years,"""\033[5;33;40mYear(s)\033[0m""")
-print()
-for flwl in range(0,num_years): #PYTHON FOR LOOP() v WHILE LOOP() ... IMPLICIT '<' LESS THAN
-
-  initial_investment += (initial_investment*apr)
-  print("Year", flwl+1, "BAL() is $", round(initial_investment,2))
-  
