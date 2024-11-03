@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Covered California Interactive Infographic</title>
+    <style>
+        body { 
+            font-family: Book Antiqua, sans-serif; 
+            line-height: 1.6; 
+            color: #e0e0e0; 
+            background-color: #121212; 
+            margin: 0;
+            padding: 20px;
+        }
+        h1, h2, h3 { color: #ffffff; }
+        .container { display: flex; flex-wrap: wrap; justify-content: space-around; }
+        .info-card { 
+            background: #1e1e1e; 
+            border-radius: 5px; 
+            padding: 15px; 
+            margin: 10px; 
+            width: 45%; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .slideshow { width: 100%; max-width: 600px; margin: 20px auto; position: relative; }
+        .slideshow img { width: 100%; display: none; }
+        .slideshow img.active { display: block; }
+        .slideshow-controls { text-align: center; margin-top: 10px; }
+        .slideshow-controls button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .timeline { position: relative; max-width: 1200px; margin: 0 auto; }
+        .timeline::after { 
+            content: ''; 
+            position: absolute; 
+            width: 6px; 
+            background-color: #4a4a4a; 
+            top: 0; 
+            bottom: 0; 
+            left: 50%; 
+            margin-left: -3px; 
+        }
+        .timeline-item { padding: 10px 40px; position: relative; background-color: inherit; width: 50%; }
+        .timeline-item::after { 
+            content: ''; 
+            position: absolute; 
+            width: 25px; 
+            height: 25px; 
+            right: -17px; 
+            background-color: #121212; 
+            border: 4px solid #FF9F55; 
+            top: 15px; 
+            border-radius: 50%; 
+            z-index: 1; 
+        }
+        .left { left: 0; }
+        .right { left: 50%; }
+        .left::before { 
+            content: " "; 
+            height: 0; 
+            position: absolute; 
+            top: 22px; 
+            width: 0; 
+            z-index: 1; 
+            right: 30px; 
+            border: medium solid #1e1e1e; 
+            border-width: 10px 0 10px 10px; 
+            border-color: transparent transparent transparent #1e1e1e; 
+        }
+        .right::before { 
+            content: " "; 
+            height: 0; 
+            position: absolute; 
+            top: 22px; 
+            width: 0; 
+            z-index: 1; 
+            left: 30px; 
+            border: medium solid #1e1e1e; 
+            border-width: 10px 10px 10px 0; 
+            border-color: transparent #1e1e1e transparent transparent; 
+        }
+        .right::after { left: -16px; }
+        .timeline-content { 
+            background-color: #1e1e1e; 
+            position: relative; 
+            border-radius: 6px; 
+            padding: 20px; 
+        }
+        a { color: #4da6ff; }
+    </style>
+</head>
+<body>
+    <h1>Covered California Interactive Infographic</h1>
+
+    <div class="container">
+        <div>
+            <div class="info-card">
+                <h2>What is Covered California?</h2>
+                <p>Covered California is the state's health insurance marketplace, established under the Affordable Care Act. It helps individuals and small businesses find affordable health coverage.</p>
+            </div>
+
+            <div class="info-card">
+                <h2>2024 Silver Plan Updates</h2>
+                <p>For Californians earning between 200%-250% of the federal poverty level, there are significant cost reductions in the Silver plan for 2024, including $0 in-patient hospital stay and lower costs for primary care visits, therapy, and generic drugs.</p>
+            </div>
+
+            <div class="info-card">
+                <h2>Program Eligibility</h2>
+                <p>Eligibility for Covered California programs depends on your income relative to the Federal Poverty Level (FPL). Various plans and financial assistance options are available based on your FPL percentage.</p>
+            </div>
+
+            <div class="info-card">
+                <h2>Individual Mandate Status</h2>
+                <p>While the federal individual mandate penalty was set to $0 in 2019, California has implemented its own state-level mandate. Californians must have qualifying health insurance or face a state penalty, unless they qualify for an exemption.</p>
+            </div>
+			
+            <div class="info-card">
+                <h2>RMB: Required Minimum Benefits</h2>
+                <p>The Affordable Care Act (ACA), also known as Obamacare, requires health insurance plans to cover certain essential health benefits. Here are the 10 required minimum benefits:<br><br>
+				1.	Ambulatory patient services (outpatient care)<br>
+				2.	Emergency services<br>
+				3.	Hospitalization<br>
+				4.	Maternity and newborn care<br>
+				5.	Mental health and substance use disorder services, including behavioral health treatment<br>
+				6.	Prescription drugs<br>
+				7.	Rehabilitative and habilitative services and devices<br>
+				8.	Laboratory services<br>
+				9.	Preventive and wellness services and chronic disease management<br>
+				10.	Pediatric services, including oral and vision care<br><br>
+				These essential health benefits must be included in all individual and small group health insurance plans sold both on and off the Health Insurance Marketplace. Large group health plans and self-insured plans are not required to offer all of these benefits, but most do.
+				It's worth noting that while these are the minimum required benefits, many plans offer additional coverage beyond these essentials. The specific details of coverage can vary between plans and states.
+				</p>
+            </div>			
+        </div>
+
+        <div>
+            <div id="slideshow" class="slideshow">
+                <h2>Covered California Information</h2>
+				<img src="https://pbs.twimg.com/media/GZY9beka4AAkdIL?format=jpg&name=4096x4096" alt="Prompt Engineer .ai">
+                <img src="2023-07_Covered-CA_Benefits-Design-table_v24-1-3767798829.jpg" alt="2024 Covered California Silver plan benefit design updates" class="active">
+                <img src="Revised-2023-Covered-California-Income-Medi_Cal-Eligibity-Chart-1024x808-3829293774.jpg" alt="Program Eligibility by Federal Poverty Level for 2023">
+                <img src="COVERED CA FRONTPAGE INDEX.jpg" alt="Coverage Options and How to Get Covered">
+                <div class="slideshow-controls">
+                    <button onclick="changeSlide(-1)">Previous</button>
+                    <button onclick="toggleSlideshow()">Play</button>
+                    <button onclick="changeSlide(1)">Next</button>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h2>How to Get Covered</h2>
+                <p>To get covered:</p>
+                <ol>
+                    <li>Explore available plans on the Covered California website (https://www.coveredca.com)</li>
+                    <li>Select a plan that's right for you</li>
+                    <li>Enroll during the open enrollment period (typically November to January) or during a special enrollment period if you qualify</li>
+                    <li>Start using your coverage for preventive care and other health needs</li>
+                </ol>
+                <p>Open enrollment for 2024 coverage runs from November 1, 2023, to January 31, 2024.</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Origins and History of the Affordable Care Act (Obamacare)</h2>
+
+    <div class="timeline">
+        <div class="timeline-item left">
+            <div class="timeline-content">
+                <h3>2008</h3>
+                <p>Barack Obama campaigns on health care reform as a major issue.</p>
+            </div>
+        </div>
+        <div class="timeline-item right">
+            <div class="timeline-content">
+                <h3>March 23, 2010</h3>
+                <p>President Obama signs the Affordable Care Act into law.</p>
+            </div>
+        </div>
+        <div class="timeline-item left">
+            <div class="timeline-content">
+                <h3>2011-2013</h3>
+                <p>Early provisions of the ACA are implemented, including allowing young adults to stay on parents' insurance until age 26.</p>
+            </div>
+        </div>
+        <div class="timeline-item right">
+            <div class="timeline-content">
+                <h3>October 1, 2013</h3>
+                <p>Health Insurance Marketplaces, including Covered California, open for enrollment.</p>
+            </div>
+        </div>
+        <div class="timeline-item left">
+            <div class="timeline-content">
+                <h3>January 1, 2014</h3>
+                <p>Major provisions of the ACA take effect, including individual mandate and prohibition on denying coverage due to pre-existing conditions.</p>
+            </div>
+        </div>
+        <div class="timeline-item right">
+            <div class="timeline-content">
+                <h3>December 2017</h3>
+                <p>Tax Cuts and Jobs Act passes, setting the federal individual mandate penalty to $0 effective 2019.</p>
+            </div>
+        </div>
+        <div class="timeline-item left">
+            <div class="timeline-content">
+                <h3>January 1, 2019</h3>
+                <p>Federal individual mandate penalty reduced to $0. Some states, including California, implement their own individual mandates.</p>
+            </div>
+        </div>
+        <div class="timeline-item right">
+            <div class="timeline-content">
+                <h3>2020-Present</h3>
+                <p>Ongoing implementation and modifications to the ACA, including responses to the COVID-19 pandemic and enhanced subsidies under the American Rescue Plan.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <h2>ACA Evolution and COVID-19 Impact</h2>
+        <p>The ACA has evolved significantly since its implementation:</p>
+        <ul>
+            <li>Elimination of the federal individual mandate penalty</li>
+            <li>Implementation of state-level individual mandates in some states</li>
+            <li>Expansion of subsidies and eligibility under the American Rescue Plan</li>
+            <li>COVID-19 related changes, including special enrollment periods and coverage for testing and vaccination</li>
+        </ul>
+        <p>These changes reflect ongoing efforts to improve healthcare access and affordability in California and across the nation.</p>
+    </div>
+
+    <script>
+        let slideIndex = 0;
+        let slideshowInterval;
+
+        function changeSlide(n) {
+            showSlide(slideIndex += n);
+        }
+
+        function showSlide(n) {
+            let slides = document.querySelectorAll("#slideshow img");
+            if (n >= slides.length) {slideIndex = 0}
+            if (n < 0) {slideIndex = slides.length - 1}
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[slideIndex].classList.add('active');
+        }
+
+        function toggleSlideshow() {
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+            } else {
+                slideshowInterval = setInterval(() => changeSlide(1), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
