@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Option Trading Guide</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.cdnfonts.com/css/book-antiqua');
+        
+        :root {
+            --bg-primary: #1a1a1a;
+            --text-primary: #ffffff;
+            --accent-color: #4a9eff;
+            --card-bg: #2d2d2d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Book Antiqua', serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #F99928;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #888;
+        }
+
+        .mermaid {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .slideshow-container {
+            position: relative;
+            margin: 20px 0;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .slide {
+            display: none;
+            padding: 20px;
+            animation: fadeEffect 1s;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 15px 0;
+            border-left: 4px solid #F99928;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        button {
+            background: #F99928;
+            color: black;
+            font-weight: bold;
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #FFB6C1;
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2em;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">Understanding Call Option Selling</h1>
+            <p class="subtitle">An Interactive Guide for New Investors</p>
+        </header>
+
+        <div class="mermaid">
+            %%{init: {'theme': 'dark', 'themeVariables': { 'fontSize': '16px'}}}%%
+            flowchart TB
+                A[Current Stock Price] -->|Ideally is Below| B[Strike Price]
+                B --> C{Sell Call Option}
+                C -->|Requires| D[100 Shares as Collateral]
+                C -->|Generates| E[Premium]
+                C -->|Creates| F[Obligation]
+                F -->|If Triggered| G[Sell Stock at Strike]
+                H[Time] -->|Until| I[Expiration]
+                I -->|Every| J[3rd Friday When the BIG $ Plays]
+                K[Stock Price] -->|Rises Above Strike| G
+
+                style A fill:#90EE90,stroke:#2d5a27,color:#000
+                style H fill:#90EE90,stroke:#2d5a27,color:#000
+                style B fill:#2d2d2d,stroke:#4a9eff
+                style C fill:#F99928,stroke:#367d2e,color:#000
+                style D fill:#FFB6C1,stroke:#2d5a27,color:#000
+                style E fill:#FFB6C1,stroke:#2d5a27,color:#000
+                style F fill:#FFB6C1,stroke:#2d5a27,color:#000
+                style G fill:#2d2d2d,stroke:#4a9eff
+                style I fill:#2d2d2d,stroke:#4a9eff
+                style J fill:#2d2d2d,stroke:#4a9eff
+                style K fill:#FFB6C1,stroke:#2d5a27,color:#000
+        </div>
+
+        <div class="slideshow-container">
+            <div class="slide active">
+                <div class="card">
+                    <h2>What is a Call Option?</h2>
+                    <p>A call option is a contract that creates an obligation to sell an asset at a specified price (strike price) within a specific time period when selling the option.</p>
+                </div>
+            </div>
+
+            <div class="slide">
+                <div class="card">
+                    <h2>Premium</h2>
+                    <p>When you sell a call option, you receive immediate payment (premium) in exchange for taking on the obligation to sell your shares at the strike price.</p>
+                </div>
+            </div>
+
+            <div class="slide">
+                <div class="card">
+                    <h2>Strike Price</h2>
+                    <p>The predetermined price at which you're obligated to sell the stock if the option is exercised. Should be above your acquisition price for profit potential.</p>
+                </div>
+            </div>
+
+            <div class="slide">
+                <div class="card">
+                    <h2>Collateral</h2>
+                    <p>Must own 100 shares per contract as collateral. These shares are "locked" until expiration or the option is closed.</p>
+                </div>
+            </div>
+
+            <div class="slide">
+                <div class="card">
+                    <h2>Rolling Options</h2>
+                    <p>Rolling means closing your current position and opening a new one with a different strike price or expiration date for a net credit. Ideal when Call Bid > Put Bid.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="prevSlide()">Previous</button>
+            <button id="playPauseBtn" onclick="toggleSlideshow()">Start</button>
+            <button onclick="nextSlide()">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            securityLevel: 'loose',
+            fontFamily: 'Book Antiqua'
+        });
+
+        // Slideshow functionality
+        let currentSlide = 0;
+        const slides = document.getElementsByClassName("slide");
+        let slideshowInterval = null;
+        let isPlaying = false;
+
+        function showSlide(n) {
+            for (let i = 0; i < slides.length; i++) {
+                slides[i].classList.remove("active");
+            }
+            currentSlide = (n + slides.length) % slides.length;
+            slides[currentSlide].classList.add("active");
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        function toggleSlideshow() {
+            const playPauseBtn = document.getElementById("playPauseBtn");
+            if (isPlaying) {
+                clearInterval(slideshowInterval);
+                playPauseBtn.textContent = "Start";
+            } else {
+                slideshowInterval = setInterval(nextSlide, 3000);
+                playPauseBtn.textContent = "Pause";
+            }
+            isPlaying = !isPlaying;
+        }
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>
