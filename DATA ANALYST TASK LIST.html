@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WCARR: Production Task Tracking Table</title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+
+    <style>
+    body {
+        font-family: Book Antiqua, sans-serif;
+        background-color: #1e1e1e;
+        color: #ffffff;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+    }
+    #taskTable {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    #taskTable th, #taskTable td {
+        border: 1px solid #444;
+        padding: 8px;
+        text-align: left;
+    }
+    #taskTable th {
+        background-color: #333;
+        color: white;
+    }
+    #taskTable tr {
+        background-color: #2c2c2c;
+        color: #ffffff;
+    }
+    #taskTable tr:nth-child(even) {
+        background-color: #3c3c3c;
+    }
+    .dataTables_wrapper {
+        color: #ffffff;
+    }
+    .dataTables_filter, .dataTables_length {
+        color: #ffffff;
+    }
+    .dataTables_filter input, .dataTables_length select {
+        color: #ffffff;
+        background-color: #3c3c3c;
+        border: 1px solid #555;
+    }
+    .dataTables_info, .dataTables_paginate {
+        color: #ffffff !important;
+    }
+    .paginate_button {
+        color: #ffffff !important;
+    }
+    .paginate_button.current {
+        color: #000000 !important;
+    }
+    /* New styles for search and show entries text */
+    .dataTables_filter label, .dataTables_length label {
+        color: #ffffff;
+    }
+    .dataTables_filter input::placeholder {
+        color: #aaaaaa;
+    }
+        /* New styles for column-specific search inputs */
+        thead input {
+            width: 100%;
+            padding: 3px;
+            box-sizing: border-box;
+            color: #ffffff;
+            background-color: #3c3c3c;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>WCARR: Production Task Tracking Table</h1>
+    <table id="taskTable">
+        <thead>
+            <tr>
+                <th>Task ID</th>
+                <th>Task</th>
+                <th>Frequency</th>
+                <th>Automated</th>
+                <th>When</th>
+                <th>Regulatory</th>
+            </tr>
+            <tr>
+                <th><input type="text" placeholder="Search Task ID" /></th>
+                <th><input type="text" placeholder="Search Task" /></th>
+                <th><input type="text" placeholder="Search Frequency" /></th>
+                <th><input type="text" placeholder="Search Automated" /></th>
+                <th><input type="text" placeholder="Search When" /></th>
+                <th><input type="text" placeholder="Search Regulatory" /></th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be populated here by JavaScript -->
+        </tbody>
+    </table>
+
+    <script>
+const taskData = [
+            {id: 73, task: "CalAIM (CALIFORNIA ADVANCING AND INNOVATING MEDI-CAL) IPP (INCENTIVE PAYMENT PROGRAM)", frequency: "BI-ANNUAL", automated: "N", when: "MAR, AUG", regulatory: "Y"},
+            {id: 1, task: "PROVIDER ALERT FAX BLAST", frequency: "DAILY", automated: "N", when: "", regulatory: "Y"},
+            {id: 2, task: "ODAG (Organization Determinations, Appeals and Grievances) - ON DEMAND / ADHOC", frequency: "DAILY", automated: "PARTIALLY", when: "", regulatory: "Y"},
+            {id: 3, task: "SSRS - EXEC QPROD.dbo.sp_ClaimInterest; --FOR T. Church & N. Castellanos", frequency: "DAILY", automated: "Y", when: "", regulatory: "N"},
+            {id: 4, task: "SSRS - EXEC QPROD.dbo.sp_ClaimsDashboard; --see SERGIO_ClaimsDashboard_...sql", frequency: "DAILY", automated: "Y", when: "", regulatory: "N"},
+            {id: 5, task: "SSRS - ODDW (Organization Determination Dashboard Weekly)", frequency: "WEEKLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 6, task: "PROVDIR Contact Survey PCP(s) IN (SEP) FOR YOUNG LADY V. Nieves-Ibarra AND R. Moreno", frequency: "WEEKLY", automated: "Y", when: "", regulatory: "Y"},
+            {id: 7, task: "PROVIDER DIRECTORY CMC D-SNP C - SNP (EVERY FOUR WEEKS)", frequency: "WEEKLY", automated: "PARTIALLY", when: "", regulatory: "Y"},
+            {id: 8, task: "PROVIDER DIRECTORY CONTRACTING ENTITY via MS EXCEL", frequency: "WEEKLY", automated: "Y", when: "", regulatory: "Y"},
+            {id: 9, task: "PROVIDER DIRECTORY Medi Cal (Thursday)", frequency: "WEEKLY", automated: "PARTIALLY", when: "", regulatory: "Y"},
+            {id: 10, task: "SSRS (partially) - HEDIS ENC (ON MONDAY(s))", frequency: "WEEKLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 11, task: "MATERNITY KICK On 8th (FINAL), 10th & 20th FOR RDT", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "Y"},
+            {id: 12, task: "EXEC INFORMATICS.dbo.sp_CLAIM_NOTE_MESSAGE; --IN SQLPROD02", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "N"},
+            {id: 13, task: "EXEC INFORMATICS.dbo.sp_WC_BUILD_834; --IN SQLPROD02", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "N"},
+            {id: 14, task: "HCT (EXEC ON 3rd)", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "N"},
+            {id: 15, task: "PROCUREMENT MCP NETWORK", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "N"},
+            {id: 16, task: "SSRS - LOA (Letter of Agreement) AUTH(s)", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 17, task: "SSRS - ODDM (Organization Determination Dashboard Monthly)", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "Y"},
+            {id: 18, task: "SSRS - PCP 1700 (Identify PCP(s) w 1700 or MORE Assigned Member(s))", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 19, task: "SSRS - TOP DIAG (Ad Hoc for Young Lady Noreen - Rolling 12 Month(s))", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 20, task: "SSRS (partially) - Disease Mngmnt- DMP (EXEC; ON 10th)", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 21, task: "SSRS (partially) - IHA Medi - Cal (REPLACING IHA 60, IHA 120, IHA L1M1) ON 5th", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 22, task: "SSRS (SSMS SQL SERVER AGENT) EXEC INFORMATICS2.dbo.SHELLMBR; --IN SQLPROD02", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 23, task: "SSRS (SSMS SQL SERVER AGENT) EXEC INFORMATICS2.dbo.SHELLREF; -- IN SQLPROD02", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 24, task: "SSRS (SSMS SQL SERVER AGENT) SSIS SMILEBOX  CSVs", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 25, task: "SSRS EXEC INFORMATICS.dbo.UPDATE834; --IN SQLPROD02", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "N"},
+            {id: 26, task: "SSRS EXEC SQLPRODAPP01.INFORMATICS.dbo.TOPSPEaddr", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 27, task: "SSRS HCT (TABLEAU VIZ)", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 28, task: "SSRS INFORMATICS2.[dbo].[sp_ERHighVol]; --IN SQLPROD02", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 29, task: "SSRS Membership by ZIP (DEVELOPED FOR DR)", frequency: "MONTHLY", automated: "Y", when: "", regulatory: "N"},
+            {id: 72, task: "Bad Fax # (INFORMATICS.dbo.[uvw_BAD_FAX])", frequency: "MONTHLY", automated: "N", when: "", regulatory: "N"},
+            {id: 30, task: "HCT NO LAG JAG  CHG METRIC - UM (EXEC ON 1st)", frequency: "MONTHLY", automated: "N", when: "", regulatory: "N"},
+            {id: 31, task: "Reinsurance - Demographics by Gener, AGE, and LOB", frequency: "MONTHLY", automated: "PARTIALLY", when: "", regulatory: "N"},
+            {id: 32, task: "SSRS (partially) - DETERMRECON CLAIM(s) - (TRUE QTR(s) - CMC(s)) IN (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 33, task: "SSRS (partially) - DETERMRECON AUTH(s) / REF(s) - (TRUE QTR(s) - CMC(s)) IN (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 34, task: "SSRS (partially) - DETERMRECON VSP - (TRUE QTR(s) - CMC(s)) IN (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 35, task: "SSRS (partially) - DETERMRECON APPEAL(s) CMC(s) IN (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 36, task: "SSRS (partially) - DETERMRECON APPEAL(s) MCAL IN (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 37, task: "SSRS (partially) - DETERMRECON APPEAL(s) COMBINED IN (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 38, task: "SSRS (partially) - CBAS report FOR UM (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "Y", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 39, task: "SSRS (partially) EXEC BY REQUEST - CA 1.11  REWRITE / UPDATED (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "Y", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 40, task: "ECM AUDIT TOOL (JAN, APR, JUL, OCT)", frequency: "QTRLY", automated: "PARTIALLY", when: "JAN, APR, JUL, OCT", regulatory: "Y"},
+            {id: 41, task: "SSRS ERBH 9.1 Utilization IN (FEB, MAY, AUG, NOV)", frequency: "QTRLY", automated: "Y", when: "FEB, MAY, AUG, NOV", regulatory: "Y"},
+            {id: 42, task: "SQIC (Service Quality Improvement Council) IN (FEB, MAY, AUG, NOV)", frequency: "QTRLY", automated: "N", when: "FEB, MAY, AUG, NOV", regulatory: "Y"},
+            {id: 43, task: "DMHC PRE - ONSITE (Bi - Annual WITH the SQIC) IN (FEB, MAY, AUG, NOV)", frequency: "QTRLY", automated: "N", when: "FEB, MAY, AUG, NOV", regulatory: "N"},
+            {id: 44, task: "ECM / CS QUARTERLY (FEB, MAY, AUG, NOV)", frequency: "QTRLY", automated: "N", when: "FEB, MAY, AUG, NOV", regulatory: "Y"},
+            {id: 45, task: "Bi Annual MS Excel & PDF MCal Provider Directory - RE  CHG--Provider Directory Status.msg IN (MAY, OCT)", frequency: "BI-ANNUAL", automated: "N", when: "MAY, OCT", regulatory: "Y"},
+            {id: 46, task: "HEDIS ROADMAP IN (JAN)", frequency: "ANNUALLY", automated: "PARTIALLY", when: "JAN", regulatory: "Y"},
+            {id: 47, task: "SSRS - SPD High Freq IN (JAN) - APL 12-006 (was IN 2021 MANUAL RUNTIME EXCEED(s) 3+ HOUR(s))", frequency: "ANNUALLY", automated: "PARTIALLY", when: "JAN", regulatory: "Y"},
+            {id: 48, task: "SSRS - MODeliv - Top OB IN (FEB)", frequency: "ANNUALLY", automated: "PARTIALLY", when: "FEB", regulatory: "N"},
+            {id: 49, task: "SSRS - HighVolBHT - Top BHT IN (FEB)", frequency: "ANNUALLY", automated: "PARTIALLY", when: "FEB", regulatory: "N"},
+            {id: 50, task: "DHCS_ADEQUACY_...rar IN (MAR) WAIT FOR SIR J. LUTZ GO", frequency: "ANNUALLY", automated: "PARTIALLY", when: "MAR", regulatory: "Y"},
+            {id: 51, task: "SSRS (partially) - CA 4.1 Reduction in (ED) use for (SUD) members IN (APR)", frequency: "ANNUALLY", automated: "Y", when: "APR", regulatory: "Y"},
+            {id: 52, task: "SSRS (partially) - CA 4.3 NF (Nursing Facility) READMISSION IN (APR)", frequency: "ANNUALLY", automated: "Y", when: "APR", regulatory: "Y"},
+            {id: 53, task: "DSH (Disproportionate Share Hospital) IN (MAY)", frequency: "ANNUALLY", automated: "N", when: "MAY", regulatory: "Y"},
+            {id: 54, task: "SSRS (partially) TOPspe IN (JUN) DMHC DHCS Audit", frequency: "ANNUALLY", automated: "Y", when: "JUN", regulatory: "N"},
+            {id: 55, task: "SSRS (partially) - HSD (Health Service Delivery) IN (AUG) OR (JAN)", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 56, task: "SSRS (partially) - CMC High FREQ IN (OCT) see 'DPL 14-005' FOR YOUNG LADY NOREEN also see 'TOPSPE'", frequency: "ANNUALLY", automated: "Y", when: "OCT", regulatory: "N"},
+            {id: 57, task: "SSRS (partially) - AB1455 IN (DEC) aka Annual Plan Claims Payment and Dispute Resolution Mechanism Report", frequency: "ANNUALLY", automated: "PARTIALLY", when: "DEC", regulatory: "Y"},
+            {id: 58, task: "TIMELYACCESS FOR PAAS (PROVIDER APPOINTMENT AVAILABILITY SURVEY) & CONTACT LIST IN (DEC)", frequency: "ANNUALLY", automated: "PARTIALLY", when: "DEC", regulatory: "Y"},
+            {id: 59, task: "AUDIT - DMHC #40 CLAIMS", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 60, task: "AUDIT - DMHC #41 CLAIMS", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 61, task: "AUDIT - DMHC #50 CLAIMS", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 62, task: "AUDIT - DMHC AUDIT_UtilizationManagementDMM", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 63, task: "AUDIT - DMHC AUDIT_UtilizationManagementHOSPIP", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 64, task: "AUDIT - DHCS ERM", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 65, task: "AUDIT - DHCS PRIOR AUTH 1.2", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 66, task: "AUDIT - DHCS FAMILY PLANNING / ABORTION / STATE FUNDED", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 67, task: "AUDIT - DHCS NSMHS AUTHS", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 68, task: "AUDIT - DHCS NSMHS CLAIMS", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 69, task: "AUDIT - DHCS NSMHS CALL TRACKING", frequency: "ANNUALLY", automated: "PARTIALLY", when: "ON DEMAND BY STAKEHOLDER / REGULATOR", regulatory: "Y"},
+            {id: 70, task: "ECM LIKE ADULT LTC", frequency: "QTRLY", automated: "PARTIALLY", when: "FEB, MAY, AUG, NOV", regulatory: "Y"},
+            {id: 71, task: "ECM LIKE ADULT SMI SUD", frequency: "QTRLY", automated: "PARTIALLY", when: "FEB, MAY, AUG, NOV", regulatory: "Y"}
+            // Add more tasks here, up to task 71 from your original CSV
+        ];
+	
+        $(document).ready(function() {
+            // Setup - add a text input to each footer cell
+            $('#taskTable thead tr:eq(1) th').each( function (i) {
+                var title = $(this).text();
+                $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+        
+                $( 'input', this ).on( 'keyup change', function () {
+                    if ( table.column(i).search() !== this.value ) {
+                        table
+                            .column(i)
+                            .search( this.value )
+                            .draw();
+                    }
+                } );
+            } );
+        
+            var table = $('#taskTable').DataTable({
+                data: taskData,
+                columns: [
+                    { data: 'id' },
+                    { data: 'task' },
+                    { data: 'frequency' },
+                    { data: 'automated' },
+                    { data: 'when' },
+                    { data: 'regulatory' }
+                ],
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+                order: [[0, 'asc']],
+                responsive: true,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ tasks",
+                    infoEmpty: "Showing 0 to 0 of 0 tasks",
+                    infoFiltered: "(filtered from _MAX_ total tasks)"
+                },
+                orderCellsTop: true,
+                fixedHeader: true
+            });
+        });
+    </script>
+</body>
+</html>
