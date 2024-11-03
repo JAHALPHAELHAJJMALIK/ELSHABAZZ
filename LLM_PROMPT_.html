@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Prompt Strategies Infographic</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.14.0/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: Book Antiqua, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        }
+        .slideshow { width: 100%; max-width: 600px; margin: 20px auto; position: relative; }
+        .slideshow img { width: 100%; display: none; }
+        .slideshow img.active { display: block; }
+        .slideshow-controls { text-align: center; margin-top: 10px; }
+        .slideshow-controls button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        h1, h2 {
+            color: #4CAF50;
+        }
+        .section {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .mermaid {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.9);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            width: 80%;
+            max-width: 1000px;
+        }
+        .close {
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            position: absolute;
+            right: 35px;
+            top: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LLM Prompt Strategies Infographic</h1>
+        
+        <div class="section">
+            <h2>Prompt Structure Flowchart</h2>
+            <div class="mermaid">
+                graph TD
+                BEGIN((".ai Assistant : ")) ==> B{"Choose Prompt Type"}
+                B -->|Analysis| C[Act as Senior Data Analyst]
+                B -->|Code Review| D[Provide Detailed Report]
+                B -->|Optimization| E[Recommend Optimizations]
+                B -->|Debugging| F[Assist in Debugging]
+                C --> G[Specify Experience: 20+ years]
+                D --> H[Focus on Parameters, Clauses, Functions]
+                E --> I[Consider SQL Query Execution Order]
+                F --> J[Provide Step-by-Step Guide]
+                G --> K[End]
+                H --> K
+                I --> K
+                J --> K
+                
+                style BEGIN font-size:29px,font-weight:bold,width:199px
+                style B fill:#002B49,stroke:#002B49,color:#fff
+                style C fill:#007097,stroke:#007097,color:#fff
+                style D fill:#00A5DB,stroke:#00A5DB,color:#fff
+                style E fill:#63666A,stroke:#63666A,color:#fff
+                style F fill:#A7A9AC,stroke:#A7A9AC,color:#fff
+                style G fill:#D1D3D4,stroke:#D1D3D4,color:#000
+                style H fill:#F99928,stroke:#F99928,color:#fff
+                style I fill:#002B49,stroke:#002B49,color:#fff
+                style J fill:#007097,stroke:#007097,color:#fff
+                style K fill:#00A5DB,stroke:#00A5DB,color:#fff
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Key Prompt Components</h2>
+            <ul>
+                <li>Role Assignment: "ACT AS a Senior Data Analyst"</li>
+                <li>Experience Specification: "WITH 20+ years of EXPERIENCE"</li>
+                <li>Task Description: "PROVIDE", "EXAMINE", "EXPLAIN", "INTERPRET"</li>
+                <li>Output Format: "#MERMAID FLOW CHART", "DETAILED report"</li>
+                <li>Focus Areas: "PARAMETERS", "FROM & JOIN clauses", "WHERE CLAUSE", "WINDOW FUNCTIONS"</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Specialized Prompt Types</h2>
+            <ol>
+                <li>Code Analysis and Review</li>
+                <li>Code Optimization</li>
+                <li>Debugging Assistance</li>
+                <li>Code Conversion (e.g., to Snowflake)</li>
+                <li>Interactive Visualization Creation</li>
+                <li>Documentation Generation</li>
+                <li>Specification Alignment Check</li>
+            </ol>
+        </div>
+		
+        <div>
+            <div id="slideshow" class="slideshow">
+                <h2>.ai Prompt Engineering Slide Show: </h2>
+				<img src="https://pbs.twimg.com/media/GZY9beka4AAkdIL?format=jpg&name=4096x4096" alt="Prompt Engineer .ai">
+				<img src="https://i.ytimg.com/vi/LJHIo1V4DvY/maxresdefault.jpg" alt="How To Parameterize LLM Prompt - OpenAI | Langchain | GPT AI News">
+				<img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Ftechcommunity.microsoft.com%2Ft5%2Fimage%2Fserverpage%2Fimage-id%2F510975i1A94B290D72B5153%2Fimage-size%2Foriginal%3Fv%3Dv2%26px%3D-1&f=1&nofb=1&ipt=4d0276239b18c8918018a23b05e318b888a622533e3fe0b16d22fcc794a075a3&ipo=images" alt="An Introduction to LLMOps: Operationalizing and Managing Large Language Models using Azure ML">
+				<img src="https://ischatgptfree.com/wp-content/uploads/2023/05/ChatHPT-Prompt-CheatSheet-828x1024.jpg" alt="What are you using ChatGPT for?">
+				<img src="https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fpromptengineering.org%2Fcontent%2Fimages%2F2023%2F08%2FPrompt-engineering---Large-Language-Model-LLM-Structure-of-an-Effective-AI-Prompt-PromptEngineering.org.jpg&f=1&nofb=1&ipt=2d4be4718f87a6d9489fa814274012e1517364a4e7f1ea65e15c7b5abd30718c&ipo=images" alt="What Are Large Language Model (LLM) Agents and Autonomous Agents">
+                <div class="slideshow-controls">
+                    <button onclick="changeSlide(-1)">Previous</button>
+                    <button onclick="toggleSlideshow()">Play</button>
+                    <button onclick="changeSlide(1)">Next</button>
+                </div>
+            </div>
+			
+<br/>
+
+        <div class="section">
+            <h2>Best Practices</h2>
+            <ul>
+                <li>Be specific about the role and experience level</li>
+                <li>Clearly define the task and desired output format</li>
+                <li>Provide focus areas or specific aspects to address</li>
+                <li>Use capitalization for emphasis on key instructions</li>
+                <li>Include requests for step-by-step explanations when needed</li>
+                <li>Specify code style preferences (e.g., comment retention, aliasing)</li>
+            </ul>
+        </div>
+    </div>
+
+        <div class="section">
+            <h2>Prompt Archive: </h2>
+
+        ⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have you PROVIDE a '#MERMAID' FLOW CHART.
+		<ul>
+               	~ PLEASE SUMMARIZE the CODE AND PROVIDE a DETAILED report suitable FOR PEER CODE REVIEW<br/>
+				~ PLEASE SUMMARIZE the PARAMETERS deployed within the CODE<br/>
+				~ PLEASE SUMMARIZE the FROM & JOIN clauses deployed within the CODE<br/>
+				~ PLEASE SUMMARIZE the WHERE CLAUSE deployed within the CODE<br/>
+				~ PLEASE SUMMARIZE the WINDOW FUNCTIONS deployed within the CODE<br/>
+				~ PLEASE SUMMARIZE the INDEX IN USE within the CODE<br/>
+				~ PLEASE PROVIDE a DETAILED CHANGE.LOG report based ON the CODE.
+        </ul>
+
+		⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have you conduct a DETAILED COMPARISON of the attached CODE suitable for PEER CODE REVIEW INCLUDING FOCUS ON the following:
+        <ul>		
+                ~ PARAMETERS deployed within the CODE<br/>
+				~ FROM & JOIN clauses deployed within the CODE<br/>
+				~ WHERE CLAUSE deployed within the CODE<br/>
+				~ WINDOW FUNCTIONS deployed within the CODE<br/>
+				~ CHANGE.LOG report based on the attached CODE.
+        </ul>
+
+		⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have your RECOMMENDATION TO OPTIMIZE the attached CODE taking SQL QUERY EXECUTION ORDER OF OPERATION(S) into consideration FOR performance, readability, AND maintainability ... 'PEMDAS' ()^*/+- 'PERFORMANT'.
+        <ul>
+				~ PLEASE provide the complete OPTIMIZED CODE.<br/>
+				~ PLEASE KEEP ANY COMMENT(S). <br/>
+				~ PLEASE KEEP EVERY COMMENTED LINE. <br/>
+				~ PLEASE ENSURE that SELECT statements are NOT left alone on their own lines. <br/>
+				~ PLEASE ENSURE that ALL TABLE AND FIELD aliases are PRECEDED by the 'AS' keyword.
+        </ul>
+
+		⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have you ENSURE that the attached CODE ALIGNS WITH the NARRATIVE / SPECIFICATIONS outlined within ...
+		<ul>
+				~ PLEASE PROVIDE KEY POINTS OF ALIGNMENT
+		</ul>
+
+		⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have you  CONVERT the attached CODE INTO snowflake.
+		<ul>
+				~ PLEASE KEEP ANY COMMENT(S).<br/>
+				~ PLEASE KEEP EVERY COMMENTED LINE.<br/>
+				~ PLEASE ENSURE that SELECT statements are NOT left alone on their own lines.<br/>
+				~ PLEASE ENSURE that ALL TABLE AND FIELD aliases are PRECEDED by the 'AS' keyword.<br/>
+				~ PLEASE ENCLOSE the field names with double ("") quotes (WITH the EXCEPTION OF:  c.memid,c.claimid,clm.memid,clm.claimid<br/>,su.memid,su.claimid,su.contractid,servunit,dosfrom,dosto,revcode,resubclaimid,su.PROVID,sup.PROVID,sup.location,c.claimid,c.status,c.totalpaid<br/>,isencounter,manualencounter,capitated,calendar_date,first_day_in_month,last_day_in_month).<br/> 				
+				~ PLEASE REPLACE any UPDATE statement with a MERGE statement.<br/>
+				~ PLEASE REPLACE occurrences of DROP TABLE IF EXISTS ... WITH  CREATE OR REPLACE TEMPORARY TABLE ... AS. <br/>
+				~ PLEASE ENSURE that the 100090 (42P18): Duplicate row detected during DML action error is corrected. <br/>
+				~ PLEASE ENSURE that the TRY_CAST cannot be used with arguments of types TIMESTAMP_NTZ(9) and DATE error is corrected.
+		</ul>
+
+		⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have CREATE a CRASH COURSE.<br/><br/>
+
+		⏎ ACT AS a Senior Data Analyst WITH 20+ years of EXPERIENCE. May I have you DEBUG my code FOR the following ERROR: 'AGENTIC CODING'
+        </div>
+		
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            flowchart: { curve: 'basis' }
+        });
+    </script>
+	
+    <script>
+        let slideIndex = 0;
+        let slideshowInterval;
+
+        function changeSlide(n) {
+            showSlide(slideIndex += n);
+        }
+
+        function showSlide(n) {
+            let slides = document.querySelectorAll("#slideshow img");
+            if (n >= slides.length) {slideIndex = 0}
+            if (n < 0) {slideIndex = slides.length - 1}
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[slideIndex].classList.add('active');
+        }
+
+        function toggleSlideshow() {
+            if (slideshowInterval) {
+                clearInterval(slideshowInterval);
+                slideshowInterval = null;
+            } else {
+                slideshowInterval = setInterval(() => changeSlide(1), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
