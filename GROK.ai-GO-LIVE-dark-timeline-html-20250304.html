@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Systems Go Live Timeline</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=EB+Garamond&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Book Antiqua', 'EB Garamond', serif;
+        }
+        
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            font-size: 2.5rem;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+        
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background-color: #252525;
+            padding: 1rem;
+            border-radius: 6px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .legend-icon {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .year-section {
+            margin-bottom: 2rem;
+            padding-left: 1.5rem;
+            border-left: 4px solid #454545;
+        }
+        
+        .year-heading {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        
+        .events {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .event-card {
+            padding: 1rem;
+            border-radius: 6px;
+            border-left-width: 6px;
+            border-left-style: solid;
+        }
+        
+        .event-card.start {
+            background-color: rgba(39, 174, 96, 0.2);
+            border-left-color: #27ae60;
+        }
+        
+        .event-card.end {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left-color: #e74c3c;
+        }
+        
+        .event-card.update {
+            background-color: rgba(52, 152, 219, 0.2);
+            border-left-color: #3498db;
+        }
+        
+        .event-card.cutoff {
+            background-color: rgba(241, 196, 15, 0.2);
+            border-left-color: #f1c40f;
+        }
+        
+        .event-header {
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .event-icon {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+        }
+        
+        .event-title {
+            font-weight: bold;
+            font-size: 1.25rem;
+            color: #ffffff;
+        }
+        
+        .event-date {
+            font-size: 0.9rem;
+            color: #bbbbbb;
+            margin-top: 0.25rem;
+        }
+        
+        .event-description {
+            margin-top: 0.5rem;
+            margin-left: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CHGSD: Go Live Timeline</h1>
+        
+        <div class="legend">
+	          <div class="legend-items">
+                <div class="legend-item">
+                    <span class="legend-icon">💯</span>
+                    <span>Origin Story</span>
+                </div>				  
+                <div class="legend-item">
+                    <span class="legend-icon">🟢</span>
+                    <span>Go Live / Start</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon">🔴</span>
+                    <span>Termination / End</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon">🔄</span>
+                    <span>System Update</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-icon">✂️</span>
+                    <span>Cutoff Date</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1982 -->
+        <div class="year-section">
+            <h2 class="year-heading">1982</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon"> 💯 </span>
+                        <div>
+                            <!-- <div class="event-title">CHGSD Birth ... "*CHGSD AT 40.docx*"-</div> -->
+                            <div class="event-title">CHGSD Origin Story</div>
+                            <!-- <div class="event-date">In the Year 1982</div> -->
+                            <div class="event-date">May 28, 1982</div>
+                            <div class="event-description">Community Health Group was founded in San Ysidro in 1982 as one of San Diego County's oldest locally-based Medi-Cal health plans. Community Health Group is dedicated to maintaining and improving the health of our members by providing access to quality care and offering exceptional service to diverse populations</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2006 -->
+        <div class="year-section">
+            <h2 class="year-heading">2006</h2>
+            <div class="events">
+                <div class="event-card end">
+                    <div class="event-header">
+                        <span class="event-icon">🔴</span>
+                        <div>
+                            <div class="event-title">HM1 (Commercial)</div>
+                            <div class="event-date">August 31, 2006</div>
+                            <div class="event-description">Termed on 08/31/2006</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2011 -->
+        <div class="year-section">
+            <h2 class="year-heading">2011</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">SPD</div>
+                            <div class="event-date">June 1, 2011</div>
+                            <div class="event-description">Effective from 06/01/2011</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2013 -->
+        <div class="year-section">
+            <h2 class="year-heading">2013</h2>
+            <div class="events">
+                <div class="event-card update">
+                    <div class="event-header">
+                        <span class="event-icon">🔄</span>
+                        <div>
+                            <div class="event-title">NO PCP REQUIRED</div>
+                            <div class="event-date">January 1, 2013</div>
+                            <div class="event-description">Allowed as early as 01/01/2013</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card cutoff">
+                    <div class="event-header">
+                        <span class="event-icon">✂️</span>
+                        <div>
+                            <div class="event-title">D950 CUTOFF</div>
+                            <div class="event-date">March 31, 2013</div>
+                            <div class="event-description">Cutoff date for QNXT</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">QNXT</div>
+                            <div class="event-date">April 1, 2013</div>
+                            <div class="event-description">Go Live on 04/01/2013</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2014 -->
+        <div class="year-section">
+            <h2 class="year-heading">2014</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">ADULT EXPANSION (M1)</div>
+                            <div class="event-date">January 1, 2014</div>
+                            <div class="event-description">Effective from 01/01/2014</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">CMC</div>
+                            <div class="event-date">April 1, 2014</div>
+                            <div class="event-description">Effective from 04/01/2014</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card end">
+                    <div class="event-header">
+                        <span class="event-icon">🔴</span>
+                        <div>
+                            <div class="event-title">HM2 (Health Families)</div>
+                            <div class="event-date">December 31, 2014</div>
+                            <div class="event-description">Termed on 12/31/2014</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card end">
+                    <div class="event-header">
+                        <span class="event-icon">🔴</span>
+                        <div>
+                            <div class="event-title">MCR (Medicare)</div>
+                            <div class="event-date">December 31, 2014</div>
+                            <div class="event-description">Termed on 12/31/2014</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2015 -->
+        <div class="year-section">
+            <h2 class="year-heading">2015</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">MEDIMPACT (Rx - PHARMACY) TYPE 110</div>
+                            <div class="event-date">October 1, 2015</div>
+                            <div class="event-description">Go Live on 10/01/2015 (was TYPE 54)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">ICD-10</div>
+                            <div class="event-date">October 1, 2015</div>
+                            <div class="event-description">Go Live on 10/01/2015</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2018 -->
+        <div class="year-section">
+            <h2 class="year-heading">2018</h2>
+            <div class="events">
+                <div class="event-card end">
+                    <div class="event-header">
+                        <span class="event-icon">🔴</span>
+                        <div>
+                            <div class="event-title">TYPE 54 FILE</div>
+                            <div class="event-date">March 31, 2018</div>
+                            <div class="event-description">Discontinued as of 03/31/2018</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2021 -->
+        <div class="year-section">
+            <h2 class="year-heading">2021</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">MAGELLAN (Rx - PHARMACY)</div>
+                            <div class="event-date">January 1, 2021</div>
+                            <div class="event-description">Go Live unofficially on 01/01/2021</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2022 -->
+        <div class="year-section">
+            <h2 class="year-heading">2022</h2>
+            <div class="events">
+                <div class="event-card end">
+                    <div class="event-header">
+                        <span class="event-icon">🔴</span>
+                        <div>
+                            <div class="event-title">CMC</div>
+                            <div class="event-date">December 31, 2022</div>
+                            <div class="event-description">Termed on 12/31/2022 for D-SNP Medicare</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2023 -->
+        <div class="year-section">
+            <h2 class="year-heading">2023</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">DSNP / D-SNP</div>
+                            <div class="event-date">January 1, 2023</div>
+                            <div class="event-description">Effective 01/01/2023 to replace CMC</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 2024 -->
+        <div class="year-section">
+            <h2 class="year-heading">2024</h2>
+            <div class="events">
+                <div class="event-card start">
+                    <div class="event-header">
+                        <span class="event-icon">🟢</span>
+                        <div>
+                            <div class="event-title">CSNP COMMUNITY Y MAS (HMO C-SNP)</div>
+                            <div class="event-date">January 1, 2024</div>
+                            <div class="event-description">Effective from 01/01/2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

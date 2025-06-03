@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis Reference: Excel vs SQL vs Python (Pandas)</title>
+    <!-- Include Mermaid library for flowchart -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Book Antiqua', 'Palatino Linotype', serif;
+            margin: 20px;
+            background-color: #1e1e2f; /* Dark background */
+            color: #e0e0e0; /* Light text */
+        }
+        h1 {
+            text-align: center;
+            color: #a3bffa; /* Light purple for headings */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #2a2a3c; /* Darker table background */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #444; /* Darker border */
+        }
+        th {
+            background-color: #4a4a6a; /* Darker header background */
+            color: #e0e0e0; /* Light text */
+        }
+        tr:nth-child(even) {
+            background-color: #33334d; /* Slightly lighter for even rows */
+        }
+        tr:hover {
+            background-color: #3b3b5a; /* Hover effect */
+        }
+        pre {
+            background-color: #33334d; /* Dark background for code */
+            color: #e0e0e0; /* Light text */
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .notes {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #2a2a3c; /* Dark background for notes */
+            border-left: 5px solid #a3bffa; /* Light purple border */
+            border-radius: 5px;
+            color: #e0e0e0; /* Light text */
+        }
+        /* Mermaid flowchart styling */
+        .mermaid {
+            margin: 20px 0;
+            background-color: #2a2a3c; /* Match table background */
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        /* Ensure Mermaid nodes and text are visible in dark mode */
+        .mermaid svg {
+            fill: #e0e0e0 !important;
+            stroke: #a3bffa !important;
+        }
+        .mermaid .label {
+            color: #e0e0e0 !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>Data Analysis Reference: Excel vs SQL vs Python (Pandas)</h1>
+
+    <!-- Mermaid Flowchart -->
+    <div class="mermaid">
+        flowchart TD
+            A[Load Data] --> B[Filter Rows]
+            B --> C[Select Columns]
+            C --> D[Sort Data]
+            D --> E[Group By / Aggregate]
+            E --> F[Visualize Data]
+            F --> G[Export Data]
+            style A fill:#4a4a6a,stroke:#a3bffa
+            style B fill:#4a4a6a,stroke:#a3bffa
+            style C fill:#4a4a6a,stroke:#a3bffa
+            style D fill:#4a4a6a,stroke:#a3bffa
+            style E fill:#4a4a6a,stroke:#a3bffa
+            style F fill:#4a4a6a,stroke:#a3bffa
+            style G fill:#4a4a6a,stroke:#a3bffa
+    </div>
+
+    <table>
+        <tr>
+            <th>Task</th>
+            <th>Excel (Your Familiar Method)</th>
+            <th>SQL (Your Familiar Method)</th>
+            <th>Python (Pandas) - New Skill</th>
+        </tr>
+        <tr>
+            <td><strong>Load Data</strong></td>
+            <td>Open Excel file or use <code>File > Open</code></td>
+            <td><code>SELECT * FROM table_name;</code></td>
+            <td><pre>df = pd.read_csv("file.csv")</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Filter Rows</strong></td>
+            <td><code>=FILTER(A2:B10, B2:B10>100)</code></td>
+            <td><code>SELECT * FROM table WHERE column > 100;</code></td>
+            <td><pre>df[df['column'] > 100]</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Select Columns</strong></td>
+            <td>Use column letters (e.g., A, B)</td>
+            <td><code>SELECT column1, column2 FROM table;</code></td>
+            <td><pre>df[['column1', 'column2']]</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Sort Data</strong></td>
+            <td><code>Data > Sort</code></td>
+            <td><code>SELECT * FROM table ORDER BY column DESC;</code></td>
+            <td><pre>df.sort_values(by='column', ascending=False)</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Group By / Aggregate</strong></td>
+            <td>Use Pivot Table</td>
+            <td><code>SELECT dept, COUNT(*) FROM emp GROUP BY dept;</code></td>
+            <td><pre>df.groupby('dept').agg()</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Count Rows</strong></td>
+            <td><code>=COUNTA(A2:A100)</code></td>
+            <td><code>SELECT COUNT(*) FROM table;</code></td>
+            <td><pre>len(df) or df.shape[0]</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Average / Mean</strong></td>
+            <td><code>=AVERAGE(B2:B100)</code></td>
+            <td><code>SELECT AVG(salary) FROM emp;</code></td>
+            <td><pre>df['salary'].mean()</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Sum</strong></td>
+            <td><code>=SUM(B2:B100)</code></td>
+            <td><code>SELECT SUM(sales) FROM data;</code></td>
+            <td><pre>df['sales'].sum()</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Remove Duplicates</strong></td>
+            <td><code>Data > Remove Duplicates</code></td>
+            <td><code>SELECT DISTINCT column FROM table;</code></td>
+            <td><pre>df.drop_duplicates()</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Join Tables</strong></td>
+            <td>Use <code>VLOOKUP</code> or <code>XLOOKUP</code></td>
+            <td><code>SELECT * FROM A JOIN B ON A.id = B.id;</code></td>
+            <td><pre>pd.merge(df1, df2, on='id')</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Create New Column</strong></td>
+            <td><code>=B2 * 0.1</code> in new column</td>
+            <td><code>SELECT salary, salary*0.1 AS bonus FROM emp;</code></td>
+            <td><pre>df['bonus'] = df['salary'] * 0.1</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Rename Column</strong></td>
+            <td>Rename manually</td>
+            <td><code>SELECT column AS new_name FROM table;</code></td>
+            <td><pre>df.rename(columns={'old': 'new'}, inplace=True)</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Handle Missing Data</strong></td>
+            <td><code>=IF(ISBLANK(A2), "N/A", A2)</code></td>
+            <td>Depends on DB; use <code>IS NULL</code>, <code>COALESCE</code></td>
+            <td><pre>df.fillna('N/A') or df.dropna()</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Export Data</strong></td>
+            <td><code>File > Save As (CSV/XLSX)</code></td>
+            <td>Use tools (e.g., SSMS) or <code>INTO OUTFILE</code></td>
+            <td><pre>df.to_csv('output.csv', index=False)</pre></td>
+        </tr>
+        <tr>
+            <td><strong>Data Visualization</strong></td>
+            <td><code>Insert > Charts</code></td>
+            <td>Not native; use BI tools</td>
+            <td><pre>df.plot(kind='bar'), seaborn, matplotlib</pre></td>
+        </tr>
+    </table>
+
+    <div class="notes">
+        <h2>Notes for Transitioning to Python (Pandas)</h2>
+        <p><strong>1. Setup:</strong> Ensure you have Python installed (I recommend Anaconda, which includes Pandas). Use an IDE like Jupyter Notebook for interactive coding, similar to how you might explore data in Excel.</p>
+        <p><strong>2. DataFrames:</strong> Think of a Pandas DataFrame as an Excel sheet or SQL table. <code>df</code> is just a variable name (like a table name in SQL). You can name it anything, e.g., <code>sales_data = pd.read_csv("sales.csv")</code>.</p>
+        <p><strong>3. Filtering:</strong> In SQL, you use <code>WHERE</code>. In Pandas, <code>df[df['column'] > 100]</code> is like filtering rows where a condition is true—similar to Excel’s <code>FILTER</code> function.</p>
+        <p><strong>4. Grouping:</strong> <code>groupby()</code> in Pandas is like a Pivot Table in Excel or <code>GROUP BY</code> in SQL. You can chain it with <code>.agg()</code> to summarize (e.g., count, sum, mean).</p>
+        <p><strong>5. Joins:</strong> <code>pd.merge()</code> is like <code>VLOOKUP</code> or SQL <code>JOIN</code>. The <code>on='id'</code> parameter is the key to match rows, just like in SQL.</p>
+        <p><strong>6. Visualization:</strong> Python’s plotting (e.g., <code>df.plot()</code>) is more powerful than Excel’s charts but requires learning libraries like Matplotlib or Seaborn. Start simple with <code>df.plot(kind='bar')</code>.</p>
+        <p><strong>7. Practice Tip:</strong> Start with small datasets (like CSVs you’d open in Excel). Load them into Pandas, try filtering, grouping, and summarizing, then export the results to CSV to verify.</p>
+    </div>
+
+    <!-- Initialize Mermaid -->
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+    </script>
+</body>
+</html>
