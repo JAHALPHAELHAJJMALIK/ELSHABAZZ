@@ -1,0 +1,57 @@
+%%{init: {'theme': 'dark', 'themeVariables': { 'fontSize': '16px'}}}%%
+graph TD
+    Start[Start: Monthly HCT Refresh] --> Step00[Run SQL Server Agent Job: INF HCT Data Refresh]
+
+    Step00 --> Exec_spUpdateMM[Exec spUpdateMemberMonths on SQLPROD02]
+    Exec_spUpdateMM --> MemberMonthsTable[Update MemberMonths Table<br>Verify: SELECT TOP 1 *]
+
+    Step00 --> Exec_hctMemberGrps[Exec hct_member_grps_proc on SQLPROD02]
+    Exec_hctMemberGrps --> hctMemberGrpsTable[Update hct_member_grps Table<br>Membership Stratification<br>Verify: SELECT TOP 1 *]
+
+    Step00 --> Exec_hctClaimsCost[Exec hct_claims_cost_category_proc on SQLPROD02]
+    Exec_hctClaimsCost --> hctClaimsCostTable[Update hct_claims_cost_category Table<br>Claims Categorization<br>Verify: SELECT TOP 1 *]
+
+    Step00 --> LeverageViews[Leverage Views on SQLPROD02:<br>uvw_hct_snf<br>uvw_hct_inpt<br>uvw_hct_professional<br>uvw_hct_otpt]
+
+    LeverageViews --> Exec_dashHCTFinal[Exec dash_hct_final on SQLPROD02]
+    Exec_dashHCTFinal --> dashHCTInterTable[Update dash_hct_inter Table<br>Summarize Membership and Claims<br>Verify: SELECT TOP 1 *]
+    dashHCTInterTable --> dashHCTTable[Update dash_hct Table<br>Final Aggregated Data<br>Verify: SELECT TOP 1 *]
+
+    Step00 --> Step01[Copy Previous Month Folder<br>Path: Informatics/wcarr/HealthCareTrendReports<br>Extract Files Up a Level]
+
+    Step01 --> Step02[Rename and Check Staging Files:<br>HCT_All_email_Summary<br>sdac_MCC.xlsx - Set Date and Headings<br>HCT<br>AC<br>ACP<br>SPD - RateCode LIKE %SPD%<br>LIC - RateCode LIKE %LIC%<br>M1 - RateCode LIKE %ADULT%EXPA%]
+
+    Step02 --> Step03[Execute SQL Server Agent Jobs/Scripts:<br>Search Emails: OF 16 FROM NoReply<br>Exec dash_hct_final and AR_ Scripts:<br>HCT, AC, ACP, ADULTEXP, DUAL, LIC, OTH, SPD, LTAC_SNF, POS11_22, HCT_eMAIL, NOT21NOT23<br>Refresh ODBC in HCT_All_email_Summary.xlsx]
+
+    Step03 --> Step17[Refresh ODBC Links in 7 Pivot Files<br>Enable Macros, Refresh All<br>Check Name Ranges - AC/ACP Crash Risk]
+
+    Step17 --> VLOOKUP_Std[VLOOKUP Standard Columns:<br>CLMCNT - Col B, $A:$M<br>COST - Col B, $A:$M<br>MBRS - Col D, $A:$O<br>QTY - Col B, $A:$M]
+
+    Step17 --> VLOOKUP_LTAC[VLOOKUP LTAC/SNF Columns:<br>LSA, LSC, LSD - Col F, $A:$Q<br>MBRS - Col D, $A:$O]
+
+    VLOOKUP_Std & VLOOKUP_LTAC --> Audit[Audit Columns at Right<br>Total at A800 - Ctrl+G to S15<br>Verify Data: Cols/Blocks at Right/Bottom<br>Use Charts, Hide/Unhide Rows/Cols<br>Verify Totals by Cx, DxCx, AIDCODE]
+
+    Audit --> Step18_Copy[Copy 10 HCT Files to Top Level or Desktop]
+
+    Step18_Copy --> Step17_Email[Prepare Email Summary:<br>HCT_All_email_Summary.xlsx<br>Move/Copy Template Tab, Rename STATIC]
+
+    Step17_Email --> Step18_Warn[WARNING: Compare to Tableau HCT<br>URLs: Cloud, Desktop, Tableau App<br>Check MM Count via SUBJECT:834 Emails]
+
+    Step18_Warn --> Step19[Prepare 8 Emails with 11 Files<br>Include HCT_All_email_Summary.xlsx<br>Add ECM Version - 202510<br>Hide sdac MCC Tabs, Audit Columns<br>Update HCT AUG 2015, Save]
+
+    Step19 --> End[End: Refresh and Distribution Complete]
+
+    style Start fill:#90EE90,stroke:#2d5a27,color:#000
+    style Step00 fill:#F99928,stroke:#367d2e,color:#000
+    style Exec_spUpdateMM fill:#90EE90,stroke:#2d5a27,color:#000
+    style Exec_hctMemberGrps fill:#90EE90,stroke:#2d5a27,color:#000
+    style Exec_hctClaimsCost fill:#90EE90,stroke:#2d5a27,color:#000
+    
+    style VLOOKUP_Std fill:#FFB6C1,stroke:#2d5a27,color:#000
+    style VLOOKUP_LTAC fill:#FFB6C1,stroke:#2d5a27,color:#000
+    
+    style Audit fill:#90EE90,stroke:#2d5a27,color:#000
+    style Step18_Copy fill:#90EE90,stroke:#2d5a27,color:#000
+    style Step17_Email fill:#90EE90,stroke:#2d5a27,color:#000
+    style Step18_Warn fill:#FFB6C1,stroke:#2d5a27,color:#000
+    style Step19 fill:#90EE90,stroke:#2d5a27,color:#000
