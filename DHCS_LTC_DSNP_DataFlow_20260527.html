@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHCS LTC D-SNP Dual-Brand Data Flow | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --teal:rgba(60,220,200,.36);    --tealFill:rgba(60,220,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:420px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:340px;background:var(--purpleFill);border-color:var(--purple)}
+  .provdb{width:290px;background:var(--cyanFill);border-color:var(--cyan)}
+  .qnxtdb{width:440px;background:var(--greenFill);border-color:var(--green)}
+  .customdb{width:370px;background:var(--tealFill);border-color:var(--teal)}
+  .qproddb{width:310px;background:var(--goldFill);border-color:var(--gold)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+  .module.brand-chgsd{background:rgba(100,180,255,.10);border-color:rgba(100,180,255,.35);color:#9dd6ff}
+  .module.brand-chpiv{background:rgba(60,220,200,.10);border-color:rgba(60,220,200,.35);color:#5eeed8}
+
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:205px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+  .s-teal{background:var(--tealFill);border-color:var(--teal)}
+
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .badge.teal{background:rgba(60,220,200,.12);border-color:rgba(60,220,200,.35);color:#5eeed8}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  .codeset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .codeset-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px}
+  .codeset-box .cs-header{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .cs-db{font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .cs-db.qnxt{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cs-db.hmoprod{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);color:#9dd6ff}
+  .cs-db.custom{background:rgba(60,220,200,.13);border:1px solid rgba(60,220,200,.30);color:#5eeed8}
+  .cs-db.param{background:rgba(255,200,100,.13);border:1px solid rgba(255,200,100,.30);color:#ffe08a}
+  .codeset-box .cs-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .code-pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .code-pill{background:#1c1c1c;border:1px solid rgba(255,200,100,.35);border-radius:6px;padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;font-weight:700}
+  .code-pill.field{border-color:rgba(120,230,240,.30);color:#8ee8f0;font-family:inherit;font-size:11px}
+  .code-pill.brand{border-color:rgba(100,180,255,.30);color:#9dd6ff}
+  .code-pill.teal{border-color:rgba(60,220,200,.35);color:#5eeed8}
+  .cs-note{font-size:11px;color:#777;line-height:1.45;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .cs-note b{color:#aaa}
+
+  .db-section{margin-bottom:24px}
+  .db-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .db-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .db-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .db-title.purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .db-title.cyan{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.28);color:#8ee8f0}
+  .db-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .db-title.teal{background:rgba(60,220,200,.10);border:1px solid rgba(60,220,200,.28);color:#5eeed8}
+  .tbl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tbl-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:13px 15px}
+  .tbl-card .tname{font-size:12.5px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:5px}
+  .tbl-card .ttype{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:7px;display:inline-block}
+  .ttype.staging{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .ttype.worktemp{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .ttype.source{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .ttype.view{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .ttype.ref{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.25);color:#8ee8f0}
+  .ttype.custom{background:rgba(60,220,200,.10);border:1px solid rgba(60,220,200,.25);color:#5eeed8}
+  .tbl-card .tdesc{font-size:11.5px;color:#999;line-height:1.45}
+
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .callout.gold{background:rgba(255,200,100,.07);border-left-color:rgba(255,200,100,.45)}
+  .callout.gold b{color:#ffe08a}
+
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11.5px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+  .param-card .pval{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
+
+  .brand-banner{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+  .brand-pill{border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;letter-spacing:.5px}
+  .brand-pill.chgsd{background:rgba(100,180,255,.13);border:1.5px solid rgba(100,180,255,.40);color:#9dd6ff}
+  .brand-pill.chpiv{background:rgba(60,220,200,.12);border:1.5px solid rgba(60,220,200,.38);color:#5eeed8}
+  .brand-pill span{display:block;font-size:11px;font-weight:400;color:#888;margin-top:3px}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <h1>DHCS Long Term Care (LTC) · Quarterly D-SNP Report · Data Flow Diagram</h1>
+    <div>CHGSD &amp; CHPIV · INFORMATICS · @BRAND dual-script · @leadlag = -4 · @leadlagmonths = 3 · Rev codes 0101–0219 · Updated 05/27/2026 · C001–C003</div>
+  </div>
+  <div class="nav">
+    <button onclick="showSlide(0,this)" class="active">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Code Sets</button>
+    <button onclick="showSlide(2,this)">③ Source Tables</button>
+    <button onclick="showSlide(3,this)">④ Runbook</button>
+    <button onclick="showSlide(4,this)">⑤ Controls</button>
+    <button onclick="showSlide(5,this)">⑥ Parameters</button>
+  </div>
+</div>
+
+<!-- ═══ SLIDE 0 — MAIN DFD ═══ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Report Purpose</div>
+      <div class="title">DHCS LTC — D-SNP Quarterly Submission</div>
+      <div class="subtitle">Measures the count of D-SNP members residing in Long Term Care for <strong>&gt;90 days</strong> during each quarterly reporting period. Revenue codes 0101–0219 drive the HCT day logic. Dual-brand execution: <strong>@BRAND = 'CHGSD'</strong> targets DSNP LOB; <strong>@BRAND = 'CHPIV'</strong> targets MSO - CHPIV LOB. Business owner: <strong>Ms. Barbara Vargas, RN, MSN</strong>. Submitted quarterly to DHCS per D-SNP EAE contract requirements (H4377).</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>Q1–Q4</strong><span>Annual reporting cycle (60-day lag)</span></div>
+        <div class="metric"><strong>2 Brands</strong><span>CHGSD (DSNP) · CHPIV (MSO-CHPIV)</span></div>
+        <div class="metric"><strong>&gt;90 Days</strong><span>LTC threshold (@ltcdays = 90)</span></div>
+        <div class="metric"><strong>Rev 0101–0219</strong><span>HCT logic day capture (C003)</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Dual-Brand Execution</div>
+      <div class="subtitle" style="margin-bottom:12px">Two parallel scripts — identical architecture, different <strong>@BRAND</strong> and <strong>@lobplanprog</strong> values:</div>
+      <div class="brand-banner">
+        <div class="brand-pill chgsd">CHGSD Script<span>@BRAND = 'CHGSD' · @lobplanprog = 'DSNP'<br>Output: DHCS_LTC_DSNP / DELIVERABLE_DHCS_LTC_DSNP</span></div>
+        <div class="brand-pill chpiv">CHPIV Script<span>@BRAND = 'CHPIV' · @lobplanprog = 'MSO - CHPIV'<br>Output: DHCS_LTC_CHPIV / DELIVERABLE_DHCS_LTC_CHPIV</span></div>
+      </div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start;margin-top:10px">
+        <div class="module" style="min-width:100%;text-align:left">Submission Schedule<span>Q1 due May 31 · Q2 Aug 31 · Q3 Nov 30 · Q4 Feb 28 — 60-day lag per CMS requirement</span></div>
+        <div class="module" style="min-width:100%;text-align:left">DHCS Template Output (5-column)<span>Parent Co · H Contract # · Reporting Period · EAE or FIDE · # members in LTC &gt;90 days</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE DATABASES -->
+      <div class="section-label">Source Databases / Systems — Row A: Transactional &amp; Analytics</div>
+      <div class="source-row">
+
+        <div class="system-box sql node" data-title="HMOPROD_PLANDATA · QNXT Transactional (SQLPROD02)" data-body="Primary transactional source for all claim data. Key tables used: claim (header — affiliationid, startdate, enddate, dischargedate, admitdate, planid, formtype, facilitycode, billclasscode, frequencycode, drg, patientstatus, totalamt, totalpaid), claimdetail (line — revcode, servcode, amountpaid, contractpaid, servunits, claimamt, location, modcodes), member (DOB, fullname), affiliation (provid=rendering, affiliateid=payto), provider (NPI, fullname x2), hcfaposlocation, contract, svccode, revcode, claimdiag, claimdrg (C001), claimproc, claimvalue (ValueCode 24 for Accommodation), enrollkeys, enrollstatus, enrollcoverage, program, entity, memberrelation, qrelationship. Also: QNXT_Custom.TRI.FfsPaymentDetails for TRI Payment." data-tags="HMOPROD_PLANDATA|claim|claimdetail|revcode 0101–0219|claimdrg C001|QNXT_Custom TRI|SQLPROD02">
+          <span class="sys-label">HMOPROD_PLANDATA · QNXT (SQLPROD02)</span>
+          <div class="module-row">
+            <div class="module">claim + claimdetail<span>Rev codes 0101–0219<br>LTC qualifying claims</span></div>
+            <div class="module">affiliation<span>provid=Rendering<br>affiliateid=PayTo</span></div>
+            <div class="module">claimdrg<span>MS-DRG + SOI<br>C001 added 20240523</span></div>
+            <div class="module">claimdiag<span>Principal Dx<br>ROW_NUMBER() seq=1</span></div>
+            <div class="module code">TRI.FfsPaymentDetails<span>Targeted Rate Increase<br>QNXT_Custom schema</span></div>
+          </div>
+        </div>
+
+        <div class="system-box enrolldb node" data-title="INFORMATICS · dbo — Analytics Warehouse (SQLPRODAPP01)" data-body="The INFORMATICS warehouse provides views and reference objects used throughout the script: uvw_LINE_OF_BUSINESS (planid → LOB, BRAND filter), uvw_CLAIMS_CLMTYPE (formtype → ClmType), uvw_CLAIMS_BILLTYPE (facilitycode+billclasscode+frequencycode → bill type description), uvw_PATIENTSTATUS (claimid → discharge description + patientstatus), uvw_FINALCLAIM (final adjudicated claim determination), uvw_CLAIMS_PAID (paid claim filter), uvw_PROVISO (provid → specialty description for QA), uvw_BASELINE_MEMBERSHIP (memid → HealthPlanID + CIN), ProviderRepository274_PAR (274 PAR override join on NPI), date_calendarISO (50-year calendar for CALENDAR DAY calculation). Final permanent output tables: DHCS_LTC_DSNP / DHCS_LTC_CHPIV, DELIVERABLE_DHCS_LTC_DSNP / DELIVERABLE_DHCS_LTC_CHPIV, DELIVERABLE_DHCS_LTC_DSNP_TEMPLATE / DELIVERABLE_DHCS_LTC_CHPIV_TEMPLATE." data-tags="INFORMATICS|uvw_LINE_OF_BUSINESS|uvw_FINALCLAIM|uvw_CLAIMS_PAID|date_calendarISO|uvw_PROVISO|SQLPRODAPP01">
+          <span class="sys-label">INFORMATICS · dbo (SQLPRODAPP01)</span>
+          <div class="module-row">
+            <div class="module">uvw_LINE_OF_BUSINESS<span>LOB + @BRAND filter<br>planid → LOB join</span></div>
+            <div class="module">uvw_FINALCLAIM<span>Final claim flag<br>'Y' adjudication</span></div>
+            <div class="module">uvw_CLAIMS_PAID<span>Paid claim filter<br>ClaimCategory = Paid</span></div>
+            <div class="module">date_calendarISO<span>50-yr calendar<br>CALENDAR DAY(S) calc</span></div>
+            <div class="module code">DHCS_LTC_[BRAND]<span>Permanent output tables<br>DSNP + CHPIV variants</span></div>
+          </div>
+        </div>
+
+        <div class="system-box customdb node" data-title="QNXT_Custom · TRI Schema + ProviderRepository274_PAR" data-body="Two supplemental sources beyond the standard HMOPROD_PLANDATA schema: (1) QNXT_Custom.TRI.FfsPaymentDetails — Targeted Rate Increase payment amounts (ExtraAmountPaid) joined on claimid + LineNum. Used in UPDATE step to populate [TRI Payment] column. (2) SQLPRODAPP01.INFORMATICS.dbo.uvw_ProviderRepository274_PAR — the 274 active PAR NPI roster. Used in contractedVerification UPDATE override: if NPIprovnm matches Provider NPI on 274 roster, contractedVerification is SET = 'Y' even if contractinfo JOIN did not match. This is the 274 PAR override logic per the 'QNXT CXO EXECUTIVE SUMMARY CONTRACT PAR STATUS' precedent." data-tags="TRI ExtraAmountPaid|274 PAR override|uvw_ProviderRepository274_PAR|contractedVerification|QNXT_Custom">
+          <span class="sys-label">QNXT_Custom · TRI + 274 PAR Override</span>
+          <div class="module-row">
+            <div class="module code">TRI.FfsPaymentDetails<span>ExtraAmountPaid by claim+line<br>Targeted Rate Increase</span></div>
+            <div class="module code">uvw_ProviderRepository274_PAR<span>274 active PAR NPI<br>contractedVerification override</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW B: PROCESSING STEPS -->
+      <div class="section-label">Script Processing Architecture — 8 Steps (Identical for CHGSD &amp; CHPIV)</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node" data-title="STEP 01 — Parameter Initialization + @BRAND Fork" data-body="All runtime parameters declared and SET. Key parameters: @BRAND (nvarchar) = 'CHGSD' or 'CHPIV' — this is the execution fork that determines LOB filter and output table names. @leadlag = -4 (4 months lag from current month). @leadlagmonths = 3 (3-month reporting window). @RangeStartDate = DATEADD(MONTH,@leadlag,DATEADD(DAY,1,EOMONTH(GETDATE(),-1))) — 1st of the lag month. @RangeEndDate = DATEADD(day,-1,DATEADD(MONTH,@leadlagmonths,@RangeStartDate)). @lobplanprog = 'DSNP' (CHGSD) or 'MSO - CHPIV' (CHPIV). @ltcdays = 90 (LTC membership threshold). @los = 30 (readmission window in days). @gapallowance = 1 (consecutive stay gap tolerance in days). @IndexPlus = 3. Reporting Period is derived as CAST(YEAR(@RangeEndDate)) + ' Q' + DATENAME(qq,@RangeEndDate)." data-tags="@BRAND|@leadlag=-4|@leadlagmonths=3|@lobplanprog|@ltcdays=90|@RangeStartDate|Reporting Period">
+          <span class="step-num">Step 01</span><strong>Parameters</strong>
+          @BRAND fork<br>@leadlag=-4<br>@ltcdays=90
+        </div>
+
+        <div class="step-box s-purple node" data-title="STEP 02 — Pre-Stage: Lookup Tables (#POSLOC, #CONTRACTDESCR)" data-body="COPT Root Cause 4 fix: two small lookup tables are pre-materialized as clustered temp tables BEFORE the main SELECT to eliminate ~12.9 billion Nested Loop rebinds identified in execution plan analysis (C002, 20260421): (1) #POSLOC — SELECT locationcode, DESCRIPTION FROM HMOPROD_PLANDATA.dbo.hcfaposlocation; CREATE CLUSTERED INDEX idx_POSLOC ON #POSLOC (locationcode). (2) #CONTRACTDESCR — SELECT UPPER(LTRIM(RTRIM(description))) AS [CONTRACT DESCRIPTION], contractid FROM HMOPROD_PLANDATA.dbo.contract WHERE NOT description = ''; CREATE CLUSTERED INDEX idx_CONTRACTDESCR ON #CONTRACTDESCR (contractid). Both tables are LEFT JOINed in the main SELECT against cd.location and cd.contractid respectively." data-tags="COPT Root Cause 4|#POSLOC|#CONTRACTDESCR|Nested Loop rebind fix|C002|Pre-stage materialization">
+          <span class="step-num">Step 02</span><strong>Pre-Stage Lookups</strong>
+          #POSLOC + #CONTRACTDESCR<br>Clustered index<br>Rebind elimination
+        </div>
+
+        <div class="step-box s-cyan node" data-title="STEP 03 — #QUALIFYING_CLAIMS: Single-Pass Rev Code Pre-Filter" data-body="COPT Root Cause 1 fix: single-pass pre-filter over claim + claimdetail to materialize qualifying claimids BEFORE the main SELECT, eliminating the 2.07e15-row catastrophic Hash Match and ~1.29e10 correlated IN subquery rebinds (C002). Logic: SELECT DISTINCT clm.claimid, clm.memid, CASE WHEN normalized revcode IN ('101','190','160','169','112','199','185','180') THEN 'LTC' ELSE 'NOT_QUALIFYING' END AS InclusionExclusionType INTO #QUALIFYING_CLAIMS. Revcode normalization: strip leading '0' (0101→101) unless 'Z' prefix. LOB filter: bp.LINE_OF_BUSINESS LIKE '%DSNP%' (or '%MSO - CHPIV%'). Date filter: clm.startdate <= @RangeEndDate AND ISNULL(clm.enddate,GETDATE()) >= clm.startdate. CREATE CLUSTERED INDEX on claimid + NONCLUSTERED on memid. DUP validation SELECT follows." data-tags="COPT Root Cause 1 and 2|#QUALIFYING_CLAIMS|Rev code normalization|LTC codes 101 190 160 169 112 199 185 180|Single-pass pre-filter|C002">
+          <span class="step-num">Step 03</span><strong>#QUALIFYING_CLAIMS</strong>
+          Rev 0101–0219 gate<br>Single-pass filter<br>LTC classification
+        </div>
+
+        <div class="step-box s-green node" data-title="STEP 04 — setclaim CTE + CLAIMDATA CTE + Main SELECT INTO DHCS_LTC_[BRAND]" data-body="Two CTEs chain into the main SELECT INTO permanent table: (1) setclaim: joins #QUALIFYING_CLAIMS WHERE NOT InclusionExclusionType = 'NOT_QUALIFYING', GROUP BY claimid/memid/InclusionExclusionType. (2) CLAIMDATA: joins setclaim → HMOPROD_PLANDATA.dbo.claim to pull all claim header fields (dates, formtype, facilitycode, billclasscode, patientstatus, drg, admitsource, admithour, totalamt, totalpaid, etc.). Main SELECT (165+ columns): joins CLAIMDATA → claimdetail (cd) → uvw_PATIENTSTATUS → claimdrg (C001) → uvw_LINE_OF_BUSINESS → revcode normalized → #POSLOC → #CONTRACTDESCR → svccode → member → uvw_CLAIMS_CLMTYPE → uvw_CLAIMS_BILLTYPE → affiliation → provider (x2) → uvw_BASELINE_MEMBERSHIP. Key derived columns: DischargeEventID = memid+'|'+DischargeDate, AdmitID = memid+startdate+provid, DupID = claimid+claimline, Paper vs Electronic, ER vs Non-ER, Service Type IP/OP. Shell columns for QUPD: [TRI Payment]=0, [Accommodation Code]=0, [Primary/Secondary Status]=NULL, [prindiag]=NULL, contractedVerification=NULL. SELECT INTO INFORMATICS.dbo.DHCS_LTC_[BRAND]. Three NONCLUSTERED indexes: DupID, claimid, memid." data-tags="setclaim CTE|CLAIMDATA CTE|SELECT INTO DHCS_LTC_BRAND|165+ columns|DischargeEventID|AdmitID|NONCLUSTERED indexes|Shell QUPD columns">
+          <span class="step-num">Step 04</span><strong>Main SELECT INTO</strong>
+          CTEs → DHCS_LTC_[BRAND]<br>165+ columns<br>DupID / AdmitID keys
+        </div>
+
+        <div class="step-box s-gold node" data-title="STEP 05 — Sequential QUPD Updates: 8 UPDATE Passes" data-body="Eight sequential UPDATE passes enrich the permanent table: (1) [THE FINAL CLAIM]: power-cycle SET='N' then SET='Y' via JOIN uvw_FINALCLAIM. (2) [Accommodation Code]: CTE acccode — ClaimValue.valuecode='24' AND (amount=.75 Vent OR .76 Non-Vent). (3) [TRI Payment]: JOIN QNXT_Custom.TRI.FfsPaymentDetails on claimid+LineNum → ExtraAmountPaid. (4) [PROCEDURE_1_CODE]: JOIN claimproc WHERE proctype='Primary' AND claimline='1'. (5) [prindiag]+[prindiag descr]+[PRESENT ON ADMISSION]: ROW_NUMBER() OVER (PARTITION BY claimid ORDER BY sequence ASC, codeid DESC) = 1 from claimdiag JOIN DiagCode. (6) [Primary/Secondary Status]: multi-table JOIN enrollkeys → member → enrollstatus → enrollcoverage → program → entity → claim WHERE segtype='INT' AND dates in range. (7) contractedVerification + capitationVerification: JOIN contractinfo ON programid+affiliationid+contractid+networkid+DOS in range. Then override SET='Y' from uvw_ProviderRepository274_PAR WHERE NPIprovnm matches Provider NPI. (8) [QUANTITY]+[HCT LOGIC DAY(S)]: QUANTITY uses D-SNP primary/secondary logic (QMXBP0823/0822/0850/0851 planids). HCT LOGIC DAY(S) SET where revcode BETWEEN '0101' AND '0219' AND NOT NULLIF(TOTAL_PAID_AMOUNT,0)=0 (C003)." data-tags="QUPD 8 passes|THE FINAL CLAIM|Accommodation Code 24|TRI Payment|prindiag ROW_NUMBER|contractedVerification|274 PAR override|HCT LOGIC DAY(S) C003">
+          <span class="step-num">Step 05</span><strong>8 QUPD Passes</strong>
+          Final claim · Accom Code<br>TRI · Diag · PAR status<br>HCT days (C003)
+        </div>
+
+        <div class="step-box s-orange node" data-title="STEP 06 — #AdmitAssessment: Consecutive Stay Analysis with WHILE Loop" data-body="Builds #AdmitAssessment from DHCS_LTC_[BRAND] WHERE ClaimCategory='Paid': DENSE_RANK() OVER (PARTITION BY memid,Cx ORDER BY DOS,provid) AS RANKis; LAG/LEAD(DOS) and LAG/LEAD(ISNULL(DischargeDate,DOSTHRU)) OVER same partition to compute PREVIOUS/NEXT ADMIT DOS+DOSTHRU; DoTheMathInDays = DATEDIFF('d',PREVIOUS ADMIT DOSTHRU,DOS). Then three READMISSION/CONTINUOUS/CONSECUTIVE UPDATEs: READMISSION=1 where DoTheMathInDays BETWEEN 1 AND @los; CONSECUTIVE=1 where DoTheMathInDays<=@gapallowance AND RANKis!=1. WHILE loop (SQL Python feedback pattern): iteratively propagates [Index AdmitID] and [Index Admission Date] through CONSECUTIVE=1 chains until @@ROWCOUNT=0. Computes CALENDAR DAY(S) from date_calendarISO BETWEEN startdate AND ISNULL(DischargeDate,enddate). Updates [Index Calendar Days] (minus-1 for discharge day exclusion). Updates [HCT LOGIC DAY(S)] by SUM from DHCS_LTC_[BRAND]. DUP delete on Cx+AdmitID." data-tags="#AdmitAssessment|DENSE_RANK|LAG LEAD|WHILE loop feedback|CONSECUTIVE stays|CALENDAR DAY(S)|date_calendarISO|Index AdmitID propagation">
+          <span class="step-num">Step 06</span><strong>#AdmitAssessment</strong>
+          WHILE loop chains<br>CONSECUTIVE stays<br>Calendar days
+        </div>
+
+        <div class="step-box s-pink node" data-title="STEP 07 — DELIVERABLE_DHCS_LTC_[BRAND]: Member-Level LTC Summary" data-body="From #AdmitAssessment + DHCS_LTC_[BRAND]: SELECT memid, Cx AS [Category of Service], COUNT(DISTINCT memid) AS [UNIQUE UTILIZERS], SUM([HCT LOGIC DAY(S)]) AS [DAY(S)], SUM(PAID_NET_AMT) AS [PAID] WHERE CASE WHEN [Index Discharge Date] > @RangeEndDate THEN @RangeEndDate ELSE [Index Discharge Date] END BETWEEN @RangeStartDate AND @RangeEndDate GROUP BY memid, Cx. WHERE los.[DAY(S)] >= @ltcdays (>=90). SELECT INTO INFORMATICS.dbo.DELIVERABLE_DHCS_LTC_[BRAND]. This is the member-level LTC deliverable. A companion SELECT BY rendering provider (PROVNM, YOS) and a sample detail SELECT (WHERE memid IN (...)) are also produced for analyst QA. The commented-out MS EXCEL ODBC detail SELECT joins DELIVERABLE back to the raw table for member-level audit trail." data-tags="DELIVERABLE_DHCS_LTC_BRAND|member-level|DAY(S)>=90|@RangeEndDate cap|PAID SUM|QA detail SELECT|Excel ODBC detail">
+          <span class="step-num">Step 07</span><strong>DELIVERABLE Table</strong>
+          LTC ≥90-day members<br>DAY(S) + PAID<br>Range-capped discharge
+        </div>
+
+        <div class="step-box s-teal node" data-title="STEP 08 — DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE: DHCS 5-Column Submission Format" data-body="Final DHCS submission template output: SELECT 'Community Health Group' AS [Parent Company Name], 'H4377/D-SNP' AS [H Contract #], CAST(YEAR(@RangeEndDate)) + ' Q' + DATENAME(qq,@RangeEndDate) AS [Reporting Period], 'EAE' AS [EAE or FIDE], COUNT(DISTINCT memid) AS [#members residing in LTC for > 90 days] INTO INFORMATICS.dbo.DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE FROM INFORMATICS.dbo.DELIVERABLE_DHCS_LTC_[BRAND] CROSS APPLY (SELECT DISTINCT [RANGE NOTE(S)] FROM INFORMATICS.dbo.DHCS_LTC_[BRAND]) AS rp GROUP BY rp.[RANGE NOTE(S)]. The SELECT * FROM DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE produces the 1-row DHCS template answer. Business owner Ms. Barbara Vargas receives this 5-column output for quarterly DHCS EAE D-SNP submission." data-tags="DHCS 5-column template|H4377/D-SNP|EAE|Reporting Period|COUNT DISTINCT memid|DELIVERABLE_TEMPLATE|Ms. Barbara Vargas">
+          <span class="step-num">Step 08</span><strong>DHCS Template Output</strong>
+          H4377 · EAE · 5 cols<br>COUNT members in LTC<br>→ TEMPLATE table
+        </div>
+
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW C: DERIVED DATA ELEMENTS -->
+      <div class="section-label">Derived / Controlled Data Elements</div>
+      <div class="data-elements-row">
+        <div class="data-element node" data-title="HCT Logic Day(s) — Paid Lines Only" data-body="[HCT LOGIC DAY(S)] is SET from cd.servunits (via QUANTITY QUPD logic) WHERE revcode BETWEEN '0101' AND '0219' AND NOT NULLIF(TOTAL_PAID_AMOUNT,0)=0. C003 (20260508): the NOT NULLIF(...,0)=0 guard added per teams discussion to ensure only paid lines contribute HCT day counts — previously '> 0' was used. DUB C 2.0 negation pattern applied." data-tags="HCT LOGIC DAY(S)|revcode 0101-0219|NOT NULLIF paid filter|C003|DUB C 2.0 negation">
+          <strong>HCT Logic Day(s)</strong>revcode 0101–0219<br>Paid lines only<br>C003 filter guard
+        </div>
+        <div class="data-element node" data-title="AdmitID / DischargeEventID — Dedup Keys" data-body="Two composite identifier columns: AdmitID = memid + startdate + provid (Rendering) — 'Unique person, date of service, and provider = one visit'. DischargeEventID = memid + '|' + ISNULL(dischargedate,enddate). These keys drive the #AdmitAssessment CONSECUTIVE chain logic and are used in DUP validation SELECTs throughout." data-tags="AdmitID|DischargeEventID|Dedup key|memid+startdate+provid|CONSECUTIVE chain">
+          <strong>AdmitID / DischargeID</strong>Composite dedup keys<br>CONSECUTIVE chain anchor<br>Visit-level grain
+        </div>
+        <div class="data-element node" data-title="Index Admission/Discharge Dates — WHILE Loop Propagation" data-body="[Index Admission Date] and [Index Discharge Date] are propagated through consecutive stays via the WHILE loop feedback pattern (SQL #PYTHON). The loop joins #AdmitAssessment to itself on PREVIOUS ADMIT DOS/DOSTHRU until @@ROWCOUNT=0. [Index Discharge Date] is then resolved to MAX([Index Discharge Date]) per [Index AdmitID] to reflect the full consecutive stay window. [Index Calendar Days] = COUNT(DISTINCT calendar_date) - 1 from date_calendarISO." data-tags="WHILE loop|Index Admission Date|Index Discharge Date|MAX discharge window|@@ROWCOUNT=0 break|Calendar days">
+          <strong>Index Admit/Discharge</strong>WHILE loop chains<br>MAX discharge window<br>Calendar day calc
+        </div>
+        <div class="data-element node" data-title="Reporting Period Range — @leadlag=-4, @leadlagmonths=3" data-body="Dynamic range derived from GETDATE() with @leadlag=-4 (look back 4 months) and @leadlagmonths=3 (3-month window). @RangeStartDate = 1st of the month 4 months ago. @RangeEndDate = last day of the 3-month window starting from @RangeStartDate. Reporting Period string = CAST(YEAR(@RangeEndDate)) + ' Q' + DATENAME(qq,@RangeEndDate). On 05/27/2026, this produces: Jan 1, 2026 – Mar 31, 2026 = 2026 Q1." data-tags="@leadlag=-4|@leadlagmonths=3|Reporting Period|Dynamic range|2026 Q1 on run date 20260527">
+          <strong>Reporting Period</strong>@leadlag=-4 / +3 months<br>2026 Q1 (run 5/27/26)<br>Dynamic GETDATE() basis
+        </div>
+        <div class="data-element node" data-title="DHCS 5-Column Deliverable Template" data-body="The final DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE table contains exactly 5 columns matching the DHCS Excel submission format: Parent Company Name ('Community Health Group'), H Contract # ('H4377/D-SNP'), Reporting Period (e.g. '2026 Q1'), EAE or FIDE ('EAE'), #members residing in LTC for > 90 days (COUNT DISTINCT memid from DELIVERABLE). This 1-row result is submitted quarterly to DHCS by Ms. Barbara Vargas." data-tags="DHCS template|5-column|COUNT DISTINCT memid|EAE|H4377|Barbara Vargas submission">
+          <strong>DHCS Template (5-col)</strong>H4377/D-SNP · EAE<br>COUNT ≥90-day members<br>Quarterly DHCS delivery
+        </div>
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW D: CHECKPOINTS -->
+      <div class="section-label">Analyst Quality Checkpoints</div>
+      <div class="filter-row">
+        <div class="filter-box node" data-title="Checkpoint — @BRAND Set Correctly" data-body="Before execution, confirm @BRAND is set to the intended value: 'CHGSD' for the DSNP D-SNP script (output tables: DHCS_LTC_DSNP), or 'CHPIV' for the MSO-CHPIV script (output tables: DHCS_LTC_CHPIV). Executing with wrong @BRAND will query the wrong LOB and produce incorrect member counts." data-tags="Control|@BRAND|CHGSD vs CHPIV|LOB mismatch risk">
+          <strong>@BRAND Set?</strong>'CHGSD' or 'CHPIV'<br>Wrong value → wrong LOB
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — LOB Filter Returns Rows" data-body="After parameter SELECT, confirm uvw_LINE_OF_BUSINESS returns active plan rows for @lobplanprog LIKE filter: 'DSNP' (CHGSD) or 'MSO - CHPIV' (CHPIV). Zero rows from the parameter QA SELECT indicates a plan/LOB name mismatch — stop and investigate before proceeding." data-tags="Control|@lobplanprog|uvw_LINE_OF_BUSINESS|zero rows risk">
+          <strong>LOB Returns Rows?</strong>@lobplanprog LIKE match<br>Zero rows → stop
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — #QUALIFYING_CLAIMS DUP Validation" data-body="After #QUALIFYING_CLAIMS is built, a DUP validation SELECT checks for claimid duplicates (GROUP BY claimid HAVING COUNT(1)>1). Should return 0 rows. If duplicates exist, the CASE logic has produced multiple rows per claimid — investigate revcode data quality before proceeding to setclaim CTE." data-tags="Control|#QUALIFYING_CLAIMS DUP|claimid unique|data quality gate">
+          <strong>DUP Validation?</strong>#QUALIFYING_CLAIMS<br>Must return 0 rows
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — DHCS_LTC_[BRAND] DUP Check (DupID)" data-body="After the main SELECT INTO, a DUP validation SELECT checks DupID = claimid+claimline for duplicates (GROUP BY DupID HAVING COUNT(1)>1). Must return 0 rows. DupID ensures one row per claim line in the permanent table. If duplicates exist, investigate the claimdetail join or the NOLOCK read order before proceeding to UPDATEs." data-tags="Control|DHCS_LTC_BRAND DUP|DupID=claimid+claimline|one row per claim line">
+          <strong>DupID Check?</strong>DHCS_LTC_[BRAND]<br>DupID 0-row validation
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — HCT Days &amp; Member Count Sanity" data-body="After DELIVERABLE is built, review the SUMMARY SELECT (baseline by LOB, ClaimCategory='Paid'): (1) HCT LOGIC DAY(S) should be materially greater than 0 for LTC members — zero suggests the revcode filter or NOT NULLIF() guard (C003) has over-filtered. (2) The TEMPLATE SELECT final member count should be in range with prior quarters. Flag deviations to Ms. Barbara Vargas before submission." data-tags="Control|HCT days sanity|member count QA|Barbara Vargas review|quarter-over-quarter">
+          <strong>Member Count / Days OK?</strong>HCT &gt;0 · vs prior Qtr<br>QA before DHCS send
+        </div>
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- OUTPUT BOX -->
+      <div class="output-box node" data-title="Final Output — DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE + MS Excel ODBC" data-body="Two permanent output tables per brand execution: (1) INFORMATICS.dbo.DELIVERABLE_DHCS_LTC_[BRAND]: member-level summary with memid, Category of Service, UNIQUE UTILIZERS, DAY(S) (HCT), PAID, scoped to Index Discharge Date falling in @RangeStartDate–@RangeEndDate and DAY(S)>=90. (2) INFORMATICS.dbo.DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE: 5-column DHCS format ready for Excel copy-paste or OLE DB connection. MS Excel ODBC detail query (commented-out in script) joins DELIVERABLE to the raw DHCS_LTC_[BRAND] table for member-level audit trail (HealthPlanID, CIN, MemberName, DOB, NPI, PROVNM, DOS, Discharge Date, AuthorizationID)." data-tags="DELIVERABLE_DHCS_LTC_BRAND|DELIVERABLE_TEMPLATE|DHCS submission|Excel OLE DB|member audit trail|Ms. Barbara Vargas">
+        <span class="sys-label">Final Presentation / Operational Output</span>
+        <div class="out-modules">
+          <div class="out-module" style="border-left:3px solid rgba(100,180,255,.5)">DHCS_LTC_DSNP / DHCS_LTC_CHPIV<span>Permanent raw claim table (165+ cols). Three NONCLUSTERED indexes. Source for all UPDATEs and downstream deliverables.</span></div>
+          <div class="out-module" style="border-left:3px solid rgba(100,220,160,.5)">DELIVERABLE_DHCS_LTC_[BRAND]<span>Member-level LTC summary: memid · Category of Service · UNIQUE UTILIZERS · DAY(S) · PAID. Filtered to ≥90 days within reporting period.</span></div>
+          <div class="out-module" style="border-left:3px solid rgba(255,200,100,.5)">DELIVERABLE_[BRAND]_TEMPLATE<span>DHCS 5-column format: Parent Co · H Contract # · Reporting Period · EAE or FIDE · # members LTC &gt;90 days. Submitted by Ms. Barbara Vargas.</span></div>
+          <div class="out-module" style="border-left:3px solid rgba(160,140,220,.5)">Summary BY Rendering Provider<span>QA SELECT: Cx · PROVNM · YOS · INDEX ADMIT(S) · CALENDAR DAY(S) · HCT DAY(S) · PAID — for analyst review before submission.</span></div>
+          <div class="out-module" style="border-left:3px solid rgba(60,220,200,.5)">MS Excel OLE DB Detail Query<span>(Commented-out) member-level audit: HealthPlanID · CIN · MemberName · DOB · NPI · Provider · DOS · Discharge Date · AuthorizationID.</span></div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+
+    <!-- DETAIL + LEGEND -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click any node in the diagram above</h3>
+        <p id="detailBody">Details will show data sources, SQL logic, business rules, and analyst notes for the selected element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span><span class="badge">DFD v1</span>
+          <span class="badge gold">Dual-Brand</span><span class="badge teal">CHGSD + CHPIV</span><span class="badge green">DHCS EAE D-SNP</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>HMOPROD_PLANDATA · QNXT claims &amp; transactional</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>INFORMATICS · analytics warehouse + views</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--tealFill);border-color:var(--teal)"></div>QNXT_Custom · TRI + 274 PAR override</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>Processing steps (8-step script architecture)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Analyst quality checkpoint / validation gate</div>
+        </div>
+        <p class="print-note">Tip: ← → arrow keys navigate slides. Browser print → Save as PDF to export. @BRAND parameter drives dual-brand execution: 'CHGSD'=DSNP · 'CHPIV'=MSO-CHPIV.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /Slide 0 -->
+
+
+<!-- ═══ SLIDE 1 — CODE SETS ═══ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Code Sets — All Identifiers, Codes &amp; Business Rules</div>
+    <div class="subtitle" style="margin-bottom:6px">LTC qualification is driven entirely by <strong>revenue codes</strong> on the UB-04 claim form — no CPT filter. The threshold, date window, and brand fork are all parameter-driven. Yellow pills = <strong>active</strong> codes/values.</div>
+    <div class="codeset-grid">
+
+      <!-- REV CODES -->
+      <div class="codeset-box node" data-title="LTC Revenue Codes — Primary Qualification Filter" data-body="The LTC determination is solely revenue-code-based. These codes are applied in #QUALIFYING_CLAIMS (pre-stage Step 03) and again in the HCT LOGIC DAY(S) UPDATE (Step 05): revcode BETWEEN '0101' AND '0219'. The specific codes that map to InclusionExclusionType='LTC' in #QUALIFYING_CLAIMS are the normalized forms of: 0101, 0190, 0160, 0169, 0112, 0199, 0185, 0180 (stripping leading zero: 101, 190, 160, 169, 112, 199, 185, 180). The BETWEEN '0101' AND '0219' in the HCT UPDATE (C003) is a broader expansion per the Kindred negotiation proposal and Allyson HCT logic combination, capturing additional room/board codes beyond the strict #QUALIFYING_CLAIMS set. Both DHCS narrative and claims team confirm these are the LTC accommodation codes." data-tags="Rev codes|0101 0190 0160 0169 0112 0199 0185 0180|BETWEEN 0101 AND 0219|HCT expansion C003|LTC accommodation">
+        <div class="cs-header">LTC Revenue Codes <span class="cs-db qnxt">HMOPROD · claimdetail</span></div>
+        <div class="cs-sub">#QUALIFYING_CLAIMS gate + HCT LOGIC DAY(S) filter. UB-04 accommodation codes only.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">#QUALIFYING_CLAIMS (normalized)</div>
+        <div class="code-pill-row">
+          <span class="code-pill">101</span><span class="code-pill">190</span><span class="code-pill">160</span>
+          <span class="code-pill">169</span><span class="code-pill">112</span><span class="code-pill">199</span>
+          <span class="code-pill">185</span><span class="code-pill">180</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">HCT LOGIC DAY(S) UPDATE (C003 expansion)</div>
+        <div class="code-pill-row">
+          <span class="code-pill">BETWEEN '0101' AND '0219'</span>
+        </div>
+        <div class="cs-note"><b>C003 (20260508):</b> HCT expansion per teams discussion — broader BETWEEN replaces the discrete IN list. Combination of Allyson HCT day_units logic (BETWEEN '0110' AND '0219') and Kindred proposal (BETWEEN '0100' AND '0219'). Paid-lines-only guard: NOT NULLIF(TOTAL_PAID_AMOUNT,0)=0 (DUB C 2.0 negation).</div>
+      </div>
+
+      <!-- ACCOMMODATION CODE -->
+      <div class="codeset-box node" data-title="Accommodation Code — ClaimValue 24 (.75/.76)" data-body="Accommodation code is sourced from HMOPROD_PLANDATA.dbo.ClaimValue WHERE valuecode='24' AND (amount=.75 OR amount=.76). Per Claims (Rodrigo): these values are in QNXT Claims Module → UB codes → Value Codes subsection: amount=.75 = Ventilator accommodation; amount=.76 = Non-ventilator accommodation. This is separate from the revenue code and is stored in a UB value code field, not claimdetail.revcode. The UPDATE sets [Accommodation Code] = TRY_CONVERT(decimal(11,2),cv.amount) from the acccode CTE join." data-tags="Accommodation Code|ClaimValue valuecode=24|.75 Vent|.76 Non-Vent|UB value code|Rodrigo Claims">
+        <div class="cs-header">Accommodation Code — ClaimValue <span class="cs-db hmoprod">QNXT · ClaimValue</span></div>
+        <div class="cs-sub">Ventilator vs non-ventilator distinction from UB Value Code 24. QUPD Step 05.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">VALUE CODE</div>
+        <div class="code-pill-row"><span class="code-pill field">valuecode = '24'</span></div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">AMOUNT VALUES (QNXT Claims → UB Codes → Value Codes)</div>
+        <div class="code-pill-row">
+          <span class="code-pill">.75 → Vent</span><span class="code-pill">.76 → Non-Vent</span>
+        </div>
+        <div class="cs-note"><b>Per Claims (Rodrigo):</b> ClaimValue.amount for value code 24 identifies the accommodation type. One or the other per claim (CTE acccode — 'ONE 1 OR THE OTHER VAL()').</div>
+      </div>
+
+      <!-- BRAND / LOB FORK -->
+      <div class="codeset-box node" data-title="@BRAND / @lobplanprog — Dual Execution Fork" data-body="The single parameter @BRAND (nvarchar(100)) drives the entire dual-brand architecture: CHGSD execution: @BRAND='CHGSD', @lobplanprog='DSNP'. uvw_LINE_OF_BUSINESS.LINE_OF_BUSINESS LIKE '%DSNP%'. Output tables: DHCS_LTC_DSNP, DELIVERABLE_DHCS_LTC_DSNP, DELIVERABLE_DHCS_LTC_DSNP_TEMPLATE. CHPIV execution: @BRAND='CHPIV', @lobplanprog='MSO - CHPIV'. uvw_LINE_OF_BUSINESS.LINE_OF_BUSINESS LIKE '%MSO - CHPIV%'. Output tables: DHCS_LTC_CHPIV, DELIVERABLE_DHCS_LTC_CHPIV, DELIVERABLE_DHCS_LTC_CHPIV_TEMPLATE. The WHERE clause uses AND bp.[BRAND] IN (ISNULL(@BRAND,'CHGSD')) to filter the benefit plan table in the parameter QA SELECT." data-tags="@BRAND|CHGSD vs CHPIV|@lobplanprog|DSNP vs MSO-CHPIV|dual-brand fork|output table naming">
+        <div class="cs-header">@BRAND / LOB Fork <span class="cs-db param">PARAM · Execution Control</span></div>
+        <div class="cs-sub">The @BRAND fork determines LOB filter, output table names, and submission identity. Must be set before execution.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">CHGSD EXECUTION</div>
+        <div class="code-pill-row">
+          <span class="code-pill brand">@BRAND = 'CHGSD'</span><span class="code-pill brand">@lobplanprog = 'DSNP'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">CHPIV EXECUTION</div>
+        <div class="code-pill-row">
+          <span class="code-pill teal">@BRAND = 'CHPIV'</span><span class="code-pill teal">@lobplanprog = 'MSO - CHPIV'</span>
+        </div>
+        <div class="cs-note"><b>Output naming:</b> DHCS_LTC_DSNP (CHGSD) vs DHCS_LTC_CHPIV (CHPIV). Each script must be executed separately. The DHCS template output uses H4377/D-SNP for both brands.</div>
+      </div>
+
+      <!-- DSNP PLAN IDs -->
+      <div class="codeset-box node" data-title="D-SNP planid Codes — QUANTITY QUPD Logic" data-body="The [QUANTITY] UPDATE applies D-SNP-specific primary/secondary logic for four D-SNP planids (QMXBP0823, QMXBP0822, QMXBP0850, QMXBP0851). These represent: QMXBP0823/0822 = DSNP MCARE plans; QMXBP0850/0851 = DSNP MEDI-CAL plans. The CASE logic for these planids: IF primary status='P' AND PAID_NET_AMT>0 → servunits. IF primary status='S' AND SUM(paid) over partition > PAID_NET_AMT → 0 (secondary excess). IF primary status='S' AND SUM(paid) = PAID_NET_AMT → servunits. For all other planids: servunits as-is. Added per Ms. Allyson + Ms. Hina ADJ UNIT(S) logic as of 20230101." data-tags="D-SNP planids|QMXBP0823|QMXBP0822|QMXBP0850|QMXBP0851|QUANTITY primary secondary|Allyson Hina units adj|20230101">
+        <div class="cs-header">D-SNP planid Codes <span class="cs-db hmoprod">QNXT · enrollkeys</span></div>
+        <div class="cs-sub">Used in [QUANTITY] QUPD primary/secondary unit adjustment. Added 20230101 per Ms. Allyson + Ms. Hina.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">DSNP MEDICARE PLAN</div>
+        <div class="code-pill-row">
+          <span class="code-pill">QMXBP0823</span><span class="code-pill">QMXBP0822</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">DSNP MEDI-CAL PLAN</div>
+        <div class="code-pill-row">
+          <span class="code-pill">QMXBP0850</span><span class="code-pill">QMXBP0851</span>
+        </div>
+        <div class="cs-note"><b>Logic:</b> Primary + paid &gt;0 → use servunits. Secondary + partial → 0. Secondary + full → servunits. All other planids → servunits directly.</div>
+      </div>
+
+      <!-- MS-DRG (C001) -->
+      <div class="codeset-box node" data-title="MS-DRG — claimdrg Join (C001, 20240523)" data-body="C001 (20240523): claimdrg (MS-DRG — Medicare Severity Diagnosis Related Groups) added to the main SELECT via LEFT JOIN HMOPROD_PLANDATA.dbo.claimdrg ON claimid WHERE finaldrg+SeverityOfIllness IS NOT NULL. Produces: [finalDRG+SOI] = RTRIM(finaldrg)+'-'+RTRIM(SeverityOfIllness) (when SOI not blank), subdrg, moddrg, finaldrg. The [finalDRG+SOI] column supports analysis of LTC admission severity levels and contracting proposals referencing specific MS-DRG ranges (e.g. 'dialysis MS-DRG codes 800-809')." data-tags="MS-DRG|claimdrg|C001|20240523|finaldrg|SeverityOfIllness|finalDRG+SOI|Medicare Severity">
+        <div class="cs-header">MS-DRG (C001) <span class="cs-db hmoprod">QNXT · claimdrg</span></div>
+        <div class="cs-sub">Medicare Severity DRG codes added to detail SELECT. C001 per change log 20240523.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">KEY FIELDS</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">finaldrg</span><span class="code-pill field">SeverityOfIllness</span>
+          <span class="code-pill field">subdrg</span><span class="code-pill field">moddrg</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">DERIVED COLUMN</div>
+        <div class="code-pill-row">
+          <span class="code-pill">[finalDRG+SOI]</span>
+        </div>
+        <div class="cs-note"><b>C001 (20240523):</b> LEFT JOIN ON claimid AND finaldrg+SeverityOfIllness IS NOT NULL. Enables LTC severity stratification. Example use: dialysis MS-DRG 800-809 rate analysis.</div>
+      </div>
+
+      <!-- COPT C002 -->
+      <div class="codeset-box node" data-title="Performance Optimization (C002) — 4 Root Causes Fixed" data-body="C002 (20260421) performance analysis identified four root causes from .sqlplan: (1) Catastrophic Hash Match: ~2.07e15 estimated rows from three-branch UNION in setclaim joining claimdetail inside CTE scope — EstimatedTotalSubtreeCost=13.5 TRILLION. Fixed by #QUALIFYING_CLAIMS pre-stage. (2) ~1.29e10 correlated IN subquery rebinds on claimdetail. Fixed by EXISTS pattern + pre-stage. (3) TRY_CONVERT() on indexed date columns defeating sargability — PlanAffectingConvert warnings on startdate, enddate, paiddate. Fixed by direct datetime2 comparison. (4) Nested Loops on hcfaposlocation + contract (~12.9B rebinds). Fixed by #POSLOC + #CONTRACTDESCR pre-materialization." data-tags="COPT C002|Hash Match 13.5 trillion|correlated IN rebinds|TRY_CONVERT sargability|Nested Loops|#QUALIFYING_CLAIMS fix|#POSLOC #CONTRACTDESCR fix|20260421">
+        <div class="cs-header">COPT Optimization (C002) <span class="cs-db custom">20260421 · wcarr</span></div>
+        <div class="cs-sub">Four root causes resolved per execution plan analysis. Eliminates ~13.5 trillion estimated subtree cost.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">ROOT CAUSES → FIXES</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">RC1: Hash Match 2e15 → #QUALIFYING_CLAIMS</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">RC2: 1.29e10 IN rebinds → EXISTS pattern</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">RC3: TRY_CONVERT sargability → datetime2</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">RC4: hcfapos+contract loops → pre-materialized</span>
+        </div>
+        <div class="cs-note"><b>C002 (20260421, wcarr):</b> Complete rewrite of the pre-stage architecture. setclaim CTE now joins only #QUALIFYING_CLAIMS (pre-filtered, clustered-indexed) rather than full 157M-row claimdetail table.</div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ═══ SLIDE 2 — SOURCE TABLES ═══ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Source Tables Reference — All Tables Touched by DHCS_LTC Scripts</div>
+    <div class="subtitle" style="margin-bottom:18px">Five source databases contribute to this report. Temp tables are session-scoped. Permanent INFORMATICS tables are dropped and recreated each script execution. Brand suffix [DSNP] or [CHPIV] applies to all permanent output tables.</div>
+
+    <div class="db-section">
+      <div class="db-title green">HMOPROD_PLANDATA · QNXT Transactional (SQLPROD02)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.claim</div><span class="ttype source">Source</span><div class="tdesc">Claim header. Provides startdate, enddate, dischargedate, admitdate, planid, formtype, facilitycode, billclasscode, frequencycode, drg, patientstatus, admitsource, admithour, affiliationid, contractnetworkid, totalamt, totalpaid, status, controlnmb, logdate. Primary source in #QUALIFYING_CLAIMS and CLAIMDATA CTE.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.claimdetail</div><span class="ttype source">Source</span><div class="tdesc">Claim line. Provides revcode (LTC gate), servcode, amountpaid, contractpaid, claimamt, servunits, modcodes, location, contractid, termid, ffspoolamt, ProvMedicareMandatedAdjust, Capitated, paydiscount, ineligibleamt, cobeligibleamt, extpaidamt. Revcode normalization handles leading-zero and Z-prefix formats.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.claimdrg</div><span class="ttype source">Source · C001</span><div class="tdesc">MS-DRG (Medicare Severity DRGs). LEFT JOINed on claimid WHERE finaldrg+SeverityOfIllness IS NOT NULL. Produces [finalDRG+SOI], subdrg, moddrg, finaldrg columns. Added C001 20240523.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.claimdiag</div><span class="ttype source">Source</span><div class="tdesc">Claim diagnosis codes. ROW_NUMBER() OVER (PARTITION BY claimid ORDER BY sequence ASC, codeid DESC) = 1 to isolate principal diagnosis. Provides codeid (ICD), diagtype, poa (Present on Admission), sequence. LEFT JOINed to DiagCode for description.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.claimproc</div><span class="ttype source">Source</span><div class="tdesc">Claim procedure codes. Used in QUPD of [PROCEDURE_1_CODE]: WHERE proctype='Primary' AND claimline='1'. Provides pcode for the primary procedure code column.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.ClaimValue</div><span class="ttype source">Source</span><div class="tdesc">UB value codes. Used in acccode CTE: WHERE valuecode='24' AND (amount=.75 Vent OR .76 Non-Vent). Provides [Accommodation Code] per Rodrigo Claims guidance. One value per claim.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.affiliation</div><span class="ttype source">Source</span><div class="tdesc">The rendering/payto relationship table. affiliationid links claim to a.provid (Rendering Provider) and a.affiliateid (PayTo/Vendor). Key for AdmitID construction (memid+startdate+provid) and QA provider SELECTs.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.provider (x2)</div><span class="ttype source">Source</span><div class="tdesc">Provider table joined twice: p1 (Rendering) on a.provid → NPIprovnm, PROVNM; p2 (PayTo) on a.affiliateid → NPIpayto, PAYTONM. NPI used in 274 PAR override UPDATE.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.member</div><span class="ttype source">Source</span><div class="tdesc">Member demographics. Provides fullname (→ MEMNM), dob (→ MEMBER_AGE calculation). LEFT JOINed on CLAIMDATA.memid.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.hcfaposlocation</div><span class="ttype ref">Reference → #POSLOC</span><div class="tdesc">Place of service location codes. Pre-materialized as #POSLOC (clustered on locationcode) in COPT Step 02 to eliminate Nested Loop rebinds. Provides POS description for the location column.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.contract</div><span class="ttype ref">Reference → #CONTRACTDESCR</span><div class="tdesc">Contract descriptions. Pre-materialized as #CONTRACTDESCR (clustered on contractid) in COPT Step 02. Provides [CONTRACT DESCRIPTION] via UPPER(LTRIM(RTRIM(description))) WHERE not blank.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.contractinfo</div><span class="ttype source">Source</span><div class="tdesc">Contract participation info. Five-key JOIN (programid + affiliationid + contractid + networkid + DOS in range) to derive contractedVerification and capitationVerification. Per Sir Adrian: affiliation sequence is preferred PAR method.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollkeys</div><span class="ttype source">Source</span><div class="tdesc">Master enrollment roster. Used in [Primary/Secondary Status] QUPD: JOIN on memid+enrollid → effdate, termdate, segtype='INT', DOS BETWEEN eff and term. Provides carriermemid, programid, planid.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollstatus</div><span class="ttype source">Source</span><div class="tdesc">Enrollment status. Provides primarystatus ('P'=primary, 'S'=secondary) for [Primary/Secondary Status] column and D-SNP QUANTITY CASE logic.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollcoverage</div><span class="ttype source">Source</span><div class="tdesc">Enrollment coverage. Provides ratecode. Joined in [Primary/Secondary Status] QUPD alongside enrollstatus for rate code context per active coverage segment.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.svccode · DiagCode · revcode</div><span class="ttype ref">Reference</span><div class="tdesc">Code description lookups: svccode → CPT Service Description (LEFT JOIN on servcode); DiagCode → diag descr (JOIN in claimdiag subquery); revcode → REVCDE Descr (normalized JOIN on revcode). All three return description strings for readable output columns.</div></div>
+        <div class="tbl-card"><div class="tname">QNXT_Custom.TRI.FfsPaymentDetails</div><span class="ttype custom">Custom Schema</span><div class="tdesc">Targeted Rate Increase payment amounts. JOIN on ClaimId + LineNum → ExtraAmountPaid. Used in QUPD Step 05 to populate [TRI Payment] column. Per Sir Evan email 20241202.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title blue">INFORMATICS · dbo — Analytics Warehouse (SQLPRODAPP01)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.DHCS_LTC_DSNP</div><span class="ttype staging">Permanent Output</span><div class="tdesc">CHGSD brand permanent output table (dropped + recreated each run). 165+ column claim-level detail. Three NONCLUSTERED indexes: DupID, claimid, memid. Source for all QUPD passes and #AdmitAssessment.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.DHCS_LTC_CHPIV</div><span class="ttype staging">Permanent Output</span><div class="tdesc">CHPIV brand permanent output table (identical structure to DHCS_LTC_DSNP). Dropped + recreated on each CHPIV script execution. Same 165+ columns and three NONCLUSTERED indexes.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.DELIVERABLE_DHCS_LTC_[BRAND]</div><span class="ttype staging">Deliverable</span><div class="tdesc">Member-level LTC summary: memid, Category of Service ('LTC'), UNIQUE UTILIZERS, DAY(S) (HCT sum), PAID (SUM PAID_NET_AMT). Filtered to Index Discharge Date in range AND DAY(S) >= @ltcdays (90). Used to build TEMPLATE.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE</div><span class="ttype staging">DHCS Template</span><div class="tdesc">5-column DHCS submission format. Parent Company Name, H Contract #, Reporting Period, EAE or FIDE, #members in LTC &gt;90 days. Submitted by Ms. Barbara Vargas quarterly.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_LINE_OF_BUSINESS</div><span class="ttype view">View</span><div class="tdesc">Translates QNXT planid → LINE_OF_BUSINESS, PLAN, PROGRAM, BRAND. The @lobplanprog LIKE filter and @BRAND IN filter are applied against this view in both the parameter QA SELECT and #QUALIFYING_CLAIMS.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_FINALCLAIM</div><span class="ttype view">View</span><div class="tdesc">Final adjudicated claim determination. JOIN in QUPD Step 05 to SET [THE FINAL CLAIM]='Y'. Power-cycle pattern: reset ALL to 'N' first, then SET 'Y' from join.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_CLAIMS_PAID</div><span class="ttype view">View</span><div class="tdesc">Paid claim filter. JOIN in QUPD to SET [ClaimCategory]='Paid'. Filters #AdmitAssessment (WHERE ClaimCategory IN ('Paid')) and DELIVERABLE build.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_PATIENTSTATUS</div><span class="ttype view">View</span><div class="tdesc">LEFT JOINed in main SELECT on claimid. Provides DischargeDescription and patientstatus. Source reference: 'JAHDischargeStatus_PatientStatus_20160223.pdf'.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_BASELINE_MEMBERSHIP</div><span class="ttype view">View</span><div class="tdesc">LEFT JOINed in main SELECT on memid. Provides HealthPlanID (→ SUBSCRID) and CIN. Used in the MS Excel ODBC detail query for the audit trail output.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_PROVISO</div><span class="ttype view">View</span><div class="tdesc">Provider specialty lookup. LEFT JOINed in QA contracted/non-contracted provider SELECTs on provid and payto → SPECdescr. QA only; not in main claim SELECT.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_CLAIMS_CLMTYPE + uvw_CLAIMS_BILLTYPE</div><span class="ttype view">View</span><div class="tdesc">Type classification views. uvw_CLAIMS_CLMTYPE: formtype → ClmType. uvw_CLAIMS_BILLTYPE: facilitycode+billclasscode+frequencycode → QNXTbilltype + BillTypeDescr. Both LEFT JOINed in main SELECT.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_ProviderRepository274_PAR</div><span class="ttype view">View (SQLPRODAPP01)</span><div class="tdesc">274 active PAR NPI roster. Used in contractedVerification override UPDATE: SET='Y' WHERE NPIprovnm = Provider NPI on 274 roster. Ensures contracted status reflects active 274 participation even if contractinfo JOIN did not match.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.date_calendarISO</div><span class="ttype ref">Reference</span><div class="tdesc">50-year static ISO calendar. CROSS JOIN in CALENDAR DAY(S) calculation: COUNT(DISTINCT calendar_date) BETWEEN startdate AND ISNULL(dischargedate,enddate) per AdmitID. Also used in [Index Calendar Days] calculation from #AdmitAssessment Index dates. WORKDAY=1 filter for [WORK DAY(S)].</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title cyan">TempDB — Session-Scoped Temp Tables</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">#POSLOC</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Pre-materialized POS location lookup from hcfaposlocation. CLUSTERED INDEX on locationcode. COPT Root Cause 4 fix — eliminates ~12.9B Nested Loop rebinds.</div></div>
+        <div class="tbl-card"><div class="tname">#CONTRACTDESCR</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Pre-materialized contract description lookup from contract WHERE description not blank. CLUSTERED INDEX on contractid. COPT Root Cause 4 fix.</div></div>
+        <div class="tbl-card"><div class="tname">#QUALIFYING_CLAIMS</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">LTC-qualifying claimids. Single-pass pre-filter over claim+claimdetail. InclusionExclusionType='LTC' for rev codes 101/190/160/169/112/199/185/180. CLUSTERED on claimid + NONCLUSTERED on memid. COPT Root Cause 1+2 fix.</div></div>
+        <div class="tbl-card"><div class="tname">#AdmitAssessment</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Admit-level analysis table. DENSE_RANK RANKis, LAG/LEAD DOS/DOSTHRU, DoTheMathInDays/Months, READMISSION, CONTINUOUS, CONSECUTIVE flags, Index AdmitID/Admission/Discharge dates, CALENDAR DAY(S), WORK DAY(S), HCT LOGIC DAY(S). WHILE loop propagates Index dates through consecutive chains.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ═══ SLIDE 3 — RUNBOOK ═══ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Runbook Sequence — DHCS LTC D-SNP Dual-Brand Scripts</div>
+    <div class="timeline">
+      <div class="tl"><strong>01 · Set @BRAND and Confirm Quarterly Period</strong><p>Determine execution target: CHGSD (DSNP) or CHPIV (MSO-CHPIV). Set @BRAND accordingly. Confirm @leadlag=-4 and @leadlagmonths=3 are appropriate for the target submission quarter. Run the parameter QA SELECT to verify @RangeStartDate/@RangeEndDate and Reporting Period string (e.g. '2026 Q1'). Confirm the quarterly submission due date has not passed.</p></div>
+      <div class="tl"><strong>02 · Verify uvw_LINE_OF_BUSINESS Returns Active Rows</strong><p>The parameter QA SELECT joins uvw_LINE_OF_BUSINESS WHERE LINE_OF_BUSINESS LIKE @lobplanprog AND BRAND IN (@BRAND). Confirm rows are returned. Zero rows = LOB/BRAND mismatch — verify the plan names in uvw_LINE_OF_BUSINESS before proceeding.</p></div>
+      <div class="tl"><strong>03 · Execute Pre-Stage (COPT Steps 01–02)</strong><p>DROP TABLE IF EXISTS for all output tables (#POSLOC, #CONTRACTDESCR, #QUALIFYING_CLAIMS, DHCS_LTC_[BRAND], DELIVERABLE_DHCS_LTC_[BRAND], DELIVERABLE_[BRAND]_TEMPLATE). Confirm pre-stage lookup tables build without error. Confirm #QUALIFYING_CLAIMS DUP validation returns 0 rows and QA COUNT SELECT shows LTC-classified claims (non-zero Unique Claims and Unique Members).</p></div>
+      <div class="tl"><strong>04 · Run Main SELECT INTO DHCS_LTC_[BRAND]</strong><p>Execute the setclaim+CLAIMDATA CTE chain into the permanent table. Confirm DupID DUP validation returns 0 rows. Review QA [RANGE] SELECT for date min/max alignment with @RangeStartDate/@RangeEndDate. Review QA LOB(S) SELECT to confirm only the expected LINE_OF_BUSINESS is present.</p></div>
+      <div class="tl"><strong>05 · Execute 8 QUPD Passes</strong><p>Run all sequential UPDATEs: THE FINAL CLAIM, Accommodation Code, TRI Payment, PROCEDURE_1_CODE, prindiag+POA, Primary/Secondary Status, contractedVerification (contractinfo JOIN + 274 PAR override), QUANTITY, HCT LOGIC DAY(S) (C003). Review QA CONTRACTED PROVIDER(S) SELECT to confirm expected LTC facilities appear as contracted. Verify [HCT LOGIC DAY(S)] is non-zero for LTC claims.</p></div>
+      <div class="tl"><strong>06 · Build #AdmitAssessment + WHILE Loop</strong><p>Verify the CONSECUTIVE stay WHILE loop terminates (@@ROWCOUNT = 0 BREAK). Confirm #AdmitAssessment DUP validation on Cx+AdmitID returns 0 rows. Review sample DETAIL SELECT (WHERE memid IN ('...')) for a known LTC member to confirm [Index Admission Date], [Index Discharge Date], and [HCT LOGIC DAY(S)] are populated correctly.</p></div>
+      <div class="tl"><strong>07 · Build DELIVERABLE + TEMPLATE</strong><p>Confirm DELIVERABLE_DHCS_LTC_[BRAND] contains expected members (DAY(S) >= 90, discharge date in range). Review SUMMARY BY RENDERING SELECT for top LTC facilities. Run SELECT * FROM DELIVERABLE_DHCS_LTC_[BRAND]_TEMPLATE to verify the 5-column DHCS format: Parent Company Name = 'Community Health Group', H Contract # = 'H4377/D-SNP', Reporting Period = correct quarter, EAE or FIDE = 'EAE', member count is within expected range.</p></div>
+      <div class="tl"><strong>08 · Repeat for Second Brand Then Submit</strong><p>Execute the complementary brand script (CHGSD if CHPIV was run first, or vice versa) following steps 01–07. Compare member counts between brands for reasonableness. Share DELIVERABLE_TEMPLATE results with Ms. Barbara Vargas, RN, MSN for DHCS quarterly submission. Document execution date and reporting period in the change log.</p></div>
+    </div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ═══ SLIDE 4 — CONTROLS ═══ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Analyst Controls &amp; Quality Gates</div>
+    <table class="mini-table">
+      <tbody>
+      <tr><th>Control</th><th>Recommended Validation</th><th>Failure Symptom</th></tr>
+      <tr><td>@BRAND set correctly</td><td>Confirm 'CHGSD' for DSNP script, 'CHPIV' for MSO-CHPIV script before any execution.</td><td>Wrong LOB queried — incorrect members in output, wrong output table names populated.</td></tr>
+      <tr><td>@leadlag / @leadlagmonths</td><td>Verify @leadlag=-4 and @leadlagmonths=3 produce the intended quarterly window. Check Reporting Period string in QA SELECT.</td><td>Wrong quarter submitted to DHCS — late or early data scope.</td></tr>
+      <tr><td>uvw_LINE_OF_BUSINESS returns rows</td><td>Parameter QA SELECT must return LOB rows for the @lobplanprog LIKE filter and @BRAND IN filter.</td><td>Zero rows from parameter SELECT = LOB name mismatch — no claims will qualify in #QUALIFYING_CLAIMS.</td></tr>
+      <tr><td>#QUALIFYING_CLAIMS DUP validation</td><td>DUP validation SELECT (GROUP BY claimid HAVING COUNT&gt;1) must return 0 rows.</td><td>Duplicate claimids in pre-stage will cascade into CLAIMDATA CTE and produce inflated row counts in DHCS_LTC_[BRAND].</td></tr>
+      <tr><td>DupID validation (DHCS_LTC_[BRAND])</td><td>DUP validation SELECT on DupID = claimid+claimline must return 0 rows after main SELECT INTO.</td><td>Duplicate claim lines in permanent table → inflated HCT days, inflated paid amounts in DELIVERABLE.</td></tr>
+      <tr><td>HCT LOGIC DAY(S) non-zero</td><td>After C003 HCT UPDATE, verify SUM([HCT LOGIC DAY(S)]) &gt; 0 in BASELINE SUMMARY SELECT WHERE ClaimCategory='Paid'.</td><td>Zero HCT days = revcode filter or NOT NULLIF guard (C003) has over-filtered. LTC member counts will be zero in DELIVERABLE.</td></tr>
+      <tr><td>WHILE loop termination</td><td>Confirm the #AdmitAssessment WHILE loop breaks (@@ROWCOUNT=0). If loop runs more than ~20 iterations, investigate CONSECUTIVE chain data for circular references.</td><td>Infinite loop = script hangs. CONSECUTIVE chains crossing different Cx values or memid data quality issues.</td></tr>
+      <tr><td>@ltcdays threshold = 90</td><td>Confirm @ltcdays = 90 is not changed. WHERE los.[DAY(S)] >= @ltcdays in DELIVERABLE build must remain at 90 per DHCS requirement.</td><td>Lowering @ltcdays inflates member count — DHCS submission overstates LTC census. Raising it undercounts.</td></tr>
+      <tr><td>DELIVERABLE member count vs prior quarter</td><td>Compare COUNT DISTINCT memid in DELIVERABLE_TEMPLATE to prior quarter. Deviations &gt;20% warrant investigation before submission.</td><td>Large swings indicate range date error, rev code filter change, or LTC facility coding change.</td></tr>
+      <tr><td>contractedVerification QA</td><td>QA CONTRACTED PROVIDER(S) SELECT should show expected LTC facilities (Select Specialty, Kindred, Promise Hospital equivalents) as contractedVerification='Y'.</td><td>All contractedVerification='N' = contractinfo JOIN failed (programid/affiliationid/contractid mismatch) and 274 roster did not override.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><b>Senior Analyst Note (WCARR / DUB C 2.0):</b> The primary execution risk is running the wrong @BRAND — the two scripts target different LOBs and write to different permanent tables. Always confirm @BRAND and @lobplanprog before execution, and run the QA parameter SELECT before proceeding to the main CTEs. The WHILE loop (Step 06) is the second risk: if CONSECUTIVE chains are circular due to data anomalies, the loop will not terminate. Monitor @@ROWCOUNT across iterations for &gt;20 loops as a circuit-breaker indicator.</div>
+    <div class="callout gold" style="margin-top:10px"><b>DHCS Submission Calendar (C002 narrative context):</b> Q1 (Jan–Mar) due May 31 (extended to Jun 30, 2025 per YF annotation). Q2 (Apr–Jun) due Aug 31. Q3 (Jul–Sep) due Nov 30. Q4 (Oct–Dec) due Feb 28. Business owner: Ms. Barbara Vargas, RN, MSN. Submit via DHCS EAE D-SNP reporting portal. H Contract #: H4377/D-SNP. Classification: EAE (not FIDE).</div>
+  </div>
+</div><!-- /Slide 4 -->
+
+
+<!-- ═══ SLIDE 5 — PARAMETERS ═══ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Script Parameters — DHCS LTC D-SNP (Both Brands)</div>
+    <div class="subtitle" style="margin-bottom:4px">All parameters declared at the top of each script. @BRAND is the sole architectural fork. Changes must be documented in the COMMENT(S) / CHANGE.LOG section with a C### reference per DUB C 2.0.</div>
+    <div class="param-grid">
+      <div class="param-card"><div class="pname">@BRAND</div><div class="pval">nvarchar(100) = 'CHGSD'<br>or 'CHPIV'</div><div class="pdesc">Execution fork. Drives @lobplanprog, output table names (DSNP vs CHPIV), and uvw_LINE_OF_BUSINESS BRAND filter. The single parameter separating the two brand scripts.</div></div>
+      <div class="param-card"><div class="pname">@leadlag</div><div class="pval">decimal(9,0) = -4</div><div class="pdesc">LAG months for @RangeStartDate. -4 = 4 months back from first of current month. Aligns reporting window to the appropriate quarterly submission period.</div></div>
+      <div class="param-card"><div class="pname">@leadlagmonths</div><div class="pval">int = 3</div><div class="pdesc">Window length in months from @RangeStartDate. 3 = one calendar quarter. @RangeEndDate = last day of 3rd month from @RangeStartDate.</div></div>
+      <div class="param-card"><div class="pname">@RangeStartDate</div><div class="pval">datetime2 = DATEADD(MONTH,<br>@leadlag,DATEADD(DAY,1,<br>EOMONTH(GETDATE(),-1)))</div><div class="pdesc">Dynamic. 1st of the quarter-start month. On 05/27/2026 with @leadlag=-4: = Jan 1, 2026.</div></div>
+      <div class="param-card"><div class="pname">@RangeEndDate</div><div class="pval">datetime2 = DATEADD(day,-1,<br>DATEADD(MONTH,@leadlagmonths,<br>@RangeStartDate))</div><div class="pdesc">Dynamic. Last day of 3-month window. On 05/27/2026: = Mar 31, 2026. Reporting Period = '2026 Q1'.</div></div>
+      <div class="param-card"><div class="pname">@CutoffDate</div><div class="pval">datetime2 = TRY_CONVERT(date,<br>GETDATE())</div><div class="pdesc">Paid date cutoff. TRY_CONVERT(date) = today. Applied as upper bound for paiddate filters where applicable.</div></div>
+      <div class="param-card"><div class="pname">@ltcdays</div><div class="pval">decimal(9,0) = 90</div><div class="pdesc">LTC membership threshold. WHERE DAY(S) >= 90 in DELIVERABLE build. Per DHCS requirement: count members in LTC for &gt;90 days. Do NOT reduce below 90.</div></div>
+      <div class="param-card"><div class="pname">@los</div><div class="pval">decimal(9,0) = 30</div><div class="pdesc">Readmission window in days. READMISSION=1 where DoTheMathInDays BETWEEN 1 AND @los. 30-day readmission standard.</div></div>
+      <div class="param-card"><div class="pname">@gapallowance</div><div class="pval">int = 1</div><div class="pdesc">Consecutive stay gap tolerance in days. CONSECUTIVE=1 where DoTheMathInDays &lt;= 1 AND RANKis != 1. Allows 1-day gap between claims to still count as one continuous stay.</div></div>
+      <div class="param-card"><div class="pname">@IndexPlus</div><div class="pval">int = 3</div><div class="pdesc">Consecutive + plus the IndexAdmit. Used in WHILE loop analysis context for index admit counting beyond the initial admit. Analyst reference parameter.</div></div>
+      <div class="param-card"><div class="pname">@lobplanprog</div><div class="pval">varchar(255) = 'DSNP'<br>or 'MSO - CHPIV'</div><div class="pdesc">LOB LIKE filter string. Applied as uvw_LINE_OF_BUSINESS.LINE_OF_BUSINESS LIKE '%'+@lobplanprog+'%'. Driven by @BRAND selection. SELECT from uvw_LINE_OF_BUSINESS to validate active options.</div></div>
+      <div class="param-card"><div class="pname">@memid</div><div class="pval">varchar(25) = NULL</div><div class="pdesc">QA isolation filter. NULL = all members. Set to a specific memid for member-level debugging. Applied in sample DETAIL SELECT (WHERE memid IN ('...')) — note: currently hardcoded sample in script.</div></div>
+    </div>
+    <div class="callout" style="margin-top:16px"><b>Change Log Summary:</b> C001 (20240523): claimdrg MS-DRG codes added to main SELECT via LEFT JOIN. C002 (20260421, wcarr): COPT performance rewrite — four root causes resolved, #QUALIFYING_CLAIMS pre-stage introduced, #POSLOC/#CONTRACTDESCR pre-materialized, TRY_CONVERT sargability fixed. C003 (20260508): HCT LOGIC DAY(S) UPDATE guard changed from AND TOTAL_PAID_AMOUNT &gt; 0 to AND NOT NULLIF(TOTAL_PAID_AMOUNT,0)=0 per teams discussion — DUB C 2.0 negation pattern applied.</div>
+  </div>
+</div><!-- /Slide 5 -->
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft')  buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body></html>

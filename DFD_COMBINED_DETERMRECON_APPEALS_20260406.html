@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DFD — COMBINED_DETERMRECON_APPEALS</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== DIAGRAM WRAPPER ===== */
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* QNXT — red tint */
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 620px;
+  }
+
+  /* CS_SERVICES (Provider Services App) — amber tint */
+  .system-box.cs {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 420px;
+  }
+
+  /* INFORMATICS — blue tint */
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 380px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #f0f0f0;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== STEP SEQUENCE ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 195px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DERIVED DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 145px;
+    max-width: 190px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== FILTER ROW ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 165px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== PARAMETER BOX (BRAND filter callout) ===== */
+  .param-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 12px 0 6px;
+  }
+
+  .param-box {
+    background: rgba(255, 165, 50, 0.10);
+    border: 1px dashed rgba(255, 165, 50, 0.45);
+    border-radius: 5px;
+    padding: 8px 18px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffd590;
+    min-width: 155px;
+    max-width: 200px;
+  }
+
+  .param-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ffbb55;
+    margin-bottom: 2px;
+  }
+
+  /* ===== OUTPUT — TEMP TABLE ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .temp-box {
+    background: rgba(100, 200, 255, 0.10);
+    border: 2px solid rgba(100, 200, 255, 0.30);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .temp-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .temp-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .temp-module {
+    background: rgba(100, 200, 255, 0.20);
+    border: 1px solid rgba(100, 200, 255, 0.40);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #cef0ff;
+  }
+
+  /* ===== OUTPUT — PERMANENT TABLES ===== */
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 130px;
+    color: #e8e0ff;
+  }
+
+  .report-module .tab-label {
+    display: block;
+    font-size: 10px;
+    color: rgba(200, 190, 255, 0.6);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-qnxt      { background: rgba(255, 140, 140, 0.35); }
+  .swatch-cs        { background: rgba(255, 200, 100, 0.35); }
+  .swatch-informatics { background: rgba(140, 200, 255, 0.35); }
+  .swatch-param     { background: rgba(255, 165, 50, 0.25); border-style: dashed; }
+  .swatch-filter    { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-temp      { background: rgba(100, 200, 255, 0.30); }
+  .swatch-output    { background: rgba(160, 140, 220, 0.35); }
+</style>
+</head>
+<body>
+
+  <!-- ===== TITLE ===== -->
+  <div class="title-bar">
+    <h2>Appeals / Reconsiderations &#8212; Data Flow Diagram</h2>
+    <div class="subtitle">
+      Stored Procedure: [INFORMATICS2].[dbo].[ANNUAL_sp_COMBINED_DETERMRECON_APPEALS]
+      &nbsp;|&nbsp; LOB: All Brands (Default: CHGSD)
+      &nbsp;|&nbsp; Reporting Window: Rolling 12-Month (Dynamic via @ClockStart / @ClockStop)
+      &nbsp;|&nbsp; Author: WCARR
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 0: RUNTIME PARAMETERS ===== -->
+    <div class="section-label">&#9660; Runtime Parameters</div>
+
+    <div class="param-row">
+      <div class="param-box">
+        <strong>@BRAND</strong>
+        Default: 'CHGSD'<br>Pass NULL for all brands<br>or 'MSO - CHPIV' for CHPIV
+      </div>
+      <div class="param-box">
+        <strong>@ClockStart</strong>
+        1st of month,<br>12 months back from GETDATE()<br>(dynamic, rolling)
+      </div>
+      <div class="param-box">
+        <strong>@ClockStop</strong>
+        Last day of 12-month<br>window (@ClockStart +12mo &#8722;1d)<br>(dynamic, rolling)
+      </div>
+      <div class="param-box">
+        <strong>@cutoff</strong>
+        Hard floor: 01/01/2014<br>Excludes historically<br>stale records
+      </div>
+    </div>
+
+    <!-- ===== FLOW ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="section-label">&#9660; Source Systems</div>
+
+    <div class="source-row">
+
+      <!-- QNXT / HMOPROD_PlanData -->
+      <div class="system-box qnxt">
+        <span class="sys-label">QNXT System (HMOPROD_PlanData / SQLPROD01.QPROD)</span>
+        <div class="module-row">
+          <div class="module">Claims<br><span style="font-size:10px;color:#aaa;">dbo.claim<br>dbo.claimdetail</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">dbo.member<br>(headofhouse)</span></div>
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.provider<br>dbo.affiliation</span></div>
+          <div class="module">Benefit Plans<br><span style="font-size:10px;color:#aaa;">dbo.benefitplan<br>dbo.program</span></div>
+        </div>
+      </div>
+
+      <!-- CS_SERVICES / Provider Services App -->
+      <div class="system-box cs">
+        <span class="sys-label">Provider Services App (SQLPROD01.QPROD)</span>
+        <div class="module-row">
+          <div class="module">Appeals<br><span style="font-size:10px;color:#aaa;">CS_SERVICES<br>[deleted]=0</span></div>
+          <div class="module">Appeal Types<br><span style="font-size:10px;color:#aaa;">CS_APPEALTYPE<br>APPEALTYPEDESC</span></div>
+          <div class="module">Reason Codes<br><span style="font-size:10px;color:#aaa;">CS_REASON_CODE<br>REASONDESC</span></div>
+        </div>
+      </div>
+
+      <!-- INFORMATICS Reference Views -->
+      <div class="system-box informatics">
+        <span class="sys-label">INFORMATICS Reference (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">LOB View<br><span style="font-size:10px;color:#aaa;">uvw_LINE_OF_<br>BUSINESS</span></div>
+          <div class="module">Provider View<br><span style="font-size:10px;color:#aaa;">uvw_PROVISO<br>(provid lookup)</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== FLOW ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+    <div class="section-label">&#9660; Execution Sequence</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>LOB / Brand QA</strong>
+        SELECT from uvw_LINE_OF_<br>BUSINESS filtered by<br>@BRAND parameter
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>Appeals Base Pull</strong>
+        CS_SERVICES JOIN to<br>QPROD claim, member,<br>provider, affiliation
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 03</span>
+        <strong>Date Window Filter</strong>
+        DATECLOSED BETWEEN<br>@ClockStart AND @ClockStop<br>&#8805; @cutoff (01/01/2014)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 04</span>
+        <strong>Claim Type Derivation</strong>
+        formtype LIKE '%UB%'<br>&#8594; FACILITY &nbsp;|&nbsp; '%1500%'<br>&#8594; PROFESSIONAL
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 05</span>
+        <strong>Build #CurrentAppeals</strong>
+        SELECT DISTINCT INTO<br>#CurrentAppeals (temp)<br>All joined columns
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 06</span>
+        <strong>Persist Output Tables</strong>
+        DROP / SELECT INTO<br>four INFORMATICS2<br>permanent tables
+      </div>
+    </div>
+
+    <!-- ===== FLOW ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 3: DERIVED DATA ELEMENTS ===== -->
+    <div class="section-label">&#9660; Derived Data Elements</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Appeal Identifiers</strong>
+        CASENO, CASETYPE,<br>CONTACTTYPE,<br>APPEALTYPE / DESC
+      </div>
+      <div class="data-element">
+        <strong>Date Attributes</strong>
+        DATERECD, DATECLOSED,<br>RcvdYear, ClosedYear,<br>Month, CloseMonth
+      </div>
+      <div class="data-element">
+        <strong>Timeliness (TAT)</strong>
+        DATEDIFF(DD, DATERECD,<br>DateClosed) AS TatLagTime<br>DATEDIFF(DD, DATERECD, EOBdate)
+      </div>
+      <div class="data-element">
+        <strong>Claim Linkage</strong>
+        CACLAIM, CAAUTH,<br>affiliationid, formtype,<br>ClmType (Facility/Prof)
+      </div>
+      <div class="data-element">
+        <strong>Provider / Vendor</strong>
+        PROVNAME (paprovid),<br>VENDOR_ID / NAME<br>(affiliation payto)
+      </div>
+      <div class="data-element">
+        <strong>Financial</strong>
+        ADDTLPAYMENT,<br>AMTBILLED, INTPAID,<br>CLAIMSPAYMENT, ACCTNO
+      </div>
+      <div class="data-element">
+        <strong>Disposition</strong>
+        FINALDECISIONSTATUS,<br>CASESTATUS,<br>REASONCODE / DESC
+      </div>
+    </div>
+
+    <!-- ===== FLOW ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: INCLUSION / EXCLUSION FILTERS ===== -->
+    <div class="section-label">&#9660; Filters Applied to CS_SERVICES</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>[deleted] = 0</strong>
+        Soft-delete guard<br>per Provider Services<br>App convention
+      </div>
+      <div class="filter-box">
+        <strong>DATERECD NOT NULL</strong>
+        Excludes records<br>with missing receipt<br>date (invalid)
+      </div>
+      <div class="filter-box">
+        <strong>DATERECD &lt; Today</strong>
+        Excludes future-dated<br>receipt records<br>(data quality)
+      </div>
+      <div class="filter-box">
+        <strong>DATERECD &#8804; DATECLOSED</strong>
+        Logical integrity:<br>closed cannot precede<br>received date
+      </div>
+      <div class="filter-box">
+        <strong>@BRAND Filter</strong>
+        bp.[BRAND] IN<br>(ISNULL(@BRAND,'CHGSD'))<br>Default: CHGSD only
+      </div>
+      <div class="filter-box">
+        <strong>DATECLOSED Window</strong>
+        BETWEEN @ClockStart<br>AND @ClockStop,<br>&#8805; @cutoff 01/01/2014
+      </div>
+    </div>
+
+    <!-- ===== FLOW ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 5: TEMP TABLE ===== -->
+    <div class="output-section">
+      <div class="temp-box">
+        <span class="sys-label">Staging Layer &nbsp;&#8594;&nbsp; #CurrentAppeals (TempDB Scoped — SELECT DISTINCT INTO)</span>
+        <div class="temp-modules">
+          <div class="temp-module">CarrierMemberID<br><span style="font-size:10px;opacity:0.7;">m.headofhouse</span></div>
+          <div class="temp-module">Appeal Header<br><span style="font-size:10px;opacity:0.7;">CASENO, CASETYPE<br>CASESTATUS, INITIALS</span></div>
+          <div class="temp-module">Date Fields<br><span style="font-size:10px;opacity:0.7;">DATERECD, DATECLOSED<br>DATEOPENED, EOBDATE</span></div>
+          <div class="temp-module">TAT / Lag<br><span style="font-size:10px;opacity:0.7;">TatLagTime (DD)<br>LagTime (DD)</span></div>
+          <div class="temp-module">Provider / Vendor<br><span style="font-size:10px;opacity:0.7;">PAPROVID, PROVNAME<br>VENDOR_ID, VENDOR_NAME</span></div>
+          <div class="temp-module">Financials<br><span style="font-size:10px;opacity:0.7;">ADDTLPAYMENT<br>AMTBILLED, INTPAID</span></div>
+          <div class="temp-module">Claim Linkage<br><span style="font-size:10px;opacity:0.7;">CACLAIM, CAAUTH<br>ClmType, affiliationid</span></div>
+          <div class="temp-module">LOB / Brand<br><span style="font-size:10px;opacity:0.7;">bp.* (uvw_LINE_OF<br>_BUSINESS columns)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FLOW ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: PERMANENT OUTPUT TABLES ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">INFORMATICS2.dbo — Permanent Output Tables &nbsp;&#8594;&nbsp; (DROP / SELECT INTO pattern)</span>
+        <div class="report-modules">
+          <div class="report-module">
+            COMBINED_APPEALSall
+            <span class="tab-label">Tab 1 — AllAppealsProviderDetail<br>Full detail, ORDER BY DATERECD DESC</span>
+          </div>
+          <div class="report-module">
+            COMBINED_APPEALSthousand
+            <span class="tab-label">Tab 2 — AdditPayment &gt; 1000<br>WHERE ADDTLPAYMENT &gt; 1000</span>
+          </div>
+          <div class="report-module">
+            COMBINED_APPEALSprov
+            <span class="tab-label">Tab 3 — AppealsByProvider<br>GROUP BY VENDOR_NAME<br>COUNT + SUM(ADDTLPAYMENT)</span>
+          </div>
+          <div class="report-module">
+            COMBINED_APPEALStype
+            <span class="tab-label">Tab 4 — AppealsByType<br>GROUP BY APPEALTYPEDESC<br>COUNT, ORDER BY COUNT DESC</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>QNXT System (HMOPROD_PlanData)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-cs"></div>Provider Services App (CS_SERVICES)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS Reference Views</div>
+    <div class="legend-item"><div class="legend-swatch swatch-param"></div>Runtime Parameters (@BRAND / Date Window)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-filter"></div>Exclusion / Inclusion Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-temp"></div>Staging Temp Table (#CurrentAppeals)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-output"></div>INFORMATICS2 Permanent Output Tables</div>
+  </div>
+
+</body>
+</html>

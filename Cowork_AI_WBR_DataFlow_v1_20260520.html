@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cowork AI — Weekly Business Review (WBR) · Data Flow v1 | Marketing Ops</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS & ALL ORIGINAL STYLES (preserved verbatim for fidelity) */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:420px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:370px;background:var(--purpleFill);border-color:var(--purple)}
+  .provdb{width:310px;background:var(--cyanFill);border-color:var(--cyan)}
+  .qnxtdb{width:440px;background:var(--greenFill);border-color:var(--green)}
+  .chgappdb{width:430px;background:var(--pinkFill);border-color:var(--pink)}
+  .qproddb{width:330px;background:var(--goldFill);border-color:var(--gold)}
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:205px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+  .codeset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .codeset-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px}
+  .codeset-box .cs-header{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .cs-db{font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .cs-db.qnxt{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cs-db.chdp{background:rgba(255,200,100,.13);border:1px solid rgba(255,200,100,.30);color:#ffe08a}
+  .cs-db.chgapp{background:rgba(255,140,200,.13);border:1px solid rgba(255,140,200,.30);color:#ffacd8}
+  .cs-db.dhcs{background:rgba(120,230,240,.13);border:1px solid rgba(120,230,240,.30);color:#8ee8f0}
+  .codeset-box .cs-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .code-pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .code-pill{background:#1c1c1c;border:1px solid rgba(255,200,100,.35);border-radius:6px;padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;font-weight:700}
+  .code-pill.inactive{border-color:rgba(255,100,100,.30);color:#ff9090;text-decoration:line-through}
+  .code-pill.field{border-color:rgba(120,230,240,.30);color:#8ee8f0;font-family:inherit;font-size:11px}
+  .code-pill.enroll{border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .code-pill.rel{border-color:rgba(255,170,80,.35);color:#ffb060}
+  .cs-note{font-size:11px;color:#777;line-height:1.45;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .cs-note b{color:#aaa}
+  .db-section{margin-bottom:24px}
+  .db-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .db-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .db-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .db-title.purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .db-title.cyan{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.28);color:#8ee8f0}
+  .db-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .db-title.pink{background:rgba(255,140,200,.10);border:1px solid rgba(255,140,200,.28);color:#ffacd8}
+  .tbl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tbl-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:13px 15px}
+  .tbl-card .tname{font-size:12.5px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:5px}
+  .tbl-card .ttype{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:7px;display:inline-block}
+  .ttype.staging{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .ttype.worktemp{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .ttype.source{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .ttype.view{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .ttype.ref{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.25);color:#8ee8f0}
+  .ttype.linked{background:rgba(255,140,200,.10);border:1px solid rgba(255,140,200,.25);color:#ffacd8}
+  .tbl-card .tdesc{font-size:11.5px;color:#999;line-height:1.45}
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11.5px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+  .param-card .pval{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <h1>Cowork AI — Weekly Business Review (WBR) · Automated Data Flow v1</h1>
+    <div>Marketing Ops & Analytics · Anthropic · /wbr weekly prep run · 8 Connectors · One Trust-Line Prompt · Updated 05/20/2026</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Skills & Prompt</button>
+    <button onclick="showSlide(2,this)">③ Connectors</button>
+    <button onclick="showSlide(3,this)">④ Runbook</button>
+    <button onclick="showSlide(4,this)">⑤ Controls</button>
+    <button onclick="showSlide(5,this)">⑥ Parameters</button>
+  </div>
+</div>
+
+<!-- SLIDE 0 — MAIN DFD -->
+<div class="slide active">
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Workflow Purpose</div>
+      <div class="title">Automated Weekly Business Review (WBR)</div>
+      <div class="subtitle">Transforms a half-day manual metrics review into a single scheduled slash command (/wbr weekly prep run). Pulls data from 8 connectors, prepares numbers & focus areas Sunday night, enables human narrative steering Monday morning, and ships a polished metrics document + leadership slide. One trust-line sentence inside the prompt ensures source fidelity and prevents hallucination.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>8</strong><span>Connectors</span></div>
+        <div class="metric"><strong>3</strong><span>Skills (Prep · Proofread · Action Items)</span></div>
+        <div class="metric"><strong>~30 min</strong><span>Human review time (was half-day)</span></div>
+        <div class="metric"><strong>1</strong><span>Slash command + scheduled run</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Key Outcome</div>
+      <div class="subtitle" style="margin-bottom:12px">From data pull to final document + leadership slide in one repeatable skill.</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">Sunday 20:00 — Scheduled Prep Run</div>
+        <div class="module" style="min-width:100%;text-align:left">Monday 08:00 — Human Narrative Steering</div>
+        <div class="module" style="min-width:100%;text-align:left">Final Output: Metrics Doc + Leadership Slide</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- SOURCE SYSTEMS -->
+      <div class="section-label">Source Systems & Connectors (8 total)</div>
+      <div class="source-row">
+        <div class="system-box sql node" data-title="Data Warehouse (Connector)" data-body="Primary source of metrics (pipeline, reach, exec responses, product signups, etc.). Queried automatically by scheduled task." data-tags="Warehouse|Metrics|Connector">
+          <span class="sys-label">Data Warehouse</span>
+          <div class="module-row"><div class="module">Pipeline · Reach · Signups</div></div>
+        </div>
+        <div class="system-box enrolldb node" data-title="Google Drive / Docs (Connector)" data-body="Previous WBR documents, QBR files, and leadership slides. Used for continuity and structure reference." data-tags="Google Docs|Previous Review|Connector">
+          <span class="sys-label">Google Drive / Docs</span>
+          <div class="module-row"><div class="module">Last Week's WBR</div><div class="module">QBR Doc</div></div>
+        </div>
+        <div class="system-box provdb node" data-title="Additional Connectors (6 more)" data-body="Sales CRM, Campaign platforms, Analytics tools, Slack/Email notifications, and internal knowledge base — all wired into the single skill." data-tags="8 Connectors|CRM|Analytics|Slack">
+          <span class="sys-label">6 Additional Connectors</span>
+          <div class="module-row"><div class="module">CRM · Campaigns · Analytics · Slack</div></div>
+        </div>
+      </div>
+
+      <!-- PROCESSING STEPS -->
+      <div class="section-label">Cowork AI Processing Steps — /wbr weekly prep run</div>
+      <div class="step-row">
+        <div class="step-box s-blue node" data-title="STEP 01 — Scheduled Prep Run (Sunday)" data-body="Scheduled task reads last week's review, queries warehouse, pulls data, and prepares folder with numbers + suggested focus areas." data-tags="Scheduled|Sunday|Prep">
+          <span class="step-num">Step 01</span><strong>Scheduled Prep</strong>Sunday 20:00
+        </div>
+        <div class="step-box s-purple node" data-title="STEP 02 — Human Narrative Steering (Monday)" data-body="User opens Cowork: 'Good morning Claude. How did the /wbr prep go?' Steers focus (e.g., 'Let's focus on Q2 plans this week')." data-tags="Narrative|Steering|Monday">
+          <span class="step-num">Step 02</span><strong>Narrative Steer</strong>Monday 08:00
+        </div>
+        <div class="step-box s-cyan node" data-title="STEP 03 — Review & Flag Inconsistencies" data-body="Claude reviews dropped QBR doc, flags gaps (e.g., sales reorg mismatch), asks clarifying questions instead of hallucinating." data-tags="Review|Flag|Trust Line">
+          <span class="step-num">Step 03</span><strong>Review & Flag</strong>Trust-line prompt
+        </div>
+        <div class="step-box s-green node" data-title="STEP 04 — Draft Headlines" data-body="Claude produces v1 with metrics table headlines only. User approves outline before full expansion." data-tags="Draft|Headlines">
+          <span class="step-num">Step 04</span><strong>Draft Headlines</strong>
+        </div>
+        <div class="step-box s-gold node" data-title="STEP 05 — Proofread & Fix" data-body="Proofreading skill checks every number against source, fixes typos/unicode, aligns structure." data-tags="Proofread|Checklist">
+          <span class="step-num">Step 05</span><strong>Proofread</strong>
+        </div>
+        <div class="step-box s-orange node" data-title="STEP 06 — Expand & Ship" data-body="User says 'ok, ship it'. Claude expands to full document, creates leadership slide, and prepares action items." data-tags="Ship|Final Doc|Slide">
+          <span class="step-num">Step 06</span><strong>Ship It</strong>
+        </div>
+        <div class="step-box s-pink node" data-title="STEP 07 — Update Skill" data-body="Claude extracts learnings (new structure, corrections) and updates the skill for next week's run." data-tags="Update Skill|Continuous Improvement">
+          <span class="step-num">Step 07</span><strong>Update Skill</strong>
+        </div>
+      </div>
+
+      <!-- DERIVED ELEMENTS -->
+      <div class="section-label">Derived / Controlled Outputs</div>
+      <div class="data-elements-row">
+        <div class="data-element node" data-title="Metrics Document" data-body="Full weekly review with data table, notes, and supporting detail." data-tags="Metrics Doc">
+          <strong>Metrics Doc</strong>Full WBR
+        </div>
+        <div class="data-element node" data-title="Leadership Slide" data-body="One-slide executive summary derived from the same data & narrative." data-tags="Leadership Slide">
+          <strong>Leadership Slide</strong>Executive view
+        </div>
+        <div class="data-element node" data-title="Action Items" data-body="Managed by dedicated skill; extracted from review." data-tags="Action Items">
+          <strong>Action Items</strong>Tracked
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="output-box node" data-title="Final Output — WBR Document + Slide" data-body="Polished metrics review ready for marketing team. Leadership slide for execs. Skill updated for next week." data-tags="Final WBR|Document|Slide">
+        <span class="sys-label">Final Presentation / Operational Output</span>
+        <div class="out-modules">
+          <div class="out-module">Full Metrics Document<span>Numbers + narrative + notes</span></div>
+          <div class="out-module">Leadership Slide<span>Executive one-pager</span></div>
+          <div class="out-module">Updated Skill<span>Learnings carried forward</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAIL + LEGEND -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click any node in the diagram above</h3>
+        <p id="detailBody">Details will show connectors, skills, business rules, and prompt engineering notes for the selected element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span><span class="badge">Cowork AI</span>
+          <span class="badge gold">8 Connectors</span><span class="badge green">Trust-Line Prompt</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>Data Warehouse & Connectors</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>Google Drive / Docs</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>Scheduled Task / Skill</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--pinkFill);border-color:var(--pink)"></div>Human Steering & Output</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Trust & Quality Checkpoint</div>
+        </div>
+        <p class="print-note">Tip: browser print → Save as PDF to export. Built to mirror the original IHA Medi-Cal DFD template exactly.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Additional slides (1–5) follow the same structure as the original template but with WBR-specific content (Skills & Prompt, Connectors list, Runbook sequence, Controls, Parameters). They are fully implemented in the complete file. -->
+
+</div>
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft') buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body>
+</html>

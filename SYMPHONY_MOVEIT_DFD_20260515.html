@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Symphony dat File Upload | Data Flow Diagram | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden;margin-bottom:22px}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  /* DFD */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .phase-row{display:flex;justify-content:center;gap:0;flex-wrap:nowrap;align-items:stretch;width:100%}
+
+  /* INTERACTIVE NODES */
+  .phase-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .phase-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .phase-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* PHASE BOXES */
+  .phase-box{border:2px solid rgba(255,255,255,.16);padding:18px 14px 16px;text-align:center;flex:1;font-size:12px;line-height:1.4}
+  .phase-box .phase-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+  .phase-box strong{display:block;font-size:14px;margin-bottom:5px;color:#fff}
+  .phase-box .phase-sub{font-size:11px;color:#aaa;line-height:1.4;margin-bottom:8px}
+  .phase-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 10px;font-size:11.5px;font-weight:700;white-space:nowrap;color:#eee}
+
+  .p-blue{background:var(--blueFill);border-color:var(--blue)}
+  .p-green{background:var(--greenFill);border-color:var(--green)}
+  .p-gold{background:var(--goldFill);border-color:var(--gold)}
+  .p-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .p-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .p-orange{background:var(--orangeFill);border-color:var(--orange)}
+
+  /* STEP PILLS */
+  .step-pills{display:flex;flex-direction:column;gap:5px;margin-top:8px;text-align:left}
+  .step-pill{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.11);border-radius:5px;padding:5px 8px;font-size:11px;line-height:1.4;color:#ccc}
+  .pill-num{color:#9dd6ff;font-weight:700;font-size:10px;margin-right:3px}
+  .pill-tag{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:3px;margin-left:3px;vertical-align:middle}
+  .tag-ok{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.30);color:#7de0b2}
+  .tag-warn{background:rgba(255,200,100,.13);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .tag-api{background:rgba(100,180,255,.13);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+
+  /* CONNECTOR ARROWS */
+  .h-arrow{display:flex;align-items:center;justify-content:center;color:#444;font-size:20px;padding:0 6px;flex-shrink:0;align-self:center;margin-top:12px}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:16px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* FILE GRID */
+  .file-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:12px}
+  .file-pill{background:#1e1e1e;border:1px solid rgba(255,200,100,.25);border-radius:7px;padding:8px 11px;font-family:'Courier New',monospace;font-size:11px;color:#ffe08a}
+  .file-pill span{display:block;color:#888;font-family:inherit;font-size:10px;margin-top:2px}
+
+  /* MODULE */
+  .module-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+
+  /* DETAIL PANEL */
+  .detail-panel-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .detail-panel{background:#252525;border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:18px}
+  .detail-panel h3{font-size:15px;color:#fff;margin-bottom:8px}
+  .detail-panel p{font-size:13px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .badge.orange{background:rgba(255,170,80,.12);border-color:rgba(255,170,80,.35);color:#ffb060}
+
+  /* TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .mono{font-family:'Courier New',monospace;font-size:12px;color:#ffe08a}
+  .callout{margin-top:16px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .callout-warn{background:rgba(255,200,100,.07);border-left-color:rgba(255,200,100,.45)}
+  .callout-warn b{color:#ffe08a}
+  .callout-red{background:rgba(255,100,100,.07);border-left-color:rgba(255,100,100,.45)}
+  .callout-red b{color:#ff9090}
+  .callout-green{background:rgba(100,220,160,.07);border-left-color:rgba(100,220,160,.45)}
+  .callout-green b{color:#7de0b2}
+
+  /* RUNBOOK */
+  .runbook-section{margin-bottom:26px}
+  .runbook-section h2{font-size:17px;color:#fff;border-bottom:1px solid rgba(255,255,255,.10);padding-bottom:9px;margin-bottom:14px}
+  .checklist{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .checklist li{display:flex;align-items:flex-start;gap:12px;padding:12px 15px;background:#1e1e1e;border:1px solid rgba(255,255,255,.09);border-radius:9px;cursor:pointer;transition:.2s;user-select:none}
+  .checklist li:hover{background:#252525;border-color:rgba(255,255,255,.15)}
+  .checklist li.done{background:rgba(100,220,160,.06);border-color:rgba(100,220,160,.22)}
+  .checklist li.done .ck-label{color:#999;text-decoration:line-through}
+  .checklist li.done .ck-icon{background:rgba(100,220,160,.20);border-color:rgba(100,220,160,.50);color:#7de0b2}
+  .ck-icon{width:22px;height:22px;border-radius:50%;border:2px solid rgba(255,255,255,.20);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px;transition:.2s}
+  .ck-body{flex:1}
+  .ck-label{font-size:13.5px;color:#ddd;font-weight:700;line-height:1.4}
+  .ck-detail{font-size:12px;color:#888;margin-top:4px;line-height:1.5}
+  .ck-code{font-family:'Courier New',monospace;font-size:11.5px;color:#ffe08a;background:#141414;border:1px solid rgba(255,200,100,.20);border-radius:4px;padding:6px 10px;display:block;margin-top:6px;white-space:pre-wrap;word-break:break-all;line-height:1.5}
+  .ck-badge{font-size:10px;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .ck-badge-ok{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.30);color:#7de0b2}
+  .ck-badge-warn{background:rgba(255,200,100,.13);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .ck-badge-req{background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.28);color:#ff9090}
+  .runbook-progress{display:flex;align-items:center;gap:14px;margin-bottom:18px;background:#1e1e1e;border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:12px 18px}
+  .progress-bar{flex:1;height:8px;background:#2a2a2a;border-radius:4px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#4caf92,#7de0b2);border-radius:4px;transition:.4s;width:0%}
+  .progress-text{font-size:13px;color:#aaa;white-space:nowrap}
+
+  /* TROUBLESHOOT */
+  .ts-section{margin-bottom:22px;background:#1a1a1a;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:16px 18px}
+  .ts-section h3{font-size:14px;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ts-error{font-size:11px;padding:3px 9px;border-radius:999px;background:rgba(255,100,100,.13);border:1px solid rgba(255,100,100,.28);color:#ff9090;font-weight:400}
+  .ts-step{padding:9px 12px;background:#1e1e1e;border:1px solid rgba(255,255,255,.07);border-radius:7px;font-size:13px;color:#ccc;margin-bottom:7px;line-height:1.5;display:flex;gap:10px}
+  .ts-step:last-child{margin-bottom:0}
+  .ts-step-num{color:#9dd6ff;font-weight:700;flex-shrink:0;font-size:12px;min-width:20px}
+  .ts-step b{color:#fff}
+
+  /* CONFIG */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11.5px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+  .param-card .pval{font-size:12.5px;color:#ffe08a;font-family:'Courier New',monospace;word-break:break-all}
+  .param-card .pdesc{font-size:11px;color:#888;margin-top:5px;line-height:1.4}
+
+  /* CHANGE LOG */
+  .cl-table{background:#1e1e1e;border:1px solid rgba(255,255,255,.09);border-radius:10px;overflow:hidden}
+  .cl-row{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:grid;grid-template-columns:72px 90px 1fr;gap:16px;align-items:start}
+  .cl-row:last-child{border-bottom:none}
+  .cl-row.header{background:#252525}
+  .cl-ver{font-weight:700;color:#9dd6ff;font-size:13px}
+  .cl-date{font-size:12px;color:#777}
+  .cl-desc{font-size:13px;color:#ccc;line-height:1.5}
+
+  /* POPOVER */
+  .popover-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;display:none;align-items:center;justify-content:center}
+  .popover-backdrop.open{display:flex}
+  .popover{background:#1e1e1e;border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:28px 32px;max-width:700px;width:90%;max-height:82vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.7)}
+  .popover h2{font-size:18px;color:#fff;margin-bottom:12px;padding-right:28px}
+  .popover-body-text{font-size:13px;color:#bbb;line-height:1.65;white-space:pre-wrap;font-family:'Book Antiqua',Palatino,Georgia,serif;margin-bottom:14px}
+  .popover .close-btn{position:absolute;top:18px;right:22px;background:none;border:none;color:#777;font-size:22px;cursor:pointer;line-height:1}
+  .popover{position:relative}
+  .popover .close-btn:hover{color:#fff}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <h1>Symphony dat File Upload &middot; Data Flow Diagram</h1>
+    <div>CHGSD &middot; INFORMATICS &middot; SSA Job: Symphony dat File Upload &middot; C003 &middot; 2026-05-15 &middot; PowerShell + MOVEit FTPS &rarr; Availity QA</div>
+  </div>
+  <div class="nav">
+    <button onclick="showSlide(0,this)" class="active">&#9312; Data Flow</button>
+    <button onclick="showSlide(1,this)">&#9313; Runbook</button>
+    <button onclick="showSlide(2,this)">&#9314; Configuration</button>
+    <button onclick="showSlide(3,this)">&#9315; Troubleshooting</button>
+    <button onclick="showSlide(4,this)">&#9316; Change Log</button>
+  </div>
+</div>
+
+
+<!-- ═══ SLIDE 0 — DATA FLOW ═══ -->
+<div class="slide active" id="slide-0">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Process Purpose</div>
+      <div class="title">Symphony Provider Data &rarr; Availity QA</div>
+      <div class="subtitle">Bimonthly automated pipeline that packages CHGSD provider credentialing <strong>.dat files</strong> from the SYMPHONY project folder on netapp02, creates a dated ZIP, and delivers it to the <strong>Availity QA MFT inbox</strong> via MOVEit Automation FTPS. Runs every 1st &amp; 3rd Friday via SQL Server Agent on SQLPROD02. Colleagues can run, re-run, or troubleshoot using the Runbook tab.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>12</strong><span>CHGSD_* .dat files packaged per run</span></div>
+        <div class="metric"><strong>2&times;/month</strong><span>1st Friday 12:01 AM &middot; 3rd Friday 12:11 AM</span></div>
+        <div class="metric"><strong>14 Steps</strong><span>1 PS pre-flight + 13 SSIS upload steps</span></div>
+        <div class="metric"><strong>FTPS Port 22</strong><span>Explicit TLS (Ctrl/Data) &rarr; files.availity.com</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Key Systems</div>
+      <div class="subtitle" style="margin-bottom:12px">Components involved in each pipeline run:</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">SQLPROD02 &mdash; SQL Server Agent<span>Job: Symphony dat File Upload &middot; Steps 1&ndash;14 &middot; CHG\qnxtadmin</span></div>
+        <div class="module" style="min-width:100%;text-align:left">\\netapp02\IS\Informatics\...\SYMPHONY<span>Source .dat folder + STAGING ZIP drop zone</span></div>
+        <div class="module" style="min-width:100%;text-align:left">devops01 &mdash; MOVEit Automation<span>REST API v1 &middot; Task: Symphony dat File Upload &middot; FTPS transfer</span></div>
+        <div class="module" style="min-width:100%;text-align:left">files.availity.com &mdash; Availity QA<span>Root inbox &middot; FTPS Explicit port 22 &middot; chg_service_moveit</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Pipeline &mdash; click any phase box for detail</div>
+    <div class="section-label" style="margin-top:8px">End-to-End Data Flow &mdash; 6 Phases</div>
+
+    <div class="phase-row" style="margin-top:18px;gap:0">
+
+      <div class="phase-box p-blue node"
+           data-title="Phase 1 &mdash; Source Data on netapp02"
+           data-body="SQLPRODAPP01 SQL Server Agent (Schedule 22, weekdays 5:55 PM) runs stored procedures that refresh SYMPHONY project .dat files. Files are written to the current month folder:
+
+\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\{YYYY}\{YYYY}_{MonthName}\
+
+Twelve CHGSD_* prefix files are expected per cycle:
+  CHGSD_ADDRESS       CHGSD_BED_DETAIL    CHGSD_CONTACT
+  CHGSD_ENTITY        CHGSD_HOSPITAL      CHGSD_HOURS
+  CHGSD_IDENTIFIER    CHGSD_LANGUAGE      CHGSD_LOCATION
+  CHGSD_NETWORK       CHGSD_ROSTER        CHGSD_TAXONOMY
+
+Multiple date-vintages of each prefix may exist. The PS script always selects the most-recently-modified file per prefix."
+           data-tags="SQLPRODAPP01|Schedule 22|netapp02|12 CHGSD_ files|source">
+        <span class="sys-label">SQLPRODAPP01</span>
+        <span class="phase-num">Phase 1</span>
+        <strong>Source Data</strong>
+        <div class="phase-sub">CHGSD_*.dat files<br>in monthly folder</div>
+        <div class="step-pills">
+          <div class="step-pill"><span class="pill-num">A</span>SSA Schedule 22 &rarr; .dat refresh</div>
+          <div class="step-pill"><span class="pill-num">B</span>12 CHGSD_* prefixes expected</div>
+          <div class="step-pill"><span class="pill-num">C</span>Path: \{YYYY}\{YYYY}_{Month}\</div>
+        </div>
+      </div>
+
+      <div class="h-arrow">&rarr;</div>
+
+      <div class="phase-box p-purple node"
+           data-title="Phase 2 &mdash; PowerShell Pre-flight (SSA Step 1)"
+           data-body="symphony_moveit_upload_20260515.ps1 runs as SSA CmdExec Step 1 on SQLPROD02 under CHG\qnxtadmin.
+
+SSA CmdExec command:
+powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\symphony_moveit_upload_20260515.ps1&quot;
+
+INI config: symphony_moveit_upload.ini (same folder, no date suffix in filename)
+
+Pre-flight sequence:
+  1. Read INI config
+  2. Resolve current month folder (date-based; fallback scan if not found)
+  3. Select latest-vintage .dat file per each of 12 CHGSD_* prefixes
+  4. Ensure STAGING folder exists (creates on first run)
+  5. Purge prior *_CHG.zip from STAGING
+  6. Create YYYYMMDD_CHG.zip via Compress-Archive
+  7-11. MOVEit REST API (auth, locate, self-heal, trigger, logout)
+
+Exit 1 = hard fail &rarr; SSA halts, Database Mail fires
+Exit 0 = success or soft fallback &rarr; SSIS steps proceed"
+           data-tags="PowerShell|CmdExec|SQLPROD02|CHG\qnxtadmin|INI|Compress-Archive|self-heal">
+        <span class="sys-label">SQLPROD02 &middot; SSA Step 1</span>
+        <span class="phase-num">Phase 2</span>
+        <strong>PS Pre-flight</strong>
+        <div class="phase-sub">symphony_moveit_upload<br>_20260515.ps1</div>
+        <div class="step-pills">
+          <div class="step-pill"><span class="pill-num">1</span>Read INI config</div>
+          <div class="step-pill"><span class="pill-num">2</span>Resolve month folder</div>
+          <div class="step-pill"><span class="pill-num">3</span>Select 12 latest .dat files</div>
+          <div class="step-pill"><span class="pill-num">4-5</span>Ensure STAGING, purge old ZIPs</div>
+          <div class="step-pill"><span class="pill-num">6</span>Create YYYYMMDD_CHG.zip <span class="pill-tag tag-ok">Compress-Archive</span></div>
+        </div>
+      </div>
+
+      <div class="h-arrow">&rarr;</div>
+
+      <div class="phase-box p-cyan node"
+           data-title="Phase 3 &mdash; MOVEit REST API Self-Heal &amp; Trigger"
+           data-body="The PS script calls MOVEit Automation REST API v1 on devops01 (self-signed TLS cert &mdash; certificate validation bypassed via ServicePointManager):
+
+Authenticate:
+  POST https://devops01/api/v1/token
+  body: grant_type=password&amp;username=miadmin&amp;password=...
+
+Locate task by name:
+  GET https://devops01/api/v1/tasks
+  match items[].name == 'Symphony dat File Upload' (case-insensitive)
+
+Self-heal source (idempotent &mdash; no-op if already correct):
+  GET https://devops01/api/v1/tasks/{id}
+  PUT https://devops01/api/v1/tasks/{id}
+    body: { source: { path: STAGING_UNC, fileSpecs: [{pattern: '*_CHG.zip'}] } }
+
+Trigger task:
+  POST https://devops01/api/v1/tasks/{id}/run
+  expects HTTP 200/202/204
+
+Logout:
+  DELETE https://devops01/api/v1/token
+
+ALL MOVEit failures are non-fatal (exit 0). ZIP remains staged. Fallback alert written to SSA history. MOVEit Task will still run on its Friday 11:00 AM schedule."
+           data-tags="MOVEit|REST API v1|devops01|self-heal|trigger|miadmin|Bearer token">
+        <span class="sys-label">devops01 &middot; MOVEit Automation</span>
+        <span class="phase-num">Phase 3</span>
+        <strong>MOVEit API</strong>
+        <div class="phase-sub">Self-heal + trigger<br>via REST API v1</div>
+        <div class="step-pills">
+          <div class="step-pill"><span class="pill-num">7</span>POST /api/v1/token <span class="pill-tag tag-api">auth</span></div>
+          <div class="step-pill"><span class="pill-num">8</span>GET /api/v1/tasks &rarr; match name</div>
+          <div class="step-pill"><span class="pill-num">9</span>GET+PUT /api/v1/tasks/{id} <span class="pill-tag tag-warn">idempotent</span></div>
+          <div class="step-pill"><span class="pill-num">10</span>POST /api/v1/tasks/{id}/run</div>
+          <div class="step-pill"><span class="pill-num">11</span>DELETE /api/v1/token</div>
+        </div>
+      </div>
+
+      <div class="h-arrow">&rarr;</div>
+
+      <div class="phase-box p-orange node"
+           data-title="Phase 4 &mdash; FTPS Transfer to Availity QA"
+           data-body="MOVEit Automation executes task 'Symphony dat File Upload':
+
+SOURCE (Share host &mdash; Netapp02):
+  UNC:    \\netapp02
+  Path:   \is\Informatics\_Informatics Deliverables\...\SYMPHONY\STAGING
+  Filter: *.zip
+  New files only: YES  |  DelRename: YES
+
+DESTINATION (FTP host &mdash; Symphony Availity QA):
+  Host:     files.availity.com    &larr; bare hostname, no https:// prefix
+  Port:     22
+  Protocol: Explicit FTPS (Ctrl/Data TLS)   &larr; NOT SFTP / NOT port 22
+  Path:     /(root inbox)
+  User:     chg_service_moveit
+  Blind UL: YES  |  Overwrite: YES
+
+SCHEDULE (fallback if API trigger missed):
+  Every Friday at 11:00 AM (MOVEit native schedule)
+
+NOTIFICATION:
+  On success AND failure &rarr; wcarr@chgsd.com
+  Via Exchange host (mail.chgsd.com port 25)
+  Subject: symphony FTP Upload"
+           data-tags="MOVEit|FTPS Explicit|port 22|files.availity.com|chg_service_moveit|root inbox">
+        <span class="sys-label">devops01 &rarr; files.availity.com</span>
+        <span class="phase-num">Phase 4</span>
+        <strong>FTPS Transfer</strong>
+        <div class="phase-sub">YYYYMMDD_CHG.zip<br>&rarr; Availity root inbox</div>
+        <div class="step-pills">
+          <div class="step-pill"><span class="pill-num">S</span>Source: STAGING\*.zip netapp02</div>
+          <div class="step-pill"><span class="pill-num">D</span>Dest: /(root inbox) Availity QA</div>
+          <div class="step-pill"><span class="pill-num">P</span>Port 22 &middot; Explicit FTPS <span class="pill-tag tag-warn">NOT port 21</span></div>
+          <div class="step-pill"><span class="pill-num">&#9993;</span>Email notify &rarr; wcarr@chgsd.com</div>
+        </div>
+      </div>
+
+      <div class="h-arrow">&rarr;</div>
+
+      <div class="phase-box p-gold node"
+           data-title="Phase 5 &mdash; SSIS Upload Steps 2&ndash;14"
+           data-body="After PS pre-flight (Step 1) exits 0, SSA continues to Steps 2&ndash;14 &mdash; the existing SSIS packages that perform Symphony credentialing data upload and processing.
+
+These steps are UNCHANGED from the original Sandra Coleman SOP. They run on SQLPROD02 under CHG\qnxtadmin.
+
+Step 1 exit code behavior:
+  Exit 0 &rarr; SSA proceeds to Step 2 normally
+  Exit 1 &rarr; SSA halts; Database Mail fires (failure alert)
+
+The SSIS steps consume the .dat files already present on the share. They operate independently of the ZIP/MOVEit workflow. The MOVEit transfer (Phase 4) may execute concurrently."
+           data-tags="SSIS|Steps 2-14|SSA|SQLPROD02|CHG\qnxtadmin|Sandra Coleman SOP">
+        <span class="sys-label">SQLPROD02 &middot; SSA Steps 2&ndash;14</span>
+        <span class="phase-num">Phase 5</span>
+        <strong>SSIS Upload</strong>
+        <div class="phase-sub">13 SSIS packages<br>(unchanged from SOP)</div>
+        <div class="step-pills">
+          <div class="step-pill"><span class="pill-num">2-14</span>Existing SSIS steps <span class="pill-tag tag-ok">unchanged</span></div>
+          <div class="step-pill"><span class="pill-num">&rarr;</span>Only run if Step 1 exits 0</div>
+          <div class="step-pill"><span class="pill-num">&#9993;</span>DB Mail on any step failure</div>
+        </div>
+      </div>
+
+      <div class="h-arrow">&rarr;</div>
+
+      <div class="phase-box p-green node"
+           data-title="Phase 6 &mdash; Availity QA Inbox Confirmation"
+           data-body="Successful delivery is confirmed when YYYYMMDD_CHG.zip appears in the Availity QA MFT inbox.
+
+Verification:
+1. Log in to Availity portal (chg_service_moveit credentials)
+2. Navigate: MFT Send/Receive &rarr; Received Files
+   URL: https://files.availity.com/static/web/appl/mft-services/mft-send-receive-edi/
+3. Confirm file date matches today's run
+4. MOVEit email notification to wcarr@chgsd.com also confirms delivery
+5. MOVEit dashboard: https://devops01/#/log &rarr; Task logs
+
+FILE NAMING:
+  Format:   YYYYMMDD_CHG.zip
+  Example:  20260515_CHG.zip
+  Contents: 12 CHGSD_*.dat files (flat &mdash; no subdirectories)
+
+CONFIRMED DELIVERY: 2026-05-15
+  20260515_CHG.zip received in Availity QA &#10003;"
+           data-tags="Availity QA|FTPS|files.availity.com|YYYYMMDD_CHG.zip|confirmation">
+        <span class="sys-label">files.availity.com</span>
+        <span class="phase-num">Phase 6</span>
+        <strong>Availity QA</strong>
+        <div class="phase-sub">Root inbox<br>YYYYMMDD_CHG.zip &#10003;</div>
+        <div class="step-pills">
+          <div class="step-pill"><span class="pill-num">&#10003;</span>ZIP in MFT portal inbox</div>
+          <div class="step-pill"><span class="pill-num">&#9993;</span>MOVEit notify email to wcarr</div>
+          <div class="step-pill"><span class="pill-num">&#9873;</span>First confirmed: 2026-05-15</div>
+        </div>
+      </div>
+
+    </div><!-- end phase-row -->
+
+    <div class="flow-arrows" style="margin-top:20px">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">ZIP Contents &mdash; 12 CHGSD_* Prefixes (latest vintage per prefix)</div>
+    <div class="file-grid">
+      <div class="file-pill">CHGSD_ADDRESS_*.dat<span>Address records</span></div>
+      <div class="file-pill">CHGSD_BED_DETAIL_*.dat<span>Bed detail</span></div>
+      <div class="file-pill">CHGSD_CONTACT_*.dat<span>Contact</span></div>
+      <div class="file-pill">CHGSD_ENTITY_*.dat<span>Entity</span></div>
+      <div class="file-pill">CHGSD_HOSPITAL_*.dat<span>Hospital</span></div>
+      <div class="file-pill">CHGSD_HOURS_*.dat<span>Hours</span></div>
+      <div class="file-pill">CHGSD_IDENTIFIER_*.dat<span>Identifier</span></div>
+      <div class="file-pill">CHGSD_LANGUAGE_*.dat<span>Language</span></div>
+      <div class="file-pill">CHGSD_LOCATION_*.dat<span>Location</span></div>
+      <div class="file-pill">CHGSD_NETWORK_*.dat<span>Network</span></div>
+      <div class="file-pill">CHGSD_ROSTER_*.dat<span>Roster</span></div>
+      <div class="file-pill">CHGSD_TAXONOMY_*.dat<span>Taxonomy</span></div>
+    </div>
+
+    <div class="detail-panel-row">
+      <div class="detail-panel">
+        <h3>Exit Code Behavior</h3>
+        <p><strong style="color:#ff9090">Exit 1 &mdash; Hard fail &rarr; SSA halts, Database Mail fires</strong><br>Causes: INI config missing, month folder not found, any CHGSD_* prefix absent, STAGING create failed, ZIP creation failed.</p>
+        <p style="margin-top:8px"><strong style="color:#7de0b2">Exit 0 &mdash; Success or soft fallback &rarr; SSIS steps proceed</strong><br>MOVEit API failures are non-fatal. ZIP is staged regardless &mdash; MOVEit picks it up on its Friday 11:00 AM schedule even if the API trigger failed.</p>
+        <div class="badge-row">
+          <span class="badge red">Exit 1 &rarr; DB Mail</span>
+          <span class="badge green">Exit 0 &rarr; SSIS proceeds</span>
+          <span class="badge orange">API fail &rarr; ZIP staged</span>
+        </div>
+      </div>
+      <div class="detail-panel">
+        <h3>Schedule</h3>
+        <p><strong>SSA Job:</strong> "Symphony dat File Upload" on SQLPROD02<br>
+        Schedule 7988 &mdash; 1st Friday of month, 12:01 AM<br>
+        Schedule 7989 &mdash; 3rd Friday of month, 12:11 AM</p>
+        <p style="margin-top:8px"><strong>MOVEit Task fallback schedule:</strong><br>
+        Every Friday at 11:00 AM (runs even if API trigger missed)</p>
+        <div class="badge-row">
+          <span class="badge">SQLPROD02</span>
+          <span class="badge gold">Sched 7988 &middot; 7989</span>
+          <span class="badge">CHG\qnxtadmin</span>
+          <span class="badge">C003 &middot; 2026-05-15</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- end slide-0 -->
+
+
+<!-- ═══ SLIDE 1 — RUNBOOK ═══ -->
+<div class="slide" id="slide-1">
+  <div class="card">
+    <div class="kicker">Interactive Runbook &mdash; click each item to mark complete</div>
+    <div class="title" style="font-size:24px;margin:8px 0 4px">Pipeline Runbook</div>
+    <div class="subtitle" style="margin-bottom:18px">Use this checklist to deploy, validate, or manually re-run the Symphony dat File Upload pipeline. Click any item to mark it complete. Progress is tracked in your browser session (not saved on close). Use Section A for first-time setup, B for each scheduled run, C for manual recovery.</div>
+
+    <div class="runbook-progress">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-text" id="progress-text">0 / 0 complete</div>
+      <button onclick="resetChecklist()" style="font-family:inherit;background:none;border:1px solid rgba(255,255,255,.15);color:#888;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px">Reset All</button>
+    </div>
+
+    <!-- SECTION A -->
+    <div class="runbook-section">
+      <h2>A &mdash; One-Time Deployment (first run only)</h2>
+      <ul class="checklist">
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Copy PS script to netapp02 SYMPHONY folder <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">Destination UNC (copy from desktop; keep the date in the filename):</div>
+            <code class="ck-code">\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\symphony_moveit_upload_20260515.ps1</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Copy INI config to same folder &mdash; rename to remove date suffix <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">The script resolves the INI by looking for this exact filename in its own directory. The desktop version has a date suffix; the deployed version must not:</div>
+            <code class="ck-code">\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\symphony_moveit_upload.ini</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Verify INI [paths] section matches actual netapp02 UNC paths <span class="ck-badge ck-badge-req">one-time</span></div>
+            <code class="ck-code">[paths]
+root_unc    = \\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY
+staging_unc = \\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\STAGING</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Verify INI [moveit] section &mdash; base_url, task_name, credentials <span class="ck-badge ck-badge-req">one-time</span></div>
+            <code class="ck-code">[moveit]
+base_url  = https://devops01
+username  = miadmin
+password  = Just4now     &lt;-- rotate periodically; keep out of source control
+task_name = Symphony dat File Upload    &lt;-- must match MOVEit Task name exactly</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Configure SSA Step 1 in SSMS on SQLPROD02 <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">SSMS &rarr; SQL Server Agent &rarr; Jobs &rarr; Symphony dat File Upload &rarr; Steps &rarr; Step 1 &rarr; Edit:</div>
+            <code class="ck-code">Type:     Operating system (CmdExec)
+Run as:   [default &mdash; uses job owner CHG\qnxtadmin]
+Command:  powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\symphony_moveit_upload_20260515.ps1"
+
+Advanced tab:
+  On success action: Go to next step
+  On failure action: Quit with failure</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Confirm MOVEit Task exists and is named "Symphony dat File Upload" on devops01 <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">Log in to devops01 &rarr; Tasks tab. Confirm the task name exactly. Task was cloned from "Move SYMPHONY data to Availity QA" and renamed 2026-05-15.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Verify MOVEit FTP Host "Symphony Availity QA" settings <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">devops01 &rarr; Hosts &rarr; Symphony Availity QA &rarr; Edit:</div>
+            <code class="ck-code">Host/Address:    files.availity.com    &lt;-- bare hostname ONLY (no https://, no trailing slash)
+Port:            22                    &lt;-- NOT 21
+Secure Conn:     Explicit (Ctrl/Data)  &lt;-- FTPS; NOT SFTP
+Username:        chg_service_moveit</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Verify MOVEit Task Source path and filter <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">The PS script self-heals this on first run, but confirm manually. devops01 &rarr; Task &rarr; Source tab:</div>
+            <code class="ck-code">Source Host: Netapp02
+Path:        \is\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\STAGING
+File Mask:   *.zip
+New Files Only: YES</code>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Run MOVEit FTP Host connection test &mdash; expect "Connection successful" <span class="ck-badge ck-badge-req">one-time</span></div>
+            <div class="ck-detail">devops01 &rarr; Hosts &rarr; Symphony Availity QA &rarr; Test. If it fails with "hostname or IP address is not valid" &mdash; the Host field contains a URL with a protocol prefix. Remove everything except the bare hostname and try again.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Verify MOVEit Task email notification &rarr; wcarr@chgsd.com on success &amp; failure <span class="ck-badge ck-badge-warn">recommended</span></div>
+            <div class="ck-detail">devops01 &rarr; Task &rarr; Next Actions. Confirm email action to wcarr@chgsd.com via Exchange (mail.chgsd.com:25). DoIfSuccess=1, DoIfFailure=1. Subject: "symphony FTP Upload".</div>
+          </div>
+        </li>
+
+      </ul>
+    </div>
+
+    <!-- SECTION B -->
+    <div class="runbook-section">
+      <h2>B &mdash; Per-Run Validation (each scheduled Friday)</h2>
+      <ul class="checklist">
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Check SSA Job history on SQLPROD02 after scheduled run <span class="ck-badge ck-badge-req">each run</span></div>
+            <div class="ck-detail">SSMS &rarr; SQL Server Agent &rarr; Jobs &rarr; Symphony dat File Upload &rarr; right-click &rarr; View History. All 14 steps should show green checkmarks. Step 1 typical duration: 30&ndash;90 seconds.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Confirm STAGING folder contains a fresh YYYYMMDD_CHG.zip (~1.5&ndash;2 MB) <span class="ck-badge ck-badge-req">each run</span></div>
+            <code class="ck-code">\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\STAGING\</code>
+            <div class="ck-detail" style="margin-top:4px">Expect one file: YYYYMMDD_CHG.zip dated today. Prior ZIPs are purged automatically. If the folder is empty or the ZIP is stale, Step 6 (ZIP creation) may have failed &mdash; check SSA Step 1 history output for details.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Confirm MOVEit notification email received at wcarr@chgsd.com <span class="ck-badge ck-badge-req">each run</span></div>
+            <div class="ck-detail">Subject: "symphony FTP Upload". Body includes table of files. If no email: check MOVEit Task log at https://devops01/#/log. If Task ran but email missing, check Exchange relay at mail.chgsd.com.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Confirm YYYYMMDD_CHG.zip appears in Availity QA MFT portal <span class="ck-badge ck-badge-req">each run</span></div>
+            <code class="ck-code">https://files.availity.com/static/web/appl/mft-services/mft-send-receive-edi/</code>
+            <div class="ck-detail" style="margin-top:4px">Confirm file date matches today's run. If not present but MOVEit shows success, check Availity's received/archived view &mdash; the file may be auto-archived from the inbox.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Review MOVEit Task log for any warnings or skipped files <span class="ck-badge ck-badge-warn">recommended</span></div>
+            <div class="ck-detail">devops01 &rarr; Dashboard &rarr; Recent Task Activity &rarr; Symphony dat File Upload. Confirm status = Completed. If Skipped: NewFilesOnly=1 means a re-run will not re-transfer the same ZIP. See Section C for recovery.</div>
+          </div>
+        </li>
+
+      </ul>
+    </div>
+
+    <!-- SECTION C -->
+    <div class="runbook-section">
+      <h2>C &mdash; Manual Re-Run / Recovery (off-schedule or after failure)</h2>
+      <ul class="checklist">
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Confirm source .dat files in the month folder are current before re-running <span class="ck-badge ck-badge-req">before re-run</span></div>
+            <div class="ck-detail">Browse to \SYMPHONY\{YYYY}\{YYYY}_{Month}\ and confirm all 12 CHGSD_* prefixes are present with recent dates. If any are missing, SQLPRODAPP01 Schedule 22 may not have completed &mdash; wait for source refresh and then re-run.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">Manually start SSA Job at Step 1 from SSMS <span class="ck-badge ck-badge-warn">recovery</span></div>
+            <div class="ck-detail">SSMS &rarr; SQL Server Agent &rarr; Jobs &rarr; Symphony dat File Upload &rarr; right-click &rarr; Start Job at Step &rarr; select Step 1. This creates a fresh ZIP and calls the MOVEit API. Monitor history for result.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">If MOVEit API was unavailable &mdash; manually trigger MOVEit Task after ZIP is staged <span class="ck-badge ck-badge-warn">recovery</span></div>
+            <div class="ck-detail">When the PS script exits with a fallback warning, the ZIP is still staged. Either wait for the Friday 11:00 AM MOVEit schedule, or trigger manually:</div>
+            <code class="ck-code">devops01 &rarr; Tasks &rarr; Symphony dat File Upload &rarr; Run Now</code>
+            <div class="ck-detail" style="margin-top:4px">Before running manually, verify: Source Path = STAGING UNC, File Mask = *.zip.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">If MOVEit Task is Skipped (NewFilesOnly) &mdash; delete the STAGING ZIP and re-stage <span class="ck-badge ck-badge-warn">recovery</span></div>
+            <div class="ck-detail">MOVEit's NewFilesOnly flag prevents re-transferring a file it has already seen. To force a re-send: delete the ZIP from STAGING, re-run SSA Step 1 (which creates a fresh ZIP), then trigger the MOVEit Task manually.</div>
+          </div>
+        </li>
+
+        <li onclick="toggleCheck(this)">
+          <div class="ck-icon"></div>
+          <div class="ck-body">
+            <div class="ck-label">If new month folder not yet created &mdash; script uses fallback to most-recent folder <span class="ck-badge ck-badge-warn">awareness</span></div>
+            <div class="ck-detail">The script first looks for \SYMPHONY\{YYYY}\{YYYY}_{MonthName}\. If not found, it scans subdirectories for the most-recently-modified year/month folder. The SSA Step 1 history output logs exactly which folder was selected &mdash; verify it is correct before accepting the run result.</div>
+          </div>
+        </li>
+
+      </ul>
+    </div>
+
+  </div>
+</div><!-- end slide-1 -->
+
+
+<!-- ═══ SLIDE 2 — CONFIGURATION ═══ -->
+<div class="slide" id="slide-2">
+
+  <div class="card">
+    <div class="kicker">INI Configuration File</div>
+    <div class="title" style="font-size:22px;margin:8px 0 4px">symphony_moveit_upload.ini</div>
+    <div class="subtitle">Deployed alongside the .ps1 script on netapp02. Filename must not contain a date suffix. Do not check in to source control with a plaintext password.</div>
+    <div class="param-grid">
+      <div class="param-card">
+        <div class="pname">[paths] root_unc</div>
+        <div class="pval">\\netapp02\IS\Informatics\...\SYMPHONY</div>
+        <div class="pdesc">Root UNC for the SYMPHONY project folder. Script derives {root}\{YYYY}\{YYYY}_{Month}\ at runtime. No trailing backslash.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">[paths] staging_unc</div>
+        <div class="pval">\\netapp02\...\SYMPHONY\STAGING</div>
+        <div class="pdesc">Fixed drop zone for YYYYMMDD_CHG.zip. Created automatically on first run. MOVEit Task source is self-healed to this path.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">[moveit] base_url</div>
+        <div class="pval">https://devops01</div>
+        <div class="pdesc">MOVEit Automation REST API base URL. Self-signed TLS &mdash; script bypasses cert validation. No trailing slash.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">[moveit] username / password</div>
+        <div class="pval">miadmin / Just4now</div>
+        <div class="pdesc">MOVEit admin credential. Rotate periodically. Script URL-encodes both before POSTing to /api/v1/token.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">[moveit] task_name</div>
+        <div class="pval">Symphony dat File Upload</div>
+        <div class="pdesc">Friendly name of the MOVEit Task. REST API match is case-insensitive but spelling must be exact. Task cloned and renamed 2026-05-15.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">[availity] ftp_url / ftp_uid</div>
+        <div class="pval">files.availity.com / chg_service_moveit</div>
+        <div class="pdesc">Informational only. Auth and transfer are owned by the MOVEit Host definition, not the PS script.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">MOVEit Task Configuration</div>
+    <div class="title" style="font-size:22px;margin:8px 0 4px">Task: "Symphony dat File Upload" on devops01</div>
+    <table class="mini-table">
+      <thead><tr><th>Setting</th><th>Value</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Task Name</td><td class="mono">Symphony dat File Upload</td><td>Must match INI task_name (case-insensitive)</td></tr>
+        <tr><td>Active</td><td class="mono">0 (inactive)</td><td>Triggered via API; falls back to native schedule</td></tr>
+        <tr><td>Fallback Schedule</td><td class="mono">Every Friday at 11:00 AM</td><td>Fires if API trigger missed</td></tr>
+        <tr><td>Source Host</td><td class="mono">Netapp02 (HostID 162936649)</td><td>UNC \\netapp02</td></tr>
+        <tr><td>Source Path</td><td class="mono">\is\Informatics\...\SYMPHONY\STAGING</td><td>Self-healed by PS script first run</td></tr>
+        <tr><td>Source Filter</td><td class="mono">*.zip</td><td>New files only; DelRename=1</td></tr>
+        <tr><td>Dest Host</td><td class="mono">Symphony Availity QA (HostID 757159926)</td><td>FTP type &mdash; see host config below</td></tr>
+        <tr><td>Dest Path</td><td class="mono">/(root inbox)</td><td>Availity QA root; ForceDir=1; Overwrite=1</td></tr>
+        <tr><td>Notification</td><td class="mono">wcarr@chgsd.com</td><td>On success AND failure via Exchange (mail.chgsd.com:25)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="kicker">MOVEit FTP Host Configuration</div>
+    <div class="title" style="font-size:22px;margin:8px 0 4px">Host: "Symphony Availity QA" on devops01</div>
+    <table class="mini-table">
+      <thead><tr><th>Setting</th><th>Correct Value</th><th>Common Mistake / Why It Fails</th></tr></thead>
+      <tbody>
+        <tr><td>Host / Address</td><td class="mono">files.availity.com</td><td style="color:#ff9090">&#10060; https://files.availity.com/ &rarr; "hostname or IP address is not valid"</td></tr>
+        <tr><td>Port</td><td class="mono">22</td><td style="color:#ff9090">&#10060; 21 &rarr; SFTP/SSH; FTP host type does not support it</td></tr>
+        <tr><td>Secure Connection</td><td class="mono">Explicit (Ctrl/Data)</td><td style="color:#ff9090">&#10060; Implicit TLS / None / SFTP &rarr; Availity requires FTPS Explicit</td></tr>
+        <tr><td>Username</td><td class="mono">chg_service_moveit</td><td>Password stored in MOVEit Host definition (encrypted)</td></tr>
+        <tr><td>Host Type</td><td class="mono">FTP (not SFTP)</td><td>SFTP is a separate host type using SSH &mdash; different protocol entirely</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-warn">
+      <b>Key Lesson (2026-05-15):</b> Availity MFT uses <b>FTPS Explicit on port 22</b> &mdash; not SFTP on port 22. MOVEit's FTP host type supports FTPS but the Secure Connection dropdown must be set to "Explicit (Ctrl/Data)". When in doubt: <b>port 21 = FTPS</b>, <b>port 22 = SFTP</b>.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">SSA Step 1 Configuration</div>
+    <div class="title" style="font-size:22px;margin:8px 0 4px">SQLPROD02 &mdash; SQL Server Agent Job Step 1</div>
+    <table class="mini-table">
+      <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Step Type</td><td class="mono">Operating system (CmdExec)</td></tr>
+        <tr><td>Run As</td><td class="mono">CHG\qnxtadmin (job owner &mdash; do not change)</td></tr>
+        <tr><td>Command</td><td class="mono">powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -File "\\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\symphony_moveit_upload_20260515.ps1"</td></tr>
+        <tr><td>On Success</td><td class="mono">Go to next step (Step 2)</td></tr>
+        <tr><td>On Failure</td><td class="mono">Quit with failure (triggers Database Mail)</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <b>Why CmdExec, not PowerShell step type?</b> The SSA PowerShell step type uses a constrained runspace that blocked loading .NET types (caused [System.IO.Compression.ZipArchiveMode] error during C002&rarr;C003 migration). CmdExec + powershell.exe spawns a full unrestricted PowerShell 5.1 session. The -ExecutionPolicy Bypass flag is required because CHG\qnxtadmin may have a restricted execution policy on SQLPROD02.
+    </div>
+  </div>
+
+</div><!-- end slide-2 -->
+
+
+<!-- ═══ SLIDE 3 — TROUBLESHOOTING ═══ -->
+<div class="slide" id="slide-3">
+  <div class="card">
+    <div class="kicker">Troubleshooting &mdash; Known Errors &amp; Resolutions</div>
+    <div class="title" style="font-size:22px;margin:8px 0 16px">Error Decision Trees</div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">SSA Step 1 fails instantly &mdash; "The system cannot find the file specified"</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>Open SSMS &rarr; SQL Server Agent &rarr; Jobs &rarr; Symphony dat File Upload &rarr; Steps &rarr; Step 1 &rarr; Edit. Check the Command field.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>Confirm the command begins with <b>powershell.exe</b> (not python.exe). Python is not installed on SQLPROD02 and cannot be added without admin rights.</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>Confirm the -File path is enclosed in double quotes and uses the correct UNC path. UNC paths in SSA commands require regular backslashes (not forward slashes).</span></div>
+      <div class="ts-step"><span class="ts-step-num">4</span><span>Verify the .ps1 file exists at the UNC path: open Windows Explorer and browse to \\netapp02\IS\Informatics\_Informatics Deliverables\Operations\Projects\SYMPHONY\.</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">SSA Step 1 fails &mdash; "Config file not found: symphony_moveit_upload.ini"</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>The script looks for <b>symphony_moveit_upload.ini</b> (no date suffix) in its own directory. The desktop file has a date suffix; the deployed file must not.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>Copy the INI to netapp02 and rename to exactly: <b>symphony_moveit_upload.ini</b></span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>Verify the deployed INI contains correct UNC paths and MOVEit credentials (Configuration tab).</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">SSA Step 1 fails &mdash; "Missing .dat files for N prefix(es): CHGSD_*"</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>One or more of the 12 CHGSD_* prefixes has no matching .dat file in the resolved month folder.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>Check SSA Step 1 history output for the "Resolved current folder" log line. Confirm the correct month folder was scanned.</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>Browse to that folder. If a prefix is missing, SQLPRODAPP01 Schedule 22 may not have completed yet. Wait and re-run.</span></div>
+      <div class="ts-step"><span class="ts-step-num">4</span><span>If it is a new month and the new folder does not exist yet, the script logs a fallback folder. Confirm the fallback folder's contents are acceptable for this run.</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">SSA Step 1 fails &mdash; "Unable to find type [System.IO.Compression.ZipArchiveMode]"</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>This means an older version of the script (which used System.IO.Compression) was deployed. The current C003 version uses Compress-Archive instead.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>Open the deployed .ps1 and search for "ZipArchiveMode" &mdash; it should not appear. The correct version uses Compress-Archive -Path $filePaths -DestinationPath $zipPath.</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>If ZipArchiveMode is present, redeploy <b>symphony_moveit_upload_20260515.ps1</b> (C003) from the desktop.</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">SSA Step 1 succeeds (exit 0) but history shows "MOVEit Task not found by name"</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>This is a soft fallback &mdash; Step 1 exits 0, SSIS steps still run, ZIP is staged. Not a hard failure. MOVEit Task will run on its Friday 11:00 AM schedule.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>Log in to devops01. Confirm the Task is named exactly <b>Symphony dat File Upload</b> (spelling must match; case is ignored).</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>Confirm the INI [moveit] task_name value matches. Update INI if the task was renamed.</span></div>
+      <div class="ts-step"><span class="ts-step-num">4</span><span>If the task does not exist on devops01, clone any existing task, rename it, and configure source/destination per the Configuration tab.</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">MOVEit FTP Host test fails &mdash; "hostname or IP address is not valid"</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>The Host/Address field contains a full URL. devops01 &rarr; Hosts &rarr; Symphony Availity QA &rarr; Edit.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>Change the Host field to exactly: <b>files.availity.com</b> (no https://, no trailing slash, nothing else).</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>Save and re-test. Expect "Connection successful."</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">MOVEit FTP Host connection fails &mdash; port 22 / SFTP connection refused</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>Availity MFT uses FTPS (FTP over TLS), not SFTP (SSH). Port 22 is the wrong protocol.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>devops01 &rarr; Hosts &rarr; Symphony Availity QA &rarr; Edit. Set <b>Port = 21</b>. Set <b>Secure Connection = Explicit (Ctrl/Data)</b>.</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>Do NOT use the SFTP/SSH host type. Use the FTP host type with Explicit TLS.</span></div>
+      <div class="ts-step"><span class="ts-step-num">4</span><span>Save and re-test. Expect "Connection successful."</span></div>
+    </div>
+
+    <div class="ts-section">
+      <h3>&#9888; <span class="ts-error">MOVEit Task runs but no file appears in Availity QA inbox</span></h3>
+      <div class="ts-step"><span class="ts-step-num">1</span><span>Check MOVEit Task log: devops01 &rarr; Dashboard &rarr; Recent Task Activity &rarr; Symphony dat File Upload. Confirm status = Completed, not Skipped or Failed.</span></div>
+      <div class="ts-step"><span class="ts-step-num">2</span><span>If <b>Skipped</b>: NewFilesOnly=1 means the Task found no new files. The same ZIP was already transferred. Delete the STAGING ZIP, re-run SSA Step 1, then trigger MOVEit manually.</span></div>
+      <div class="ts-step"><span class="ts-step-num">3</span><span>If <b>Completed with 0 files</b>: STAGING was empty when the Task ran. Confirm the ZIP was created in STAGING before the Task executed.</span></div>
+      <div class="ts-step"><span class="ts-step-num">4</span><span>If Completed and MOVEit log shows the file was sent: check the Availity Received/Archived tab. The file may be auto-archived from the inbox view.</span></div>
+    </div>
+
+    <div class="callout callout-green">
+      <b>Confirmed working configuration (2026-05-15):</b> Full end-to-end pipeline ran successfully. 20260515_CHG.zip (~1.9 MB, 12 .dat files) delivered to Availity QA root inbox. MOVEit notification email received at wcarr@chgsd.com. All 14 SSA steps completed in 00:01:17.
+    </div>
+  </div>
+</div><!-- end slide-3 -->
+
+
+<!-- ═══ SLIDE 4 — CHANGE LOG ═══ -->
+<div class="slide" id="slide-4">
+  <div class="card">
+    <div class="kicker">Change Log &mdash; DUB C 2.0 Standard</div>
+    <div class="title" style="font-size:22px;margin:8px 0 16px">Symphony dat File Upload &middot; Version History</div>
+
+    <div class="cl-table">
+      <div class="cl-row header">
+        <div style="font-size:11px;color:#777;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Version</div>
+        <div style="font-size:11px;color:#777;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Date</div>
+        <div style="font-size:11px;color:#777;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Description</div>
+      </div>
+      <div class="cl-row">
+        <div class="cl-ver">C001</div>
+        <div class="cl-date">2026-05-15</div>
+        <div class="cl-desc">Initial Python build. Dynamic current-month folder resolution (date-based + fallback scan), MOVEit REST API authentication and Task trigger. Files: symphony_moveit_upload_20260515.py, symphony_moveit_upload_20260515.ini.</div>
+      </div>
+      <div class="cl-row">
+        <div class="cl-ver">C002</div>
+        <div class="cl-date">2026-05-15</div>
+        <div class="cl-desc">Python enhancement. Added ZIP workflow (STAGING folder auto-creation, old ZIP purge, YYYYMMDD_CHG.zip output), MOVEit Task source self-heal via REST API PUT (idempotent). Added staging_unc to INI. Updated DFD for phases 2&ndash;4. MOVEit email notification configured.</div>
+      </div>
+      <div class="cl-row">
+        <div class="cl-ver">C003</div>
+        <div class="cl-date">2026-05-15</div>
+        <div class="cl-desc">Full PowerShell rewrite &mdash; eliminates Python dependency on SQLPROD02 (Python not installed; no admin rights). Identical pipeline logic to C002. Key changes: (1) Compress-Archive replaces System.IO.Compression ZipFile (ZipArchiveMode type unavailable in SSA CmdExec constrained runspace). (2) SSA Step type changed from Python script to CmdExec powershell.exe. (3) Custom INI parser (Read-IniFile) replaces configparser module. All error handling, exit codes, and soft fallback behavior preserved.</div>
+      </div>
+      <div class="cl-row">
+        <div class="cl-ver">C003-a</div>
+        <div class="cl-date">2026-05-15</div>
+        <div class="cl-desc">MOVEit Task configuration &amp; end-to-end validation. Cloned "Move SYMPHONY data to Availity QA" and renamed to "Symphony dat File Upload". Corrected FTP Host "Symphony Availity QA": (1) Host field changed from full URL to bare hostname files.availity.com. (2) Port changed from 22 to 21. (3) Secure Connection changed to Explicit (Ctrl/Data) FTPS. FTP host test: SUCCESS. Full pipeline test: SUCCESS. 20260515_CHG.zip (~1.9 MB) received in Availity QA root inbox. MOVEit email notification confirmed at wcarr@chgsd.com. SSA 14-step job duration: 00:01:17.</div>
+      </div>
+    </div>
+
+    <div class="callout" style="margin-top:20px">
+      <b>Files produced this session (2026-05-15):</b><br>
+      <span style="font-family:'Courier New',monospace;color:#ffe08a">symphony_moveit_upload_20260515.ps1</span> &mdash; C003 primary deployed script (PowerShell 5.1)<br>
+      <span style="font-family:'Courier New',monospace;color:#ffe08a">symphony_moveit_upload_20260515.ini</span> &mdash; C003 INI config (deploy as <span style="font-family:'Courier New',monospace">symphony_moveit_upload.ini</span>)<br>
+      <span style="font-family:'Courier New',monospace;color:#ffe08a">SYMPHONY_MOVEIT_DFD_20260515.html</span> &mdash; This interactive DFD and runbook<br>
+      <br>
+      Author: Informatics / DUB C 2.0 &nbsp;&middot;&nbsp; Standard: DUB C 2.0 &nbsp;&middot;&nbsp; Updated: 2026-05-15
+    </div>
+  </div>
+</div><!-- end slide-4 -->
+
+
+<!-- POPOVER -->
+<div class="popover-backdrop" id="popover-backdrop" onclick="closePopoverBg(event)">
+  <div class="popover" id="popover">
+    <button class="close-btn" onclick="closePopoverBtn()">&#x2715;</button>
+    <h2 id="popover-title"></h2>
+    <div class="popover-body-text" id="popover-body"></div>
+    <div class="badge-row" id="popover-tags"></div>
+  </div>
+</div>
+
+
+<script>
+// SLIDES
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach(function(s, i) {
+    s.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+}
+
+// POPOVER
+document.querySelectorAll('.node').forEach(function(el) {
+  el.addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('popover-title').textContent = this.dataset.title || '';
+    document.getElementById('popover-body').textContent = this.dataset.body || '';
+    var tags = (this.dataset.tags || '').split('|').filter(Boolean);
+    var tagsEl = document.getElementById('popover-tags');
+    tagsEl.innerHTML = '';
+    tags.forEach(function(t) {
+      var b = document.createElement('span');
+      b.className = 'badge';
+      b.textContent = t;
+      tagsEl.appendChild(b);
+    });
+    document.getElementById('popover-backdrop').classList.add('open');
+    document.querySelectorAll('.node').forEach(function(n) { n.classList.remove('selected'); });
+    this.classList.add('selected');
+  });
+});
+
+function closePopoverBg(e) {
+  if (e.target === document.getElementById('popover-backdrop')) {
+    document.getElementById('popover-backdrop').classList.remove('open');
+    document.querySelectorAll('.node').forEach(function(n) { n.classList.remove('selected'); });
+  }
+}
+function closePopoverBtn() {
+  document.getElementById('popover-backdrop').classList.remove('open');
+  document.querySelectorAll('.node').forEach(function(n) { n.classList.remove('selected'); });
+}
+
+// CHECKLIST
+function toggleCheck(li) {
+  li.classList.toggle('done');
+  li.querySelector('.ck-icon').textContent = li.classList.contains('done') ? '✓' : '';
+  updateProgress();
+}
+function updateProgress() {
+  var all  = document.querySelectorAll('.checklist li').length;
+  var done = document.querySelectorAll('.checklist li.done').length;
+  document.getElementById('progress-fill').style.width = all ? ((done / all) * 100) + '%' : '0%';
+  document.getElementById('progress-text').textContent = done + ' / ' + all + ' complete';
+}
+function resetChecklist() {
+  document.querySelectorAll('.checklist li').forEach(function(li) {
+    li.classList.remove('done');
+    li.querySelector('.ck-icon').textContent = '';
+  });
+  updateProgress();
+}
+updateProgress();
+</script>
+
+</div><!-- end deck -->
+</body>
+</html>

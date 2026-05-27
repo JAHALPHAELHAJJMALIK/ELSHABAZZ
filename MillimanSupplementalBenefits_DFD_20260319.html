@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2027 MA Bid — Milliman Supplemental Benefits Additional Ask — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 56px;
+  }
+
+  .title-bar {
+    text-align: center;
+    margin-bottom: 16px;
+    max-width: 1500px;
+  }
+  .title-bar h1 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #bde0ff;
+    letter-spacing: 0.4px;
+  }
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+  .title-bar .subtitle {
+    font-size: 11.5px;
+    color: #888;
+    margin-top: 6px;
+    letter-spacing: 0.2px;
+    line-height: 1.55;
+  }
+
+  .change-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 18px 0 4px;
+  }
+  .change-pill {
+    background: rgba(60, 220, 120, 0.08);
+    border: 1px solid rgba(60, 220, 120, 0.28);
+    border-radius: 7px;
+    padding: 8px 12px;
+    min-width: 235px;
+    max-width: 360px;
+    text-align: left;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset;
+  }
+  .change-pill.retired {
+    background: rgba(255, 130, 80, 0.08);
+    border-color: rgba(255, 130, 80, 0.28);
+  }
+  .change-pill strong {
+    display: block;
+    font-size: 11.2px;
+    color: #d9ffd9;
+    margin-bottom: 3px;
+  }
+  .change-pill.retired strong { color: #ffd0b8; }
+  .change-pill span {
+    display: block;
+    font-size: 10px;
+    color: #b6dcb6;
+    line-height: 1.45;
+  }
+  .change-pill.retired span { color: #e8c0b0; }
+
+  .diagram {
+    width: 1580px;
+    min-height: 200px;
+  }
+
+  .section-label {
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #777;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 10px 0 8px;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.28;
+  }
+  .flow-arrow .shaft { width: 2px; height: 20px; background: #ccc; }
+  .flow-arrow .head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 16px 18px;
+    position: relative;
+  }
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.09);
+    border-color: rgba(255, 140, 140, 0.35);
+  }
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.09);
+    border-color: rgba(140, 200, 255, 0.35);
+  }
+  .system-box.vsp {
+    background: rgba(200, 150, 255, 0.09);
+    border-color: rgba(200, 150, 255, 0.35);
+  }
+  .system-box.cs {
+    background: rgba(100, 220, 200, 0.09);
+    border-color: rgba(100, 220, 200, 0.35);
+  }
+
+  .module-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 108px;
+    color: #f0f0f0;
+    line-height: 1.4;
+  }
+  .module span { font-size: 10px; opacity: 0.72; display: block; margin-top: 2px; }
+
+  .param-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+  .param-box {
+    background: rgba(255, 230, 100, 0.08);
+    border: 1px solid rgba(255, 230, 100, 0.32);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 11px;
+    color: #ffe8a0;
+    text-align: center;
+    line-height: 1.45;
+    min-width: 145px;
+  }
+  .param-box strong { display: block; font-size: 11.5px; color: #fff3c0; margin-bottom: 3px; }
+  .param-box.fix {
+    border-color: rgba(60, 220, 120, 0.38);
+    background: rgba(60, 220, 120, 0.06);
+    color: #90ffb8;
+  }
+  .param-box.fix strong { color: #b0ffd0; }
+  .param-box.warn {
+    border-color: rgba(255, 120, 80, 0.38);
+    background: rgba(255, 120, 80, 0.06);
+    color: #ffc0a8;
+  }
+  .param-box.warn strong { color: #ffd2c0; }
+
+  .swim-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 6px 0;
+  }
+
+  .swim-lane {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .lane-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-align: center;
+    padding: 16px 10px;
+    min-width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lane-content {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+    align-items: flex-start;
+  }
+
+  .lane-vision  .lane-label { background: rgba(180, 140, 255, 0.22); color: #d8b8ff; }
+  .lane-vision  { border-color: rgba(180, 140, 255, 0.25); background: rgba(180, 140, 255, 0.04); }
+
+  .lane-hearing .lane-label { background: rgba(100, 200, 255, 0.22); color: #a0d8ff; }
+  .lane-hearing { border-color: rgba(100, 200, 255, 0.25); background: rgba(100, 200, 255, 0.04); }
+
+  .lane-transport .lane-label { background: rgba(255, 180, 60, 0.22); color: #ffd090; }
+  .lane-transport { border-color: rgba(255, 180, 60, 0.25); background: rgba(255, 180, 60, 0.04); }
+
+  .lane-er .lane-label { background: rgba(255, 120, 80, 0.24); color: #ffc4b0; }
+  .lane-er { border-color: rgba(255, 120, 80, 0.30); background: rgba(255, 120, 80, 0.05); }
+
+  .lane-meals .lane-label { background: rgba(80, 220, 160, 0.22); color: #90e8c8; }
+  .lane-meals { border-color: rgba(80, 220, 160, 0.25); background: rgba(80, 220, 160, 0.04); }
+
+  .lane-acupun .lane-label { background: rgba(180, 180, 180, 0.18); color: #cccccc; }
+  .lane-acupun { border-color: rgba(180, 180, 180, 0.20); background: rgba(180, 180, 180, 0.03); }
+
+  .chip {
+    background: #242424;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 5px;
+    padding: 7px 11px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #d8d8d8;
+    min-width: 130px;
+    max-width: 220px;
+  }
+  .chip strong { display: block; font-size: 11px; color: #ffffff; margin-bottom: 3px; }
+  .chip .tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+    letter-spacing: 0.4px;
+  }
+  .chip.highlight {
+    border-color: rgba(60,220,120,0.30);
+    background: rgba(60,220,120,0.05);
+    color: #a0e8c0;
+  }
+  .chip.retired {
+    border-color: rgba(255,120,80,0.35);
+    background: rgba(255,120,80,0.06);
+    color: #ffd0c0;
+  }
+
+  .tag-partc    { background: rgba(100,180,255,0.25); color: #a8d4ff; }
+  .tag-qnxt     { background: rgba(255,140,140,0.25); color: #ffb0b0; }
+  .tag-vsp      { background: rgba(200,150,255,0.25); color: #d8b0ff; }
+  .tag-cs       { background: rgba(80,220,160,0.25);  color: #80e8c0; }
+  .tag-proviso  { background: rgba(255,200,80,0.25);  color: #ffe080; }
+  .tag-open     { background: rgba(255,100,60,0.30);  color: #ffaa88; }
+  .tag-fix      { background: rgba(60,220,120,0.25);  color: #80ffb0; }
+
+  .arrow-inline {
+    display: flex;
+    align-items: center;
+    color: rgba(255,255,255,0.25);
+    font-size: 18px;
+    padding: 0 2px;
+    align-self: center;
+  }
+
+  .temp-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+  .temp-box {
+    background: rgba(255, 160, 60, 0.11);
+    border: 1px solid rgba(255, 160, 60, 0.38);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 10.5px;
+    color: #ffe0b0;
+    text-align: center;
+    line-height: 1.45;
+    min-width: 155px;
+  }
+  .temp-box strong { display: block; font-size: 11px; color: #ffd090; margin-bottom: 2px; }
+  .temp-box .dual { font-size: 9.5px; opacity: 0.75; margin-top: 2px; }
+  .temp-box.retired {
+    background: rgba(255,120,80,0.08);
+    border-color: rgba(255,120,80,0.34);
+    color: #ffc8b0;
+  }
+  .temp-box.retired strong { color: #ffd0c0; }
+
+  .qa-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+  .qa-box {
+    background: rgba(100, 220, 160, 0.09);
+    border: 1px solid rgba(100, 220, 160, 0.32);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 10.5px;
+    color: #b0e8c8;
+    text-align: center;
+    line-height: 1.5;
+    min-width: 165px;
+  }
+  .qa-box strong { display: block; font-size: 11px; color: #d0f8e0; margin-bottom: 3px; }
+  .qa-box.status {
+    background: rgba(255,120,80,0.08);
+    border-color: rgba(255,120,80,0.32);
+    color: #ffc8b0;
+  }
+  .qa-box.status strong { color: #ffd8c8; }
+
+  .output-section { display: flex; justify-content: center; margin: 6px 0; }
+  .report-box {
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 16px 20px 18px;
+    width: 100%;
+    position: relative;
+  }
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+  .report-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .report-module {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 10.5px;
+    text-align: center;
+    min-width: 120px;
+    color: #e0e0e0;
+    line-height: 1.4;
+  }
+  .report-module span { font-size: 9.5px; opacity: 0.70; display: block; margin-top: 2px; }
+  .report-module.status {
+    background: rgba(255,120,80,0.08);
+    border-color: rgba(255,120,80,0.28);
+    color: #ffd0c0;
+  }
+
+  .universe-box {
+    background: rgba(80, 180, 255, 0.07);
+    border: 2px solid rgba(80, 180, 255, 0.35);
+    border-radius: 10px;
+    padding: 16px 20px 18px;
+    width: 100%;
+    position: relative;
+  }
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #9ad4ff;
+  }
+  .universe-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .universe-module {
+    background: rgba(80, 180, 255, 0.10);
+    border: 1px solid rgba(80, 180, 255, 0.30);
+    border-radius: 5px;
+    padding: 8px 13px;
+    font-size: 10.5px;
+    text-align: center;
+    min-width: 130px;
+    color: #c8e8ff;
+    line-height: 1.45;
+  }
+  .universe-module span { font-size: 9.5px; opacity: 0.72; display: block; margin-top: 2px; }
+  .universe-module.status {
+    background: rgba(255,120,80,0.09);
+    border-color: rgba(255,120,80,0.30);
+    color: #ffd0c0;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+    justify-content: center;
+    margin-top: 36px;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    max-width: 1100px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #bbb;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .swatch-qnxt       { background: rgba(255,140,140,0.55); border: 1px solid rgba(255,140,140,0.7); }
+  .swatch-informatics{ background: rgba(140,200,255,0.55); border: 1px solid rgba(140,200,255,0.7); }
+  .swatch-vsp        { background: rgba(200,150,255,0.55); border: 1px solid rgba(200,150,255,0.7); }
+  .swatch-cs         { background: rgba(80,220,160,0.55);  border: 1px solid rgba(80,220,160,0.7); }
+  .swatch-proviso    { background: rgba(255,200,80,0.55);  border: 1px solid rgba(255,200,80,0.7); }
+  .swatch-temp       { background: rgba(255,160,60,0.55);  border: 1px solid rgba(255,160,60,0.7); }
+  .swatch-qa         { background: rgba(100,220,160,0.45); border: 1px solid rgba(100,220,160,0.6); }
+  .swatch-output     { background: rgba(80,180,255,0.45);  border: 1px solid rgba(80,180,255,0.6); }
+  .swatch-fix        { background: rgba(60,220,120,0.45);  border: 1px solid rgba(60,220,120,0.6); }
+  .swatch-retired    { background: rgba(255,120,80,0.45);  border: 1px solid rgba(255,120,80,0.6); }
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <h1>Community Health Group of San Diego (CHGSD) &mdash; Informatics</h1>
+  <h2>2027 MA Bid &mdash; Milliman Supplemental Benefits Additional Ask &mdash; Data Flow Diagram</h2>
+  <div class="subtitle">
+    DUB C 2.0 &nbsp;|&nbsp; SQLPROD02 &nbsp;|&nbsp; INFORMATICS.dbo.PartCClaims (Primary Claims Universe)
+    &nbsp;|&nbsp; HMOPROD_PLANDATA (QNXT Auth Supplement) &nbsp;|&nbsp; INFORMATICS.dbo.uvw_PROVISO (Meals Vendor TIN Crosswalk)
+    &nbsp;|&nbsp; CY2025 Measurement &nbsp;|&nbsp; D-SNP + C-SNP Population &nbsp;|&nbsp; 2026-03-19
+    &nbsp;|&nbsp; <span style="color:#90ffb8;">Aligned to SQL modifications M008&ndash;M011 while retaining M004 / M006 / M007 control fixes</span>
+  </div>
+
+  <div class="change-strip">
+    <div class="change-pill">
+      <strong>M008 &mdash; Vision reimbursement arm added</strong>
+      <span>HCPCS V9999 now flows into Item #1 as Member Reimbursement; specialty and POS filters do not apply to this arm.</span>
+    </div>
+    <div class="change-pill">
+      <strong>M009 &mdash; Transport claims narrowed</strong>
+      <span>Item #3A claims logic now includes only A0120 and A0130; the broader A0080&ndash;A0210 range is retired.</span>
+    </div>
+    <div class="change-pill retired">
+      <strong>M010 &mdash; Worldwide ER retired from SQL extract</strong>
+      <span>Item #4 is now a manual/unavailable status item rather than an active PartCClaims or QNXT extraction block.</span>
+    </div>
+    <div class="change-pill">
+      <strong>M011 &mdash; Meals logic tightened</strong>
+      <span>S5170 and S9470 remain; S9977 is removed, Meals claims now require vendor TIN match to Moms Meals or Mamas Kitchen.</span>
+    </div>
+  </div>
+</div>
+
+<div class="diagram">
+
+  <div class="section-label">&#9660; Source Systems</div>
+
+  <div class="source-row">
+
+    <div class="system-box qnxt" style="width:420px;">
+      <span class="sys-label">HMOPROD_PLANDATA &mdash; QNXT</span>
+      <div class="module-row">
+        <div class="module">dbo.member<span>memid · dob · fullname</span></div>
+        <div class="module">dbo.referral<span>servicecode · status · authstatus · UtcReceiptDate</span></div>
+        <div class="module">dbo.authservice<span>codeid · modcode1&ndash;5 · quantity · status</span></div>
+        <div class="module">dbo.enrollkeys<span>enrollid &rarr; planid</span></div>
+        <div class="module">dbo.entity<span>lname · fname · memberid (CIN)</span></div>
+      </div>
+    </div>
+
+    <div class="system-box informatics" style="width:560px;">
+      <span class="sys-label">INFORMATICS &mdash; SQLPROD02</span>
+      <div class="module-row">
+        <div class="module">dbo.PartCClaims<span>PRIMARY CLAIMS UNIVERSE<br>CY2025 · D/C-SNP</span></div>
+        <div class="module">dbo.[uvw_LINE_OF_BUSINESS]<span>planid &rarr; LOB<br>LOB LIKE '%SNP%'</span></div>
+        <div class="module">dbo.[uvw_AUTHREFCLAIM]<span>referralid &harr; claimid<br>GLEMBOCKI BRIDGE</span></div>
+        <div class="module">dbo.uvw_PROVISO<span>Billing Provider NPI &rarr; fedid<br>Meals vendor TIN crosswalk</span></div>
+      </div>
+    </div>
+
+    <div class="system-box vsp" style="width:220px;">
+      <span class="sys-label">VSP ClaimManager &mdash; External</span>
+      <div class="module-row">
+        <div class="module">vsp.Claim<span>Vision primary source</span></div>
+        <div class="module">vsp.serviceline<span>Exam + hardware lines</span></div>
+      </div>
+    </div>
+
+    <div class="system-box cs" style="width:260px;">
+      <span class="sys-label">CS Auth Framework &mdash; STEP88</span>
+      <div class="module-row">
+        <div class="module">r.servicecode<span>'css' = CS auth type</span></div>
+        <div class="module">asr.codeid<span>S5170 · S9470 only</span></div>
+        <div class="module">asr.modcode1&ndash;5<span>Any U6 position qualifies</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Global Parameters, Scope Gates, and Control Logic</div>
+
+  <div class="param-row">
+    <div class="param-box">
+      <strong>@MeasureStart</strong>
+      DATE = '01/01/2025'<br>CY2025 clock start
+    </div>
+    <div class="param-box">
+      <strong>@MeasureStop</strong>
+      DATE = '12/31/2025'<br>CY2025 clock stop
+    </div>
+    <div class="param-box">
+      <strong>@RunDate</strong>
+      CAST(GETDATE() AS DATE)<br>Execution date stamp
+    </div>
+    <div class="param-box">
+      <strong>Population Filter</strong>
+      pcc.LOB LIKE '%SNP%'<br>bp.[LINE_OF_BUSINESS] LIKE '%SNP%'<br>D-SNP + C-SNP scope
+    </div>
+    <div class="param-box">
+      <strong>Date Filters</strong>
+      Claims: DOS BETWEEN measure dates<br>Auths: PST receipt date BETWEEN measure dates
+    </div>
+    <div class="param-box warn">
+      <strong>Temp Table Handling</strong>
+      6 active temp tables populated<br>+ #MILLIMAN_WORLDWIDE_ER# dropped only<br>placeholder retained for forward compatibility
+    </div>
+    <div class="param-box fix">
+      <strong>Retained Integrity Fixes</strong>
+      M004: OR-chain parentheses<br>M006/M007: auth_level dedup via MAX() per auth
+    </div>
+    <div class="param-box fix">
+      <strong>Today's SQL Deltas</strong>
+      M008: V9999 added<br>M009: A0120 / A0130 only<br>M010: ER retired<br>M011: S9977 removed + TIN filter
+    </div>
+  </div>
+
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Extraction Logic &mdash; Active SQL Blocks + Retired Manual Item</div>
+
+  <div class="swim-wrapper">
+
+    <div class="swim-lane lane-acupun">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #0 &mdash; ACUPUNCT / CHIRO</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Allan validation query</strong>
+          SELECT DISTINCT on Primary ICD Description,<br>CPT Service Description, and Service Description
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-fix">M004 FIX</span>
+          <strong>Corrected OR-chain</strong>
+          All acupuncture / chiro predicates live inside a single parenthesized OR block.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Output</strong>
+          Distinct descriptive rows only;<br>used to validate whether February flat-file content included these services.
+        </div>
+      </div>
+    </div>
+
+    <div class="swim-lane lane-vision">
+      <div class="lane-label">ITEM #1 &mdash; VISION</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-vsp">VSP ClaimManager</span>
+          <strong>Primary external source</strong>
+          vsp.Claim / vsp.serviceline remain the preferred upstream vision source and execute outside SQLPROD02.
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Exam arm</strong>
+          CPT 92002&ndash;92014<br>Provider specialty contains OPTOM / OPHTHAL<br>POS must equal 11
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Hardware arm</strong>
+          HCPCS V2100&ndash;V2999<br>Same specialty + POS gates as exams
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip highlight">
+          <span class="tag tag-fix">M008</span>
+          <strong>Member reimbursement arm</strong>
+          HCPCS V9999 added.<br>No specialty or POS filter for this arm.<br>Reference claim noted in script: 26028000172.
+        </div>
+        <div class="chip">
+          <strong>Output categories</strong>
+          Vision Service Category = Eye Exam, Optical Hardware, or Member Reimbursement (V9999).
+        </div>
+      </div>
+    </div>
+
+    <div class="swim-lane lane-hearing">
+      <div class="lane-label">ITEM #2 &mdash; HEARING</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Exam arm</strong>
+          CPT 92550&ndash;92700<br>Audiological exam range
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Hardware arm</strong>
+          HCPCS V5000&ndash;V5299<br>Hearing aids / hardware
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Specialty gate</strong>
+          Provider Specialty LIKE '%AUDIOL%'<br>No separate POS restriction in the SQL
+        </div>
+        <div class="chip">
+          <strong>Output categories</strong>
+          Hearing Service Category = Hearing Exam or Hearing Aid / Hardware.
+        </div>
+      </div>
+    </div>
+
+    <div class="swim-lane lane-transport">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #3 &mdash; TRANSPORT (DUAL)</div>
+      <div class="lane-content">
+        <div class="chip highlight">
+          <span class="tag tag-partc">Block A &mdash; Claims</span>
+          <strong>M009 claims refinement</strong>
+          Claims logic now includes only A0120 and A0130.<br>Prior A0080&ndash;A0210 range is retired from Item #3A.
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-qnxt">Block B &mdash; Auths</span>
+          <strong>QNXT utilization proxy</strong>
+          referral.servicecode IN ('Trans01','Trans03','Trans04')<br>r.status + authstatus + asr.status must all be approved
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Date and bridge logic</strong>
+          Auth receipt date converted from UTC to Pacific Standard Time.<br>Glembocki bridge links referral / authorization to claim when present.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip highlight">
+          <span class="tag tag-fix">M006</span>
+          <strong>Auth QA dedup</strong>
+          auth_level CTE collapses fan-trapped Glembocki rows and derives Has_Linked_Claim with MAX() per authorization.
+        </div>
+        <div class="chip">
+          <strong>Delivery structure</strong>
+          Transport claims and transport auths remain separate result sets and are delivered as complementary tabs / footnotes.
+        </div>
+      </div>
+    </div>
+
+    <div class="swim-lane lane-er">
+      <div class="lane-label" style="font-size:9.3px;">ITEM #4 &mdash; WORLDWIDE ER</div>
+      <div class="lane-content">
+        <div class="chip retired">
+          <span class="tag tag-open">M010</span>
+          <strong>Retired from SQL extraction</strong>
+          Item #4 is no longer an active PartCClaims or QNXT extraction block.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip retired">
+          <strong>Reason</strong>
+          Script states this information is manual and not currently captured in QNXT for extractable workflow use.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip retired">
+          <strong>Current output</strong>
+          One status row returns NOT AVAILABLE / RETIRED PER MS. ELIZABETH 20260317 instead of a temp-table extract.
+        </div>
+        <div class="chip retired">
+          <strong>Future-state action</strong>
+          Claims team must build a QNXT intake / capture process before worldwide ER can re-enter the SQL pipeline.
+        </div>
+      </div>
+    </div>
+
+    <div class="swim-lane lane-meals">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #5 &mdash; POST-ACUTE MEALS</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">Block A &mdash; Claims</span>
+          <strong>Claims-based meals</strong>
+          PartCClaims requires S5170 or S9470 plus U6 in modifier #1 or #2.<br>S9977 is removed from the active claims logic.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip highlight">
+          <span class="tag tag-proviso">M011</span>
+          <strong>Vendor TIN filter</strong>
+          Billing Provider NPI joins to uvw_PROVISO.<br>Allowed fedid values: 412096639 (Moms Meals) and 330434246 (Mamas Kitchen).
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-cs">Block B &mdash; Auths</span>
+          <strong>STEP88 auth supplement</strong>
+          r.servicecode = 'css'; approved gates apply.<br>asr.codeid limited to S5170 / S9470 and any modcode1&ndash;5 may equal U6.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Claims vs auth distinction</strong>
+          Claims output adds Billing Provider Tax ID and Meals Vendor.<br>Auth output does not carry TIN and remains utilization-only.
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip highlight">
+          <span class="tag tag-fix">M007</span>
+          <strong>Auth QA dedup</strong>
+          auth_level CTE removes bridge fan-trap duplication and counts linked-claim presence once per authorization.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Temp Table Staging / Status Placeholder</div>
+
+  <div class="temp-row">
+    <div class="temp-box">
+      <strong>#MILLIMAN_VISION#</strong>
+      Claims supplement to VSP<br>Exam + hardware + V9999 reimbursement
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_HEARING#</strong>
+      Claims only<br>Exam + hearing hardware
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_TRANSPORT_CLAIMS#</strong>
+      Claims only<br>A0120 + A0130 only
+      <div class="dual">DUAL OUTPUT &mdash; Block A</div>
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_TRANSPORT_AUTHS#</strong>
+      Auth only<br>Trans01 / Trans03 / Trans04<br>Linked Claim ID via Glembocki
+      <div class="dual">DUAL OUTPUT &mdash; Block B</div>
+    </div>
+    <div class="temp-box retired">
+      <strong>#MILLIMAN_WORLDWIDE_ER#</strong>
+      Dropped in error trapping only<br>No SELECT INTO population<br>Manual / unavailable placeholder
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_MEALS_CLAIMS#</strong>
+      Claims only<br>S5170 / S9470 + U6 + vendor TIN
+      <div class="dual">DUAL OUTPUT &mdash; Block A</div>
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_MEALS_AUTHS#</strong>
+      Auth only<br>S5170 / S9470 + any U6 position
+      <div class="dual">DUAL OUTPUT &mdash; Block B</div>
+    </div>
+  </div>
+
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; QA / Status Outputs</div>
+
+  <div class="qa-row">
+    <div class="qa-box">
+      <strong>Vision QA</strong>
+      GROUP BY LOB and Vision Service Category<br>Eye Exam / Hardware / Member Reimbursement<br>Unique members, claims, billed, allowed, paid
+    </div>
+    <div class="qa-box">
+      <strong>Hearing QA</strong>
+      GROUP BY LOB and Hearing Service Category<br>Exam vs hardware<br>Unique members, claims, billed, allowed, paid
+    </div>
+    <div class="qa-box">
+      <strong>Transport Claims QA (3A)</strong>
+      GROUP BY LOB and Transport Service Category<br>A0120 vs A0130 only<br>Unique members, claims, billed, allowed, paid
+    </div>
+    <div class="qa-box">
+      <strong>Transport Auths QA (3B) &mdash; M006</strong>
+      COUNT(*) from auth_level after per-auth dedup<br>Member count, total auths, linked-claim vs auth-only split
+    </div>
+    <div class="qa-box status">
+      <strong>Worldwide ER Status</strong>
+      One-row status output only<br>NOT AVAILABLE / RETIRED PER MS. ELIZABETH 20260317<br>No grouped QA from temp table
+    </div>
+    <div class="qa-box">
+      <strong>Meals Claims QA (5A)</strong>
+      GROUP BY LOB, Meals Service Category, Meals Vendor, Data Source Type<br>Billing Provider Tax ID supports vendor validation
+    </div>
+    <div class="qa-box">
+      <strong>Meals Auths QA (5B) &mdash; M007</strong>
+      GROUP BY LOB, Meals Service Category, Data Source Type<br>Per-auth dedup and linked-claim split; no vendor TIN on auth side
+    </div>
+  </div>
+
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Final Consolidated Output</div>
+
+  <div class="output-section">
+    <div class="report-box">
+      <span class="sys-label">Consolidated SQL Output &mdash; 6 temp-table extracts + 1 Item #4 status statement</span>
+      <div class="report-modules" style="margin-top:12px;">
+        <div class="report-module">
+          #MILLIMAN_VISION#<br>
+          <span>ORDER BY [Date of Service (DOS)]</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_HEARING#<br>
+          <span>ORDER BY [Date of Service (DOS)]</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_TRANSPORT_CLAIMS#<br>
+          <span>ORDER BY [Date of Service (DOS)]<br>Block A &mdash; Claims</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_TRANSPORT_AUTHS#<br>
+          <span>ORDER BY [Auth Receipt Date (PST)]<br>Block B &mdash; Auths</span>
+        </div>
+        <div class="report-module status">
+          ITEM #4 STATUS ROW<br>
+          <span>NOT AVAILABLE / RETIRED<br>manual workflow note</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_MEALS_CLAIMS#<br>
+          <span>ORDER BY [Date of Service (DOS)]<br>Block A &mdash; Claims</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_MEALS_AUTHS#<br>
+          <span>ORDER BY [Auth Receipt Date (PST)]<br>Block B &mdash; Auths</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="output-section">
+    <div class="universe-box">
+      <span class="sys-label">
+        Milliman Actuarial Deliverable &nbsp;&#8594;&nbsp; 2027 CHG D-SNP + C-SNP Medicare Advantage Bid
+        &nbsp;|&nbsp; Supplemental Benefits Historical Data &mdash; CY2025
+      </span>
+      <div class="universe-modules">
+        <div class="universe-module">
+          Tab 1 &mdash; Vision<br>
+          <span>Exams + hardware + V9999 reimbursement<br>VSP primary context + PartCClaims supplement</span>
+        </div>
+        <div class="universe-module">
+          Tab 2 &mdash; Hearing<br>
+          <span>Exams + hardware<br>CPT 92550&ndash;92700 · V5000&ndash;V5299</span>
+        </div>
+        <div class="universe-module">
+          Tab 3A &mdash; Transport (Claims)<br>
+          <span>NEMT cost only<br>A0120 and A0130</span>
+        </div>
+        <div class="universe-module">
+          Tab 3B &mdash; Transport (Auths)<br>
+          <span>Trans01 / Trans03 / Trans04 utilization<br>Linked Claim ID available</span>
+        </div>
+        <div class="universe-module status">
+          Item 4 &mdash; Worldwide ER<br>
+          <span>Unavailable from SQL pipeline<br>Manual status note only</span>
+        </div>
+        <div class="universe-module">
+          Tab 5A &mdash; Meals (Claims)<br>
+          <span>S5170 / S9470 + U6<br>Moms Meals / Mamas Kitchen vendor validation</span>
+        </div>
+        <div class="universe-module">
+          Tab 5B &mdash; Meals (Auths)<br>
+          <span>STEP88 CS auth framework<br>S5170 / S9470 + any U6 position</span>
+        </div>
+        <div class="universe-module">
+          Claims-side fields<br>
+          <span>Member ID · Member Name · LOB · Claim Control # · DOS<br>Billed / Allowed / Paid · Provider data</span>
+        </div>
+        <div class="universe-module">
+          Meals claim-only fields<br>
+          <span>Billing Provider NPI<br>Billing Provider Tax ID · Meals Vendor</span>
+        </div>
+        <div class="universe-module">
+          Auth supplement fields<br>
+          <span>Authorization ID · Auth Number · Receipt Date (PST)<br>Effective / Term dates · Linked Claim ID</span>
+        </div>
+        <div class="universe-module">
+          Delivery notes<br>
+          <span>Transport and Meals auth tabs are structural supplements.<br>Item #4 remains unavailable pending QNXT capture design.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>HMOPROD_PLANDATA / QNXT</div>
+  <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS core sources</div>
+  <div class="legend-item"><div class="legend-swatch swatch-vsp"></div>VSP ClaimManager (external)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-cs"></div>CS / STEP88 auth framework</div>
+  <div class="legend-item"><div class="legend-swatch swatch-proviso"></div>uvw_PROVISO vendor TIN crosswalk</div>
+  <div class="legend-item"><div class="legend-swatch swatch-temp"></div>Temp-table staging</div>
+  <div class="legend-item"><div class="legend-swatch swatch-qa"></div>QA and status outputs</div>
+  <div class="legend-item"><div class="legend-swatch swatch-output"></div>Milliman delivery package</div>
+  <div class="legend-item"><div class="legend-swatch swatch-fix"></div>Code changes / control fixes</div>
+  <div class="legend-item"><div class="legend-swatch swatch-retired"></div>Retired / manual item</div>
+</div>
+
+</body>
+</html>

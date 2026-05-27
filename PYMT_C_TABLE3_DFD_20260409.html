@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ODAG Table 3 PYMT_C — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 56px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+  }
+
+  /* ===== DIAGRAM WRAPPER ===== */
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 20px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* QNXT — red tint */
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 840px;
+  }
+
+  /* INFORMATICS — blue tint */
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 380px;
+  }
+
+  /* SQLPRODAPP01 — amber tint */
+  .system-box.prodapp {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 240px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 110px;
+    color: #f0f0f0;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== STEP SEQUENCE ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 10px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 178px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DERIVED DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 10px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 13px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 145px;
+    max-width: 185px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== EXCLUSION FILTERS ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 128px;
+    max-width: 162px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== INTERMEDIATE STAGING TABLE ===== */
+  .staging-section {
+    margin-top: 20px;
+  }
+
+  .staging-box {
+    background: rgba(100, 180, 255, 0.10);
+    border: 2px solid rgba(100, 180, 255, 0.30);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .staging-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .staging-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .staging-module {
+    background: rgba(100, 180, 255, 0.18);
+    border: 1px solid rgba(100, 180, 255, 0.38);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 118px;
+    color: #cde8ff;
+  }
+
+  /* ===== QA CHECKS ROW ===== */
+  .qa-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 10px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .qa-box {
+    background: rgba(255, 200, 80, 0.10);
+    border: 1px solid rgba(255, 200, 80, 0.30);
+    border-radius: 5px;
+    padding: 9px 13px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ffe7a0;
+    min-width: 148px;
+    max-width: 185px;
+  }
+
+  .qa-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #ffd566;
+    margin-bottom: 2px;
+  }
+
+  /* ===== OUTPUT — AUDIT_SOD_CLAIMS_OUTPUT (purple) ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 11px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 108px;
+    color: #e8e0ff;
+  }
+
+  .report-module span {
+    display: block;
+    font-size: 10px;
+    color: rgba(220,210,255,0.6);
+    margin-top: 2px;
+  }
+
+  /* ===== UNIVERSE FILE (green) ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 11px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 108px;
+    color: #d0ffe0;
+  }
+
+  .universe-module span {
+    display: block;
+    font-size: 10px;
+    opacity: 0.65;
+    margin-top: 2px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-qnxt       { background: rgba(255, 140, 140, 0.35); }
+  .swatch-informatics{ background: rgba(140, 200, 255, 0.35); }
+  .swatch-prodapp    { background: rgba(255, 200, 100, 0.35); }
+  .swatch-staging    { background: rgba(100, 180, 255, 0.30); }
+  .swatch-exclusion  { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-qa         { background: rgba(255, 200, 80, 0.30); }
+  .swatch-output     { background: rgba(160, 140, 220, 0.35); }
+  .swatch-universe   { background: rgba(100, 220, 160, 0.35); }
+</style>
+</head>
+<body>
+
+  <!-- ===== TITLE ===== -->
+  <div class="title-bar">
+    <h2>CMS ODAG Table 3 (PYMT_C) &mdash; Payment Organization Determinations &amp; Reconsiderations &mdash; Data Flow Diagram</h2>
+    <div class="subtitle">
+      CMS Part C Audit &nbsp;|&nbsp; LOB: D-SNP (CHPIV) &nbsp;|&nbsp; Contract: H4733 &nbsp;|&nbsp;
+      Script: SOD_TABLE3_20260409.sql &nbsp;|&nbsp; Owner: Elizabeth Valdez &nbsp;|&nbsp; Prepared: 04/09/2026
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===================================================== -->
+    <!-- ROW 1 — SOURCE SYSTEMS                                -->
+    <!-- ===================================================== -->
+    <div class="source-row">
+
+      <!-- QNXT / HMOPROD_PlanData -->
+      <div class="system-box qnxt">
+        <span class="sys-label">QNXT System &mdash; HMOPROD_PlanData (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">Claims Header<br><span style="font-size:10px;color:#aaa;">dbo.claim</span></div>
+          <div class="module">Claims Detail<br><span style="font-size:10px;color:#aaa;">dbo.claimdetail</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">dbo.member<br>dbo.enrollkeys</span></div>
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.provider<br>dbo.affiliation</span></div>
+          <div class="module">Contracts<br><span style="font-size:10px;color:#aaa;">dbo.contractinfo<br>dbo.contract</span></div>
+          <div class="module">MBI / HIC<br><span style="font-size:10px;color:#aaa;">dbo.MemberCmsHic</span></div>
+          <div class="module">Claim Edits<br><span style="font-size:10px;color:#aaa;">dbo.claimedit<br>dbo.claimedithistory</span></div>
+        </div>
+      </div>
+
+      <!-- INFORMATICS Reference -->
+      <div class="system-box informatics">
+        <span class="sys-label">INFORMATICS Reference Views (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">Line of Business<br><span style="font-size:10px;color:#aaa;">uvw_LINE_OF_<br>BUSINESS</span></div>
+          <div class="module">Paid Claims<br><span style="font-size:10px;color:#aaa;">uvw_FINALCLAIM<br>uvw_CLAIMS_PAID</span></div>
+          <div class="module">Medi-Cal CPT<br>Exclusions<br><span style="font-size:10px;color:#aaa;">MediCalOnly_CPT_<br>Exclusions (427)</span></div>
+        </div>
+      </div>
+
+      <!-- SQLPRODAPP01 -->
+      <div class="system-box prodapp">
+        <span class="sys-label">ProviderRepository (SQLPRODAPP01)</span>
+        <div class="module-row">
+          <div class="module">274 PAR<br>Roster<br><span style="font-size:10px;color:#aaa;">uvw_Provider<br>Repository274_PAR</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 2 — EXECUTION SEQUENCE                            -->
+    <!-- ===================================================== -->
+    <div class="section-label">&#9660; Execution Sequence</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 00</span>
+        <strong>Parameter Setup</strong>
+        @leadlag = &minus;15 mo<br>@CutoffDate = TODAY<br>okpaydate range gate
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>setclaim CTE</strong>
+        dbo.claim &rarr;<br>uvw_FINALCLAIM JOIN<br>okpaydate filter
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>CLAIMDATA CTE</strong>
+        Full claim header +<br>detail hydration;<br>ClaimCategory seed
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 03</span>
+        <strong>SELECT INTO Staging</strong>
+        AUDIT_SOD_CLAIMS<br>~90 analytic columns<br>Index on DupID
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 04</span>
+        <strong>QUPD Enrichment</strong>
+        TRI, PROCEDURE_1,<br>prindiag + POA,<br>Primary/Secondary
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 05</span>
+        <strong>PAR Verification</strong>
+        contractedVerification<br>via contractinfo (5 keys)<br>+ 274 PAR override
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 06</span>
+        <strong>ClaimCategory</strong>
+        Reset &rarr; Paid &rarr;<br>Denied &rarr; Excl.<br>(101 Edit + MediCal CPT)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 07</span>
+        <strong>QA Checks</strong>
+        Range, LOB, DupID,<br>Contracted provider<br>validation SELECTs
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 08</span>
+        <strong>OUTPUT SELECT</strong>
+        21-col PYMT_C universe<br>INTO AUDIT_SOD_<br>CLAIMS_OUTPUT
+      </div>
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 3 — STAGING TABLE (AUDIT_SOD_CLAIMS)             -->
+    <!-- ===================================================== -->
+    <div class="staging-section">
+      <div class="staging-box">
+        <span class="sys-label">Intermediate Staging &nbsp;&mdash;&nbsp; INFORMATICS.dbo.AUDIT_SOD_CLAIMS &nbsp;(~90 analytic columns, indexed on DupID)</span>
+        <div class="staging-modules">
+          <div class="staging-module">Member<br><span style="font-size:10px;opacity:0.65;">SUBSCRID, CIN, MBI<br>MEMNM, DOB, Age</span></div>
+          <div class="staging-module">Claim Keys<br><span style="font-size:10px;opacity:0.65;">claimid, claimline<br>DupID, SEQ_CLAIM_ID</span></div>
+          <div class="staging-module">Dates<br><span style="font-size:10px;opacity:0.65;">DOS, DOSTHRU, Received<br>Check, Post, Adjud.</span></div>
+          <div class="staging-module">Financials<br><span style="font-size:10px;opacity:0.65;">Billed, Allowed, Net<br>Paid, INT, TRI Pymt</span></div>
+          <div class="staging-module">Clinical<br><span style="font-size:10px;opacity:0.65;">CPT, RevCode, DRG<br>prindiag, POA</span></div>
+          <div class="staging-module">Provider<br><span style="font-size:10px;opacity:0.65;">provid, NPIprovnm<br>PAYTO, NPIpayto</span></div>
+          <div class="staging-module">PAR / Contract<br><span style="font-size:10px;opacity:0.65;">contractedVerification<br>capitationVerification</span></div>
+          <div class="staging-module">Claim Category<br><span style="font-size:10px;opacity:0.65;">Paid | Denied<br>101 Excl | MediCal CPT</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 4 — DERIVED DATA ELEMENTS                         -->
+    <!-- ===================================================== -->
+    <div class="section-label">&#9660; Derived / Computed Elements</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>MBI Resolution</strong>
+        MemberCmsHic &rarr;<br>DENSE_RANK by TermDate<br>Most-current HIC/MBI
+      </div>
+      <div class="data-element">
+        <strong>Name Parsing</strong>
+        MEMNM &rarr; CHARINDEX<br>First + Last split<br>(LASTNAME, FIRSTNAME)
+      </div>
+      <div class="data-element">
+        <strong>Claim Categorization</strong>
+        uvw_CLAIMS_PAID &rarr; Paid<br>HEADERstatus DENIED &rarr; Denied<br>Power-cycle UPDATE sequence
+      </div>
+      <div class="data-element">
+        <strong>PAR Verification</strong>
+        contractinfo (5 keys)<br>+ 274 PAR override<br>contractedVerification Y/N
+      </div>
+      <div class="data-element">
+        <strong>Units / Days</strong>
+        QUANTITY: LOB-aware<br>servunits logic (P/S)<br>HCT Days: RevCode 0101&ndash;0219
+      </div>
+      <div class="data-element">
+        <strong>Issue Narrative (Col T)</strong>
+        CPT | CPT Descr |<br>PRINDIAG | Descr +<br>Denial reason if Denied
+      </div>
+      <div class="data-element">
+        <strong>Clean Claim (Col K)</strong>
+        'Y' = Paid/Denied<br>'N' = Edit 101 fired<br>'N' = Medi-Cal CPT
+      </div>
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 5 — EXCLUSION FILTERS                             -->
+    <!-- ===================================================== -->
+    <div class="section-label">&#9660; Exclusion Filters Applied</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>Edit 101 (Active)</strong>
+        dbo.claimedit &rarr;<br>rules.codeid = '101'<br>No Active Prov. Contract
+      </div>
+      <div class="filter-box">
+        <strong>Edit 101 (Historical)</strong>
+        claimedithistory XML:<br>exist('//claimedit<br>[ruleid=101]') = 1
+      </div>
+      <div class="filter-box">
+        <strong>Medi-Cal Only CPTs</strong>
+        427 codes &rarr;<br>MediCalOnly_CPT_<br>Exclusions table
+      </div>
+      <div class="filter-box">
+        <strong>Contracted PAR Scope</strong>
+        WHERE contractedVerification<br>= 'N' (NCP universe)<br>non-contract providers only
+      </div>
+      <div class="filter-box">
+        <strong>Enrolled Date Filter</strong>
+        okpaydate BETWEEN<br>@RangeStartDate AND<br>@RangeEndDate
+      </div>
+      <div class="filter-box">
+        <strong>Non-Active Records</strong>
+        enddate &ge; startdate<br>Cross-footed record<br>exclusion
+      </div>
+      <div class="filter-box">
+        <strong>DupID Validation</strong>
+        claimid + claimline<br>DupID HAVING COUNT &gt; 1<br>Zero rows expected
+      </div>
+      <div class="filter-box">
+        <strong>LOB Scope Filter</strong>
+        DSNP / CSNP / CHPIV<br>Final SELECT split by<br>LINE_OF_BUSINESS LIKE
+      </div>
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 6 — QA CHECKS                                     -->
+    <!-- ===================================================== -->
+    <div class="section-label">&#9660; QA Validation Checks</div>
+
+    <div class="qa-row">
+      <div class="qa-box">
+        <strong>Date Range QA</strong>
+        MIN/MAX of DOS, DOSTHRU,<br>Received, Check, Post,<br>Adjud., Discharge
+      </div>
+      <div class="qa-box">
+        <strong>LOB Verification</strong>
+        Distinct LINE_OF_<br>BUSINESS from staging<br>table; confirm DSNP scope
+      </div>
+      <div class="qa-box">
+        <strong>DupID Check</strong>
+        SHOULD RETURN 0 ROWS<br>claimid + claimline<br>uniqueness gate
+      </div>
+      <div class="qa-box">
+        <strong>Contracted Provider QA</strong>
+        contractedVerification='Y'<br>rendering + payto NPI<br>specialty cross-check
+      </div>
+      <div class="qa-box">
+        <strong>MediCal CPT Row Count</strong>
+        Verify: Expected 427 rows<br>in MediCalOnly_CPT_<br>Exclusions
+      </div>
+      <div class="qa-box">
+        <strong>Determination Mix QA</strong>
+        COUNT: Total, Approved,<br>Denied, Dismissed<br>from OUTPUT table
+      </div>
+      <div class="qa-box">
+        <strong>Received / Paid Range QA</strong>
+        MIN/MAX Date_Request_<br>Received + Date_Claim_<br>Paid from OUTPUT table
+      </div>
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 7 — OUTPUT TABLE (AUDIT_SOD_CLAIMS_OUTPUT)        -->
+    <!-- ===================================================== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">Intermediate Output &nbsp;&mdash;&nbsp; INFORMATICS.dbo.AUDIT_SOD_CLAIMS_OUTPUT &nbsp;(21 CMS Columns + LINE_OF_BUSINESS scope tag)</span>
+        <div class="report-modules">
+          <div class="report-module">Col A<br>Enrollee First Name<span>MEMNM parsed</span></div>
+          <div class="report-module">Col B<br>Enrollee Last Name<span>MEMNM parsed</span></div>
+          <div class="report-module">Col C<br>Enrollee ID (MBI)<span>MemberCmsHic.Hic</span></div>
+          <div class="report-module">Col D<br>Contract ID<span>Hardcoded H4733</span></div>
+          <div class="report-module">Col E<br>PBP<span>Hardcoded 001</span></div>
+          <div class="report-module">Col F<br>First Tier Entity<span>Hardcoded None</span></div>
+          <div class="report-module">Col G<br>Auth / Claim No.<span>claimid</span></div>
+          <div class="report-module">Col H<br>Date Received<span>cleandate (CCYY/MM/DD)</span></div>
+          <div class="report-module">Col I<br>AOR Date<span>Hardcoded None</span></div>
+          <div class="report-module">Col J<br>WOL Date<span>Hardcoded None</span></div>
+          <div class="report-module">Col K<br>Clean Claim?<span>Y / N derived</span></div>
+        </div>
+        <div class="report-modules" style="margin-top:10px;">
+          <div class="report-module">Col L<br>OD or Recon?<span>Hardcoded OD</span></div>
+          <div class="report-module">Col M<br>Determination<span>Approved / Denied</span></div>
+          <div class="report-module">Col N<br>Date of Determ.<span>adjuddate</span></div>
+          <div class="report-module">Col O<br>Date Claim Paid<span>paiddate (Paid only)</span></div>
+          <div class="report-module">Col P<br>Notice &rarr; Enrollee<span>okpaydate proxy &#9873;</span></div>
+          <div class="report-module">Col Q<br>Notice &rarr; Provider<span>okpaydate proxy &#9873;</span></div>
+          <div class="report-module">Col R<br>Fwd to IRE<span>Hardcoded None</span></div>
+          <div class="report-module">Col S<br>Who Made Request?<span>NCP (default)</span></div>
+          <div class="report-module">Col T<br>Issue Description<span>CPT + Diag + Denial</span></div>
+          <div class="report-module">Col U<br>Denied for MN?<span>N / None derived</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ↓ arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- ROW 8 — FINAL DELIVERY UNIVERSE (GREEN)               -->
+    <!-- ===================================================== -->
+    <div class="output-section" style="margin-top:20px;">
+      <div class="universe-box">
+        <span class="sys-label">CMS ODAG Table 3 Universe Delivery &nbsp;&mdash;&nbsp; AUDIT_SOD_CLAIMS_OUTPUT split by LOB &nbsp;|&nbsp; Scope: Non-Contract Providers (contractedVerification = 'N')</span>
+        <div class="universe-modules">
+          <div class="universe-module">DSNP Universe<span>LOB LIKE '%DSNP%'</span></div>
+          <div class="universe-module">CSNP Universe<span>LOB LIKE '%CSNP%'</span></div>
+          <div class="universe-module">CHPIV Universe<span>LOB LIKE '%CHPIV%'</span></div>
+          <div class="universe-module">Contract: H4733<span>CHPIV D-SNP</span></div>
+          <div class="universe-module">PBP: 001<span>Always fixed</span></div>
+          <div class="universe-module">Scope: OD Only<span>No Recon path yet</span></div>
+          <div class="universe-module">Delivery Owner<span>Ms. Elizabeth Valdez</span></div>
+          <div class="universe-module">Audit Authority<span>CMS / 42 CFR &sect;422</span></div>
+        </div>
+        <div style="margin-top:14px; font-size:10.5px; color:#999; text-align:center; line-height:1.6;">
+          &#9873;&nbsp; <strong style="color:#ffe7a0;">Open Items for Ms. Elizabeth Valdez / Ms. Natalia Castellanos:</strong>
+          &nbsp;Col P &amp; Q (okpaydate used as written-notice proxy &mdash; confirm letter-send system date) &nbsp;|&nbsp;
+          Col S (confirm any enrollee direct-pay claims requiring &lsquo;E&rsquo; override) &nbsp;|&nbsp;
+          Col U (confirm MN denial basis for any Denied rows) &nbsp;|&nbsp;
+          Col J (WOL applicable to any Recon rows when Recon path is added)
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .diagram -->
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>QNXT System (HMOPROD_PlanData)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS Reference Views</div>
+    <div class="legend-item"><div class="legend-swatch swatch-prodapp"></div>ProviderRepository (SQLPRODAPP01)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-staging"></div>Staging Table (AUDIT_SOD_CLAIMS)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-exclusion"></div>Exclusion Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-qa"></div>QA Validation Checks</div>
+    <div class="legend-item"><div class="legend-swatch swatch-output"></div>Output Table (AUDIT_SOD_CLAIMS_OUTPUT)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-universe"></div>CMS Universe Delivery</div>
+  </div>
+
+</body>
+</html>

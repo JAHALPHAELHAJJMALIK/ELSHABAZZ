@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHCS D-SNP Palliative Care · Data Flow Diagram | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1720px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:20px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:30px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  /* DFD STRUCTURE */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  /* INTERACTIVE NODES */
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* SOURCE SYSTEM BOXES */
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:460px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:340px;background:var(--purpleFill);border-color:var(--purple)}
+  .hmoprod{width:440px;background:var(--greenFill);border-color:var(--green)}
+  .provdb{width:300px;background:var(--cyanFill);border-color:var(--cyan)}
+  .snowflakedb{width:380px;background:var(--goldFill);border-color:var(--gold)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+  .module.red{background:rgba(255,100,100,.08);border-color:rgba(255,100,100,.30);color:#ff9090}
+  .module.red span{color:#c47070}
+  .module.purple{background:rgba(160,140,220,.10);border-color:rgba(160,140,220,.30);color:#c4b8f0}
+  .module.purple span{color:#9a88d0}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* STEP BOXES */
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:210px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+  .s-red{background:var(--redFill);border-color:var(--red)}
+
+  /* DATA ELEMENTS */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:200px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  /* FILTER/CHECKPOINT BOXES */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:200px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  /* OUTPUT BOX */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1400px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+  .out-module.green-out{border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .out-module.green-out span{color:#5ab890}
+  .out-module.purple-out{border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .out-module.purple-out span{color:#9a88d0}
+  .out-module.gold-out{border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .out-module.gold-out span{color:#c9a84c}
+
+  /* DETAIL + LEGEND */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .badge.purple{background:rgba(160,140,220,.12);border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .badge.orange{background:rgba(255,170,80,.12);border-color:rgba(255,170,80,.35);color:#ffb060}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  /* CODE SET SLIDE */
+  .codeset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .codeset-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px}
+  .codeset-box .cs-header{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .cs-db{font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .cs-db.qnxt{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cs-db.informatics{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);color:#9dd6ff}
+  .cs-db.enroll{background:rgba(160,140,220,.13);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .cs-db.snowflake{background:rgba(255,200,100,.13);border:1px solid rgba(255,200,100,.30);color:#ffe08a}
+  .codeset-box .cs-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .code-pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .code-pill{background:#1c1c1c;border:1px solid rgba(255,200,100,.35);border-radius:6px;padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;font-weight:700}
+  .code-pill.dx{border-color:rgba(255,100,100,.35);color:#ff9090}
+  .code-pill.field{border-color:rgba(120,230,240,.30);color:#8ee8f0;font-family:inherit;font-size:11px}
+  .code-pill.enroll{border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .code-pill.lob{border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .cs-note{font-size:11px;color:#777;line-height:1.45;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .cs-note b{color:#aaa}
+
+  /* SOURCE TABLE SLIDE */
+  .db-section{margin-bottom:24px}
+  .db-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .db-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .db-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .db-title.purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .db-title.cyan{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.28);color:#8ee8f0}
+  .db-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .db-title.red{background:rgba(255,100,100,.10);border:1px solid rgba(255,100,100,.28);color:#ff9090}
+  .tbl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tbl-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:13px 15px}
+  .tbl-card .tname{font-size:12.5px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:5px}
+  .tbl-card .ttype{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:7px;display:inline-block}
+  .ttype.staging{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .ttype.worktemp{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .ttype.source{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .ttype.view{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .ttype.permout{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.25);color:#ffe08a}
+  .ttype.snowflake{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.25);color:#ffe08a}
+  .tbl-card .tdesc{font-size:11.5px;color:#999;line-height:1.45}
+
+  /* TIMELINE / RUNBOOK */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* CONTROLS TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .callout.warn{background:rgba(255,170,80,.07);border-left-color:rgba(255,170,80,.45)}
+  .callout.warn b{color:#ffb060}
+
+  /* PARAMS */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11.5px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+  .param-card .pval{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <div class="brand">
+    <h1>DHCS D-SNP Palliative Care — Claims &amp; AuthRefs QA · Data Flow Diagram</h1>
+    <div>CHGSD / CHPIV · INFORMATICS · QA_DHCS_DSNP_PALLIATIVE_CLAIMS_AND_AUTHREFS · Updated 05/27/2026 · Dx Z51.5 · @BRAND = CHGSD or CHPIV · @LOB = DSNP</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Code Sets</button>
+    <button onclick="showSlide(2,this)">③ Source Tables</button>
+    <button onclick="showSlide(3,this)">④ Runbook</button>
+    <button onclick="showSlide(4,this)">⑤ Controls</button>
+    <button onclick="showSlide(5,this)">⑥ Parameters</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — MAIN DFD
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Report Purpose</div>
+      <div class="title">DHCS D-SNP Palliative Care — QA</div>
+      <div class="subtitle">Identifies D-SNP members <strong>newly enrolled in palliative care services</strong> within a quarterly reporting period. Two parallel tracks run sequentially: (1) <strong>Claims Track</strong> — qualifies members via ICD-10 Dx Z51.5 on HMOPROD_PlanData claims; (2) <strong>Auth Track</strong> — qualifies members via authorization referrals carrying the same diagnosis via QNXT referral / authdiag tables. Both tracks exclude members who had a palliative claim in a prior quarter. Final deliverable is a <strong>Race/Ethnicity stratified template</strong> (TEMPLATE_PALLIATIVE / CHPIV_TEMPLATE_PALLIATIVE) loaded to MS Excel via OLE DB for DHCS submission.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>Z51.5</strong><span>ICD-10-CM Palliative Care Dx (Encounter for palliative care)</span></div>
+        <div class="metric"><strong>DSNP</strong><span>Line of Business lock — @LOB filter on uvw_LINE_OF_BUSINESS</span></div>
+        <div class="metric"><strong>CHGSD / CHPIV</strong><span>Dual-brand scripts — @BRAND switch controls brand scope</span></div>
+        <div class="metric"><strong>3 Permanent Tables</strong><span>QA_PALLIATIVE_CLAIM · QA_PALLIATIVE_AUTH · TEMPLATE_PALLIATIVE</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Dual-Brand Architecture</div>
+      <div class="subtitle" style="margin-bottom:12px">Two parallel scripts — identical logic, different @BRAND scope:</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">QA_DHCS_DSNP_PALLIATIVE_…_20260527.sql<span>@BRAND = 'CHGSD' · @LOB = 'DSNP' · Outputs: QA_PALLIATIVE_CLAIM · QA_PALLIATIVE_AUTH · TEMPLATE_PALLIATIVE</span></div>
+        <div class="module" style="min-width:100%;text-align:left">CHPIV_QA_DHCS_DSNP_PALLIATIVE_…_20260527.sql<span>@BRAND = 'CHPIV' · @LOB = 'CHPIV' · Outputs: CHPIV_QA_PALLIATIVE_CLAIM · CHPIV_QA_PALLIATIVE_AUTH · CHPIV_TEMPLATE_PALLIATIVE</span></div>
+        <div class="module code" style="min-width:100%;text-align:left">@leadlag = -4 · @leadlagmonths = 3<span>Date window: 4 months back, 3-month duration from 1st of prior month</span></div>
+        <div class="module red" style="min-width:100%;text-align:left">Pre-Disqualifying Logic<span>#PREDISQUALIFYING_CLAIMS — excludes members with prior-quarter palliative claims from #QUALIFYING_CLAIMS</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE SYSTEMS -->
+      <div class="section-label">Source Databases / Systems</div>
+      <div class="source-row">
+
+        <div class="system-box hmoprod node" data-title="HMOPROD_PlanData · QNXT Transactional (SQLPROD02)" data-body="Primary transactional source for both the Claims and Auth tracks. Key tables: claim — header record with planid, memid, startdate, enddate; claimdiag — ICD-10 diagnosis codes (codeid, sequence, poa, diagtype); DiagCode — code description lookup; referral — authorization referral records (authorizationid, memid, seendate, effdate, termdate); authdiag — authorization-level diagnosis codes; uvw_LINE_OF_BUSINESS — INFORMATICS view used to filter by planid → LOB + BRAND." data-tags="HMOPROD_PlanData|claim|claimdiag|referral|authdiag|DiagCode|SQLPROD02">
+          <span class="sys-label">HMOPROD_PlanData · QNXT (SQLPROD02)</span>
+          <div class="module-row">
+            <div class="module">claim<span>Header: planid, memid<br>startdate, enddate</span></div>
+            <div class="module">claimdiag<span>ICD-10 dx codes<br>sequence, poa, diagtype</span></div>
+            <div class="module">DiagCode<span>Z51.5 description<br>lookup table</span></div>
+            <div class="module">referral<span>Auth records<br>authorizationid, seendate</span></div>
+            <div class="module">authdiag<span>Auth-level dx codes<br>JOIN on referralid</span></div>
+          </div>
+        </div>
+
+        <div class="system-box sql node" data-title="INFORMATICS · dbo — Analytics Warehouse (SQLPRODAPP01)" data-body="Central analytics database. Provides the uvw_LINE_OF_BUSINESS view (planid → LINE_OF_BUSINESS + BRAND filter) and uvw_BASELINE_MEMBERSHIP (member demographic base including memid → CIN crosswalk). Also hosts all permanent output tables: QA_PALLIATIVE_CLAIM, QA_PALLIATIVE_AUTH, and TEMPLATE_PALLIATIVE (CHGSD) or their CHPIV_ prefixed equivalents. The Ethnicity_EICandOMBDesc_XWalk crosswalk table also resides here for race/ethnicity stratification." data-tags="INFORMATICS|uvw_LINE_OF_BUSINESS|uvw_BASELINE_MEMBERSHIP|QA_PALLIATIVE_CLAIM|QA_PALLIATIVE_AUTH|TEMPLATE_PALLIATIVE|Ethnicity_EICandOMBDesc_XWalk">
+          <span class="sys-label">INFORMATICS · dbo (SQLPRODAPP01)</span>
+          <div class="module-row">
+            <div class="module">uvw_LINE_OF_BUSINESS<span>planid → LOB + BRAND<br>cardinality guard filter</span></div>
+            <div class="module">uvw_BASELINE_MEMBERSHIP<span>memid → CIN<br>demographic crosswalk</span></div>
+            <div class="module">Ethnicity_EICandOMBDesc_XWalk<span>EIC code → OMBdesc<br>Race/Eth stratification</span></div>
+            <div class="module code">QA_PALLIATIVE_CLAIM<br>QA_PALLIATIVE_AUTH<span>Permanent output tables<br>INFORMATICS.dbo</span></div>
+          </div>
+        </div>
+
+        <div class="system-box enrolldb node" data-title="EnrollmentManager · Eligibility (SQLPRODAPP01)" data-body="Used exclusively in the Race/Ethnicity stratification block (Phase 3). Provides member-level race and ethnicity attributes via the following join chain: Member (ClientIndexNumber = CIN) → healthcoverage (BenefitBeginDate, BenefitEndDate) → healthcoverageoverlay (BenefitBeginDate file match) → EthnicityIndustryCode (EIC code) → Ethnicity_EICandOMBDesc_XWalk (EIC → OMBdesc). Date-windowed to @ClockStart / @ClockStop to confirm the member had DSNP enrollment in the reporting period." data-tags="EnrollmentManager|Member|healthcoverage|healthcoverageoverlay|EthnicityIndustryCode|CIN|Race/Ethnicity">
+          <span class="sys-label">EnrollmentManager · Eligibility (SQLPRODAPP01)</span>
+          <div class="module-row">
+            <div class="module">Member<span>ClientIndexNumber = CIN<br>Race/Eth source</span></div>
+            <div class="module">healthcoverage<span>BenefitBeginDate<br>BenefitEndDate</span></div>
+            <div class="module purple">EthnicityIndustryCode<span>EIC code lookup<br>→ OMBdesc via XWalk</span></div>
+          </div>
+        </div>
+
+        <div class="system-box snowflakedb node" data-title="Snowflake · PROD_CHG_ODS — PreviousPalliativeMembers (Reference)" data-body="The Snowflake table PROD_CHG_ODS.INFORMATICS.PreviousPalliativeMembers is referenced as a QA validation crosswalk — used to verify that members excluded by the #PREDISQUALIFYING_CLAIMS logic (prior-quarter hits) match the known historical palliative cohort. In the SQL scripts, this is commented out as a QA/TEST comparison block. It is NOT part of the active production flow — the active pre-disqualification uses #PREDISQUALIFYING_CLAIMS built directly from HMOPROD_PlanData.dbo.claim." data-tags="Snowflake|PROD_CHG_ODS|PreviousPalliativeMembers|Reference Only|QA Crosswalk|Not Production">
+          <span class="sys-label">Snowflake · PROD_CHG_ODS (QA Reference)</span>
+          <div class="module-row">
+            <div class="module code">PreviousPalliativeMembers<span>Historical cohort list<br>QA/TEST crosswalk only</span></div>
+            <div class="module red">Not Active Flow<span>Commented out in script<br>for manual QA validation</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FLOW ARROWS ROW 1 -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW B: PROCESSING STEPS — CLAIMS TRACK -->
+      <div class="section-label">Phase 1 — Claims Track Processing (7 Steps)</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node" data-title="STEP 01 — Parameter Init &amp; @BRAND/@LOB Validation" data-body="All runtime parameters are declared and SET at the top of the script. @BRAND ('CHGSD' or 'CHPIV') controls which brand's benefit plans are pulled via uvw_LINE_OF_BUSINESS. @LOB ('DSNP' for CHGSD, 'CHPIV' for the CHPIV script) restricts the plan filter.\n\nKey date window params:\n@leadlag = -4 (4 months back from end of prior month)\n@leadlagmonths = 3 (3-month window duration)\n@RangeStartDate = DATEADD(MONTH,-4, 1st of prior month)\n@RangeEndDate = @RangeStartDate + 3 months - 1 day\n@PalliativeDx = 'Z51.5'\n\nA diagnostic SELECT confirms the LOB/BRAND filter is returning valid benefitplan rows before proceeding." data-tags="Parameters|@BRAND|@LOB|@leadlag|@RangeStartDate|@PalliativeDx|Z51.5">
+          <span class="step-num">Step 01</span><strong>Param Init</strong>
+          @BRAND · @LOB · @PalliativeDx<br>Date window SET<br>LOB validation SELECT
+        </div>
+
+        <div class="step-box s-red node" data-title="STEP 02 — #PREDISQUALIFYING_CLAIMS (Prior-Quarter Exclusion)" data-body="First-pass filter. Builds #PREDISQUALIFYING_CLAIMS by scanning ALL HMOPROD_PlanData.dbo.claim records where:\n- claim.planid → uvw_LINE_OF_BUSINESS (@LOB + @BRAND)\n- claimdiag → ROW_NUMBER() OVER (PARTITION BY claimid ORDER BY sequence ASC, codeid DESC) inner subquery resolves to codeid LIKE '%Z51.5%'\n- TRY_CONVERT(date, clm.startdate) < @RangeStartDate (i.e., BEFORE the current reporting period)\n\nResult: InclusionExclusionType = 'PALLIATIVE' or 'NOT_QUALIFYING'\nClustered index on claimid, nonclustered on memid.\nDUP validation SELECT confirms 0 duplicate claimid rows.\nPurpose: any member in this set is excluded from the #QUALIFYING_CLAIMS pull to enforce 'newly enrolled' logic." data-tags="#PREDISQUALIFYING_CLAIMS|Prior Quarter|Exclusion|claimdiag ROW_NUMBER|Z51.5|Before RangeStartDate|DUP Validation">
+          <span class="step-num">Step 02</span><strong>Pre-Disqualify</strong>
+          #PREDISQUALIFYING_CLAIMS<br>Prior-qtr palliative hits<br>claimid + memid indexed
+        </div>
+
+        <div class="step-box s-gold node" data-title="STEP 03 — #QUALIFYING_CLAIMS (Current-Period Members)" data-body="Second-pass filter. Builds #QUALIFYING_CLAIMS — the NEW palliative members. Same Z51.5 claimdiag ROW_NUMBER() subquery logic as Step 02 but with opposing date filters:\n- TRY_CONVERT(date, clm.enddate) >= @RangeStartDate (claim ends within or after period start)\n- TRY_CONVERT(date, clm.startdate) <= @RangeEndDate (claim starts within or before period end)\n- ISNULL(clm.enddate, GETDATE()) >= clm.startdate (non-crossfooted guard)\n- NOT clm.memid IN (SELECT memid FROM #PREDISQUALIFYING_CLAIMS) — exclusion of prior-quarter palliative members\n\nClustered index on claimid, nonclustered on memid." data-tags="#QUALIFYING_CLAIMS|Current Period|RangeStartDate|RangeEndDate|Newly Enrolled|NOT IN PREDISQUALIFYING|Crossfooted Guard">
+          <span class="step-num">Step 03</span><strong>Qualify Claims</strong>
+          #QUALIFYING_CLAIMS<br>New qtr palliative members<br>NOT IN pre-disqualify set
+        </div>
+
+        <div class="step-box s-green node" data-title="STEP 04 — setclaim CTE → QA_PALLIATIVE_CLAIM" data-body="CTE 'setclaim' reads #QUALIFYING_CLAIMS and filters to NOT InclusionExclusionType = 'NOT_QUALIFYING' (DUB C 2.0 negation style). GROUP BY claimid, memid, InclusionExclusionType, diag descr — replacing DISTINCT for explicit aggregation and query optimizer efficiency.\n\nFinal output written to INFORMATICS.dbo.QA_PALLIATIVE_CLAIM (permanent table) with SELECT INTO.\nConfirmation SELECT: COUNT(DISTINCT memid) AS 'Unique Member Count' from QA_PALLIATIVE_CLAIM." data-tags="setclaim CTE|QA_PALLIATIVE_CLAIM|GROUP BY|DUB C 2.0|NOT NOT_QUALIFYING|Unique Member Count">
+          <span class="step-num">Step 04</span><strong>setclaim CTE</strong>
+          → QA_PALLIATIVE_CLAIM<br>GROUP BY claimid/memid<br>COUNT DISTINCT confirm
+        </div>
+
+        <div class="step-box s-cyan node" data-title="STEP 05 — SETAUTHREF CTE → QA_PALLIATIVE_AUTH" data-body="Auth track runs after claims. SETAUTHREF CTE joins:\n- HMOPROD_PlanData.dbo.referral (r) — memid, authorizationid, seendate, effdate, termdate\n- HMOPROD_PlanData.dbo.authdiag (ad) — ON r.referralid = ad.referralid\n- HMOPROD_PlanData.dbo.DiagCode (dc) — ON ad.diagcode = dc.codeid\n\nFilters:\n- UPPER(LTRIM(RTRIM(ISNULL(ad.diagcode,'')))) LIKE '%Z51.5%'\n- uvw_LINE_OF_BUSINESS join on r.planid → @Authlob + @BRAND\n- NOT r.memid IN (SELECT memid FROM #PREDISQUALIFYING_CLAIMS) — same prior-qtr exclusion\n- Date range: TRY_CONVERT(date, r.seendate) BETWEEN @ClockStart AND @ClockStop (separate auth date window from claims window)\n- TRY_CONVERT(date, ISNULL(r.termdate, GETDATE())) >= TRY_CONVERT(date, r.effdate) — non-crossfooted guard\n\nOutput: INFORMATICS.dbo.QA_PALLIATIVE_AUTH" data-tags="SETAUTHREF CTE|QA_PALLIATIVE_AUTH|referral|authdiag|Z51.5|@Authlob|@ClockStart|@ClockStop|Crossfooted Guard">
+          <span class="step-num">Step 05</span><strong>SETAUTHREF CTE</strong>
+          Auth track: referral<br>+ authdiag Z51.5 filter<br>→ QA_PALLIATIVE_AUTH
+        </div>
+
+        <div class="step-box s-purple node" data-title="STEP 06 — #baselinememiso + Race/Ethnicity Stratification" data-body="Phase 3. Builds the baseline member ISO population from the UNION ALL of:\n- QA_PALLIATIVE_AUTH + uvw_BASELINE_MEMBERSHIP (memid → CIN)\n- QA_PALLIATIVE_CLAIM + uvw_BASELINE_MEMBERSHIP (memid → CIN)\n\n#baselinememiso temp table initializes all race/ethnicity flag columns to TRY_CONVERT(decimal(9,0), 0).\n\nThen #MemberEnrollmentEthnicityRace is built from EnrollmentManager chain (Member → healthcoverage → healthcoverageoverlay → EthnicityIndustryCode → Ethnicity_EICandOMBDesc_XWalk) date-windowed to @ClockStart / @ClockStop.\n\n#multiplerace CTE counts DISTINCT OMBdesc per CIN (excluding Hispanic/Latino ethnicity) to set Race_Two_Or_More_Races = 1.\n\nSequential UPDATEs apply flags in priority order: Multi-Race → Ethnicity_Hispanic → Ethnicity_Not_Hispanic → individual race flags → catch-all unknowns. DUP validation on #baselinememiso confirms 0 duplicate memid rows." data-tags="#baselinememiso|#MemberEnrollmentEthnicityRace|#multiplerace|Race_Two_Or_More_Races|Ethnicity_Hispanic_Latino|Race_White|Race_Black|OMBdesc|CIN|UNION ALL">
+          <span class="step-num">Step 06</span><strong>Race/Eth Stratify</strong>
+          UNION ALL: AUTH + CLAIM<br>#baselinememiso flags<br>Sequential UPDATEs
+        </div>
+
+        <div class="step-box s-pink node" data-title="STEP 07 — TEMPLATE_PALLIATIVE Final Assembly (MS Excel ODBC)" data-body="Final SELECT aggregates #baselinememiso into the DHCS submission template:\n- 'Community Health Group' · 'H4377/D-SNP' · Reporting Period BETWEEN @ClockStart AND @ClockStop\n- COUNT(DISTINCT memid) AS 'Member Count'\n- SUM of all Race / Ethnicity flag columns (Race_White, Race_Black_Or_African_American, Race_American_Indian_And_Alaska_Native, Race_Asian, Race_Native_Hawaiian_And_Other_Pacific_Islander, Race_Some_Other_Race, Race_Two_Or_More_Races, Race_Asked_But_No_Answer, Race_Asked_But_No_Answer_with_Eth_Hispanic, Race_Asked_But_No_Answer_with_Eth_Not_Hispanic, Race_Unknown, Ethnicity_Hispanic_Latino, Ethnicity_Not_Hispanic_Latino, Ethnicity_Asked_But_No_Answer, Ethnicity_Unknown)\n\nOutput: INFORMATICS.dbo.TEMPLATE_PALLIATIVE (CHGSD) or INFORMATICS.dbo.CHPIV_TEMPLATE_PALLIATIVE (CHPIV). Final SELECT confirms output via MS Excel OLE DB ODBC connection." data-tags="TEMPLATE_PALLIATIVE|Race/Eth SUM|H4377|Member Count|OLE DB|MS Excel|DHCS Submission">
+          <span class="step-num">Step 07</span><strong>Template Assembly</strong>
+          → TEMPLATE_PALLIATIVE<br>17 Race/Eth SUM columns<br>MS Excel OLE DB output
+        </div>
+
+      </div>
+
+      <!-- FLOW ARROWS ROW 2 -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW C: DERIVED DATA ELEMENTS -->
+      <div class="section-label">Derived / Controlled Data Elements</div>
+      <div class="data-elements-row">
+        <div class="data-element node" data-title="Date Window — Reporting Period" data-body="@RangeStartDate = DATEADD(MONTH, -4, DATEADD(DAY, 1, EOMONTH(GETDATE(),-1)))\n@RangeEndDate = DATEADD(day,-1, DATEADD(MONTH, 3, @RangeStartDate))\n\nUsed for CLAIMS track date logic. Auth track uses @ClockStart / @ClockStop (same derived values renamed for clarity). Always verify these resolve to expected quarter boundaries before executing." data-tags="@RangeStartDate|@RangeEndDate|@ClockStart|@ClockStop|Date Window|leadlag|-4 months|3 months">
+          <strong>Reporting Period</strong>@leadlag = -4<br>@leadlagmonths = 3<br>1st of prior month base
+        </div>
+        <div class="data-element node" data-title="Pre-Disqualifying Set — Prior Palliative Members" data-body="#PREDISQUALIFYING_CLAIMS contains ALL members who had a Z51.5-coded claim with a startdate BEFORE @RangeStartDate. The NOT IN subquery referencing this set enforces the 'newly enrolled in palliative care' requirement for the current reporting period. Clustered index on claimid, nonclustered on memid for efficient lookups." data-tags="#PREDISQUALIFYING_CLAIMS|Prior Quarter|Z51.5|Before RangeStartDate|Exclusion Set">
+          <strong>Pre-Disqual Set</strong>#PREDISQUALIFYING_CLAIMS<br>Z51.5 before period start<br>Exclusion guard for both tracks
+        </div>
+        <div class="data-element node" data-title="Palliative Dx Filter — ICD-10 Z51.5" data-body="@PalliativeDx = 'Z51.5' (Encounter for palliative care). Applied via LIKE '%Z51.5%' pattern on claimdiag.codeid (Claims track) and UPPER(LTRIM(RTRIM(ISNULL(authdiag.diagcode,'')))) LIKE '%Z51.5%' (Auth track). DUB C 2.0: ISNULL() wrapping ensures no NULL comparison failures. Both tracks resolve diagnosis at the codeid level via DiagCode description lookup." data-tags="Z51.5|Palliative Care|ICD-10|@PalliativeDx|LIKE|claimdiag|authdiag|DiagCode">
+          <strong>Dx Z51.5 Filter</strong>ICD-10 Palliative Care<br>LIKE '%Z51.5%'<br>Claims + Auth tracks
+        </div>
+        <div class="data-element node" data-title="Race / Ethnicity Flag Matrix (17 Columns)" data-body="17 binary flag columns initialized to 0 in #baselinememiso. Applied via sequential UPDATEs in priority order:\n1. Race_Two_Or_More_Races (Numberrace >= 2)\n2. Ethnicity_Hispanic_Latino (OMBdesc = 'Hispanic or Latino')\n3. Ethnicity_Not_Hispanic_Latino\n4. Race_White, Race_Black_Or_African_American, Race_American_Indian_And_Alaska_Native, Race_Asian, Race_Native_Hawaiian_And_Other_Pacific_Islander, Race_Some_Other_Race (each: Numberrace = 1)\n5. Race_Asked_But_No_Answer_with_Eth_Hispanic (Hispanic eth, no race)\n6. Race_Asked_But_No_Answer_with_Eth_Not_Hispanic (catch-all)\n7. Race_Unknown (final catch-all)\n8. Ethnicity_Asked_But_No_Answer\nAll flags mutually exclusive via preceding flag = 0 guards." data-tags="Race|Ethnicity|17 Columns|OMBdesc|Two Or More Races|Hispanic|Catch-All|Priority UPDATEs">
+          <strong>Race/Eth Matrix</strong>17 flag columns<br>Priority UPDATE cascade<br>Mutual exclusion guards
+        </div>
+        <div class="data-element node" data-title="TEMPLATE_PALLIATIVE — DHCS Submission Format" data-body="Final permanent table. 21+ columns matching DHCS quarterly submission layout:\n- Parent Company Name: 'Community Health Group'\n- H Contract #: 'H4377/D-SNP'\n- Reporting Period: BETWEEN @ClockStart AND @ClockStop\n- EAE or FIDE: 'EAE'\n- Member Count (DISTINCT)\n- 17 Race/Eth SUM columns\n\nCHPIV variant outputs to INFORMATICS.dbo.CHPIV_TEMPLATE_PALLIATIVE.\nConnected via MS Excel OLE DB ODBC for DHCS submission workbook refresh." data-tags="TEMPLATE_PALLIATIVE|DHCS|H4377|EAE|OLE DB|MS Excel|Race Eth SUMs">
+          <strong>DHCS Template</strong>TEMPLATE_PALLIATIVE<br>H4377 / EAE / D-SNP<br>17 Race/Eth SUM columns
+        </div>
+      </div>
+
+      <!-- FLOW ARROWS ROW 3 -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW D: FILTER/CHECKPOINTS -->
+      <div class="section-label">Analyst Quality Checkpoints</div>
+      <div class="filter-row">
+        <div class="filter-box node" data-title="Checkpoint — @BRAND / @LOB Lock" data-body="@BRAND must be set to 'CHGSD' (for QA_DHCS_DSNP… script) or 'CHPIV' (for CHPIV_QA_DHCS_DSNP… script). @LOB = 'DSNP' for CHGSD; 'CHPIV' for CHPIV script.\n\nRunning with wrong @BRAND/LOB combination returns wrong plan population — the uvw_LINE_OF_BUSINESS BRAND filter isolates the correct benefit plan set. Always validate via the opening LOB diagnostic SELECT before proceeding." data-tags="@BRAND|@LOB|DSNP|CHPIV|CHGSD|LOB Lock|Diagnostic SELECT">
+          <strong>@BRAND / @LOB Lock?</strong>CHGSD → DSNP<br>CHPIV → CHPIV<br>Validate LOB SELECT first
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — #PREDISQUALIFYING_CLAIMS DUP Validation" data-body="After building #PREDISQUALIFYING_CLAIMS (Step 02), the script runs a DUP validation SELECT that should return 0 rows. If duplicate claimids are found, the CASE logic did not produce a single classification per claimid — investigate claimdiag ROW_NUMBER() partition logic.\n\nSame validation runs after #QUALIFYING_CLAIMS (Step 03) and #baselinememiso (Step 06)." data-tags="DUP Validation|#PREDISQUALIFYING_CLAIMS|#QUALIFYING_CLAIMS|#baselinememiso|0 Rows|claimid|memid">
+          <strong>DUP Validation × 3</strong>0 rows on all 3 tables<br>#PREDISQ · #QUALIFY · #BASE<br>claimid + memid unique
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — Claims COUNT vs Auth COUNT" data-body="After Steps 04 and 05, a COUNT(DISTINCT memid) is returned for both QA_PALLIATIVE_CLAIM and QA_PALLIATIVE_AUTH. Compare these counts between CHGSD and CHPIV script runs. Also compare against prior quarter's DHCS submission member count for reasonability. Significant drops (>20%) warrant investigation of the @RangeStartDate / @RangeEndDate window before submitting." data-tags="COUNT DISTINCT|memid|QA_PALLIATIVE_CLAIM|QA_PALLIATIVE_AUTH|Reasonability|Prior Quarter Comparison">
+          <strong>Claim vs Auth COUNT?</strong>COUNT(DISTINCT memid)<br>Both tracks after write<br>Compare prior qtr trend
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — #baselinememiso UNION ALL Dedup" data-body="Step 06 unions QA_PALLIATIVE_AUTH and QA_PALLIATIVE_CLAIM via uvw_BASELINE_MEMBERSHIP and groups by memid + CIN. A member appearing in BOTH Auth and Claim results appears only once in #baselinememiso (GROUP BY dedups). DUP validation on memid confirms no double-counting. If member count in #baselinememiso is less than AUTH count + CLAIM count, that is expected — it means the same member appeared in both tracks." data-tags="#baselinememiso|UNION ALL|GROUP BY|Dedup|memid|CIN|Auth+Claim overlap">
+          <strong>UNION ALL Dedup?</strong>#baselinememiso GROUP BY<br>Auth ∪ Claim overlap OK<br>0-row DUP confirm on memid
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — Race/Eth Coverage (No Zeros in All Catch-Alls)" data-body="After all 8 sequential UPDATEs, validate that Race_Unknown + Race_Asked_But_No_Answer_with_Eth_Not_Hispanic counts are reasonable. If > 30% of members fall into the catch-all buckets, investigate the Ethnicity_EICandOMBDesc_XWalk join or EnrollmentManager EIC data completeness. Ethnicity_Unknown should also be near zero for active DSNP members who filed enrollment data." data-tags="Race_Unknown|Ethnicity_Unknown|Catch-All|Ethnicity_EICandOMBDesc_XWalk|EIC|OMBdesc|Coverage Check">
+          <strong>Race/Eth Coverage?</strong>Race_Unknown &lt; 30%<br>Validate XWalk + EIC join<br>Ethnicity_Unknown near zero
+        </div>
+      </div>
+
+      <!-- FINAL OUTPUT -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <div class="section-label">Final Deliverable</div>
+      <div class="output-box node" data-title="Final Output — TEMPLATE_PALLIATIVE / CHPIV_TEMPLATE_PALLIATIVE" data-body="Permanent table written to INFORMATICS.dbo.TEMPLATE_PALLIATIVE (CHGSD) or INFORMATICS.dbo.CHPIV_TEMPLATE_PALLIATIVE (CHPIV). Contains exactly one row per script execution with 21+ columns matching the DHCS D-SNP Palliative Care quarterly template format. Columns: Parent Company Name, H Contract #, Reporting Period, EAE or FIDE, Member Count, and 17 Race/Ethnicity SUM columns. Accessed by DHCS submission workbook via MS Excel OLE DB ODBC." style="max-width:1400px">
+        <span class="sys-label">INFORMATICS.dbo — Palliative Care DHCS Deliverable</span>
+        <div class="out-modules">
+          <div class="out-module green-out">QA_PALLIATIVE_CLAIM<span>Claims track output<br>Dx Z51.5 new enrollees</span></div>
+          <div class="out-module purple-out">QA_PALLIATIVE_AUTH<span>Auth/Referral track output<br>Dx Z51.5 new enrollees</span></div>
+          <div class="out-module gold-out">TEMPLATE_PALLIATIVE<span>DHCS template — H4377<br>Race/Eth stratified summary</span></div>
+          <div class="out-module gold-out">CHPIV_TEMPLATE_PALLIATIVE<span>CHPIV variant (CHPIV script)<br>Same format, CHPIV brand</span></div>
+          <div class="out-module">MS Excel OLE DB ODBC<span>DHCS submission workbook<br>Quarterly refresh connection</span></div>
+        </div>
+      </div>
+
+      <!-- DETAIL PANEL + LEGEND -->
+      <div class="detail">
+        <div class="detail-panel card">
+          <div class="kicker">Selected Node Detail</div>
+          <h3 id="detailTitle">Click any node above</h3>
+          <p id="detailBody" style="white-space:pre-line">Select any system box, step box, data element, or filter checkpoint to view detailed field-level logic, SQL notes, and analyst guidance here.</p>
+          <div class="badge-row" id="detailTags"></div>
+        </div>
+        <div class="detail-panel card">
+          <div class="kicker">Legend</div>
+          <div class="legend">
+            <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div> HMOPROD_PlanData · QNXT Transactional (claims / auth source)</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div> INFORMATICS.dbo · Analytics Warehouse (views + output tables)</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div> EnrollmentManager · Race/Ethnicity eligibility source</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div> Snowflake PROD_CHG_ODS · QA reference only (not active flow)</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red)"></div> Exclusion / Pre-Disqualification logic</div>
+            <div class="legend-item"><div class="swatch" style="background:#252525;border-color:rgba(255,255,255,.20)"></div> Derived data elements / intermediate outputs</div>
+            <div class="legend-item"><div class="swatch" style="border:2px dashed rgba(255,100,100,.40);background:var(--redFill)"></div> Analyst QA Checkpoint (dashed red = stop &amp; validate)</div>
+          </div>
+          <div class="print-note">DUB C 2.0 · WCARR · 20260527 · CHGSD Informatics · Two scripts: CHGSD + CHPIV variants</div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+  </div><!-- /card -->
+
+</div><!-- /Slide 0 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — CODE SETS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Palliative Care — Code Sets &amp; Filter Values</div>
+    <div class="subtitle" style="margin-bottom:4px">All code sets referenced in the claims and auth tracks. Per DUB C 2.0: ISNULL() wrapping on all LIKE filters; no bare NULL comparisons.</div>
+    <div class="codeset-grid">
+
+      <div class="codeset-box node" data-title="Diagnosis Code — ICD-10-CM Z51.5" data-body="Z51.5 = Encounter for palliative care (ICD-10-CM). The sole qualifying diagnosis for this measure. Applied via LIKE '%Z51.5%' on claimdiag.codeid (Claims track) and on authdiag.diagcode (Auth track). Both tracks apply UPPER(LTRIM(RTRIM(ISNULL(…,'')))) for normalize-before-compare discipline.\n\nDx lookup confirmed via diagnostic SELECT on HMOPROD_PlanData.dbo.DiagCode WHERE codeid LIKE '%Z51.5%' — run this first to confirm code is active in the DiagCode table." data-tags="Z51.5|ICD-10|Palliative Care|claimdiag|authdiag|DiagCode|LIKE">
+        <div class="cs-header">Diagnosis Code <span class="cs-db qnxt">QNXT / claimdiag</span></div>
+        <div class="cs-sub">Qualifying Palliative Care Dx — applied to both Claims and Auth tracks</div>
+        <div class="code-pill-row">
+          <div class="code-pill dx">Z51.5</div>
+        </div>
+        <div class="cs-note"><b>Filter pattern:</b> UPPER(LTRIM(RTRIM(ISNULL(codeid,'')))) LIKE ISNULL('%'+@PalliativeDx+'%','%')<br>Applied to claimdiag.codeid (Claims) and authdiag.diagcode (Auth). Sequence filter NOT applied — any sequence position qualifies.</div>
+      </div>
+
+      <div class="codeset-box node" data-title="LOB / BRAND Filter Values" data-body="uvw_LINE_OF_BUSINESS view wraps HMOPROD_PlanData.dbo.benefitplan + HMOPROD_PlanData.dbo.program. The BRAND column differentiates CHGSD vs CHPIV plan populations.\n\nCHGSD script: @LOB = 'DSNP', @BRAND = 'CHGSD'\nCHPIV script: @LOB = 'CHPIV', @BRAND = 'CHPIV'\n\nFilter: bp.LINE_OF_BUSINESS LIKE ISNULL('%'+@LOB+'%','%') AND bp.BRAND IN (ISNULL(@BRAND,'CHGSD'))\n\nNote: The LINE_OF_BUSINESS filter is left as FINAL FILTER (last WHERE clause) per cardinality hierarchy guidance in the script comments — uvw_LINE_OF_BUSINESS join must precede LOB filter to prevent full-table scan." data-tags="uvw_LINE_OF_BUSINESS|BRAND|DSNP|CHPIV|CHGSD|LOB LIKE|planid|benefitplan|program">
+        <div class="cs-header">LOB / BRAND Filter <span class="cs-db informatics">INFORMATICS</span></div>
+        <div class="cs-sub">uvw_LINE_OF_BUSINESS — planid → LINE_OF_BUSINESS + BRAND scope</div>
+        <div class="code-pill-row">
+          <div class="code-pill lob">DSNP</div>
+          <div class="code-pill lob">CHPIV</div>
+          <div class="code-pill lob">CHGSD</div>
+          <div class="code-pill field">uvw_LINE_OF_BUSINESS</div>
+        </div>
+        <div class="cs-note"><b>CHGSD script:</b> @LOB='DSNP', @BRAND='CHGSD'<br><b>CHPIV script:</b> @LOB='CHPIV', @BRAND='CHPIV'<br>Cardinality note: LOB WHERE clause is FINAL FILTER — per inline script comment.</div>
+      </div>
+
+      <div class="codeset-box node" data-title="Claims Date Window Parameters" data-body="Claims track uses @RangeStartDate / @RangeEndDate. Auth track uses @ClockStart / @ClockStop (same derived values, renamed).\n\n@RangeStartDate = DATEADD(MONTH, @leadlag, DATEADD(DAY, 1, EOMONTH(GETDATE(), -1)))\n  = 1st of the month that is @leadlag months before the current month's last day → resolves to 1st of 4 months ago\n@RangeEndDate = DATEADD(day, -1, DATEADD(MONTH, @leadlagmonths, @RangeStartDate))\n  = @RangeStartDate + 3 months - 1 day\n\nExample (run May 2026): @RangeStartDate = 2026-01-01, @RangeEndDate = 2026-03-31\n\nPre-disqualify uses: clm.startdate < @RangeStartDate (prior period)\nQualify uses: clm.enddate >= @RangeStartDate AND clm.startdate <= @RangeEndDate (within period)" data-tags="@leadlag|-4|@leadlagmonths|3|@RangeStartDate|@RangeEndDate|@ClockStart|@ClockStop|Date Window|DATEADD|EOMONTH">
+        <div class="cs-header">Date Window <span class="cs-db informatics">Params</span></div>
+        <div class="cs-sub">Dynamic quarterly window — 4 months back, 3-month span from 1st of prior month</div>
+        <div class="code-pill-row">
+          <div class="code-pill field">@leadlag = -4</div>
+          <div class="code-pill field">@leadlagmonths = 3</div>
+          <div class="code-pill field">@RangeStartDate</div>
+          <div class="code-pill field">@RangeEndDate</div>
+        </div>
+        <div class="cs-note"><b>Example (run May 2026):</b> @RangeStartDate = 2026-01-01, @RangeEndDate = 2026-03-31<br>Pre-disqualify: startdate &lt; @RangeStartDate. Qualify: enddate ≥ start AND startdate ≤ end.</div>
+      </div>
+
+      <div class="codeset-box node" data-title="Race / Ethnicity OMB Category Values" data-body="OMBdesc values from Ethnicity_EICandOMBDesc_XWalk. Seven racial categories + Hispanic/Latino ethnicity toggle:\n- White\n- Black or African American\n- American Indian or Alaska Native\n- Asian\n- Native Hawaiian or Other Pacific Islander\n- Other\n- Hispanic or Latino (ethnicity — used for Ethnicity_Hispanic_Latino flag and Race_Asked_But_No_Answer_with_Eth_Hispanic logic)\n\nPriority UPDATE cascade:\n1. Race_Two_Or_More_Races (Numberrace >= 2, excluding Hispanic/Latino)\n2. Ethnicity_Hispanic_Latino\n3. Ethnicity_Not_Hispanic_Latino (prior flag = 0)\n4–9. Individual race flags (Numberrace = 1)\n10. Race_Asked_But_No_Answer_with_Eth_Hispanic (Hispanic eth only, no race)\n11. Race_Asked_But_No_Answer_with_Eth_Not_Hispanic (catch-all)\n12. Race_Unknown (all zeros)\n13. Ethnicity_Unknown (no ethnicity flags)" data-tags="OMBdesc|White|Black|Asian|Hispanic|Latino|Ethnicity|Race|Catch-All|Priority UPDATE|XWalk">
+        <div class="cs-header">Race/Eth OMBdesc <span class="cs-db enroll">EnrollmentManager</span></div>
+        <div class="cs-sub">7 OMB racial categories + Hispanic/Latino ethnicity — Ethnicity_EICandOMBDesc_XWalk</div>
+        <div class="code-pill-row">
+          <div class="code-pill enroll">White</div>
+          <div class="code-pill enroll">Black or African American</div>
+          <div class="code-pill enroll">Asian</div>
+          <div class="code-pill enroll">AIAN</div>
+          <div class="code-pill enroll">NHOPI</div>
+          <div class="code-pill enroll">Other</div>
+          <div class="code-pill enroll">Hispanic or Latino</div>
+        </div>
+        <div class="cs-note"><b>Catch-all order:</b> Two+ Races → Hispanic Eth → Not-Hispanic Eth → Individual Race (1) → Eth-Only Hispanic → Eth-Not-Hispanic → Race_Unknown → Ethnicity_Unknown</div>
+      </div>
+
+      <div class="codeset-box node" data-title="Permanent Output Tables — Both Scripts" data-body="CHGSD script outputs:\n- INFORMATICS.dbo.QA_PALLIATIVE_CLAIM\n- INFORMATICS.dbo.QA_PALLIATIVE_AUTH\n- INFORMATICS.dbo.TEMPLATE_PALLIATIVE\n\nCHPIV script outputs:\n- INFORMATICS.dbo.CHPIV_QA_PALLIATIVE_CLAIM\n- INFORMATICS.dbo.CHPIV_QA_PALLIATIVE_AUTH\n- INFORMATICS.dbo.CHPIV_TEMPLATE_PALLIATIVE\n\nAll six DROP TABLE IF EXISTS at the top of each script. All six are permanent (non-temp) tables in INFORMATICS.dbo. All are refreshed every quarterly run — no append logic, full DROP + SELECT INTO.\n\nTemp tables used during run: #PREDISQUALIFYING_CLAIMS, #QUALIFYING_CLAIMS, #baselinememiso, #MemberEnrollmentEthnicityRace, #multiplerace." data-tags="QA_PALLIATIVE_CLAIM|QA_PALLIATIVE_AUTH|TEMPLATE_PALLIATIVE|CHPIV_QA_PALLIATIVE_CLAIM|CHPIV_TEMPLATE_PALLIATIVE|DROP TABLE IF EXISTS|SELECT INTO">
+        <div class="cs-header">Output Tables <span class="cs-db informatics">INFORMATICS.dbo</span></div>
+        <div class="cs-sub">6 permanent tables across two scripts — all DROP + SELECT INTO per quarterly run</div>
+        <div class="code-pill-row">
+          <div class="code-pill field">QA_PALLIATIVE_CLAIM</div>
+          <div class="code-pill field">QA_PALLIATIVE_AUTH</div>
+          <div class="code-pill field">TEMPLATE_PALLIATIVE</div>
+        </div>
+        <div class="code-pill-row">
+          <div class="code-pill enroll">CHPIV_QA_PALLIATIVE_CLAIM</div>
+          <div class="code-pill enroll">CHPIV_QA_PALLIATIVE_AUTH</div>
+          <div class="code-pill enroll">CHPIV_TEMPLATE_PALLIATIVE</div>
+        </div>
+        <div class="cs-note"><b>Temp tables:</b> #PREDISQUALIFYING_CLAIMS · #QUALIFYING_CLAIMS · #baselinememiso · #MemberEnrollmentEthnicityRace · #multiplerace</div>
+      </div>
+
+      <div class="codeset-box node" data-title="Claims QA Validation — #PREDISQUALIFYING Exclusion Logic" data-body="The pre-disqualification logic enforces that only NEWLY enrolled palliative members appear in the quarterly submission. Logic path:\n\n1. All Z51.5 claims with startdate < @RangeStartDate → #PREDISQUALIFYING_CLAIMS\n2. DUP check: 0 rows expected\n3. COUNT by InclusionExclusionType (only PALLIATIVE type shown — NOT_QUALIFYING filtered)\n4. #QUALIFYING_CLAIMS: same Z51.5 filter + date range + NOT memid IN (#PREDISQUALIFYING_CLAIMS)\n5. setclaim CTE: NOT InclusionExclusionType = 'NOT_QUALIFYING' → QA_PALLIATIVE_CLAIM\n\nSame exclusion subquery reused in SETAUTHREF CTE for Auth track. Crossfooted guard: ISNULL(clm.enddate, GETDATE()) >= clm.startdate must be TRUE (non-crossfooted claims only)." data-tags="Pre-Disqualify|NOT IN|Z51.5|claimid DUP|Crossfooted Guard|ISNULL|setclaim|SETAUTHREF|DUB C 2.0 negation">
+        <div class="cs-header">Exclusion Logic <span class="cs-db qnxt">HMOPROD / QNXT</span></div>
+        <div class="cs-sub">3-stage filter: Pre-disqualify → Qualify → setclaim CTE → permanent output</div>
+        <div class="code-pill-row">
+          <div class="code-pill dx">NOT IN #PREDISQ</div>
+          <div class="code-pill dx">startdate &lt; @RangeStart</div>
+          <div class="code-pill field">enddate ≥ @RangeStart</div>
+          <div class="code-pill field">startdate ≤ @RangeEnd</div>
+        </div>
+        <div class="cs-note"><b>Crossfooted guard:</b> ISNULL(clm.enddate, GETDATE()) >= clm.startdate — non-crossfooted records are active.<br>Auth track: ISNULL(r.termdate, GETDATE()) >= r.effdate — same logic.</div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — SOURCE TABLES
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Source Tables, Views &amp; Work Tables — Full Inventory</div>
+
+    <div class="db-section">
+      <div class="db-title green">HMOPROD_PlanData · QNXT (SQLPROD02) — Transactional Source</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.claim</div><div class="ttype source">Source</div><div class="tdesc">Claim header. Key fields: claimid, memid, planid (→ LOB/BRAND), startdate, enddate. Pre-disqualify uses startdate < @RangeStartDate. Qualify uses enddate ≥ @RangeStartDate AND startdate ≤ @RangeEndDate.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.claimdiag</div><div class="ttype source">Source</div><div class="tdesc">Claim-level diagnosis codes. Fields: claimid, codeid, sequence, poa (Present on Admission), diagtype. Inner ROW_NUMBER() subquery partitions by claimid, orders by sequence ASC + codeid DESC. All sequences qualify for Z51.5 — no ROWis = 1 filter applied.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.DiagCode</div><div class="ttype source">Source</div><div class="tdesc">ICD-10 code description lookup. LEFT JOIN from claimdiag ON codeid = codeid. Provides 'diag descr' for QA output columns and confirms Z51.5 is active via opening diagnostic SELECT.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.referral</div><div class="ttype source">Source</div><div class="tdesc">Auth referral header for Auth track. Fields: referralid, authorizationid, memid, seendate, effdate, termdate, planid. Date window uses seendate BETWEEN @ClockStart AND @ClockStop. Crossfooted guard: ISNULL(termdate, GETDATE()) >= effdate.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.authdiag</div><div class="ttype source">Source</div><div class="tdesc">Auth-level diagnosis codes. INNER JOIN to referral ON referralid. Fields: referralid, diagcode. Z51.5 filter: UPPER(LTRIM(RTRIM(ISNULL(ad.diagcode,'')))) LIKE '%Z51.5%'.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title blue">INFORMATICS · dbo (SQLPRODAPP01) — Analytics &amp; Output</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">uvw_LINE_OF_BUSINESS</div><div class="ttype view">View</div><div class="tdesc">planid → LINE_OF_BUSINESS + BRAND. Joins HMOPROD_PlanData.dbo.benefitplan + dbo.program. Used as INNER JOIN on claim.planid and referral.planid for all LOB/BRAND filtering. Cardinality note: LINE_OF_BUSINESS WHERE filter is FINAL per script comment.</div></div>
+        <div class="tbl-card"><div class="tname">uvw_BASELINE_MEMBERSHIP</div><div class="ttype view">View</div><div class="tdesc">memid → CIN crosswalk with member demographic base. Used in Phase 3 to resolve CIN from memid for the EnrollmentManager race/ethnicity join chain.</div></div>
+        <div class="tbl-card"><div class="tname">Ethnicity_EICandOMBDesc_XWalk</div><div class="ttype view">Ref Table</div><div class="tdesc">EIC (EthnicityIndustryCode) → OMBdesc crosswalk. Joined in the #MemberEnrollmentEthnicityRace build to translate enrollment-level EIC codes to OMB racial/ethnic category descriptions.</div></div>
+        <div class="tbl-card"><div class="tname">QA_PALLIATIVE_CLAIM</div><div class="ttype permout">Perm Output</div><div class="tdesc">CHGSD claims track permanent output. Contains claimid, memid, diag descr, InclusionExclusionType = 'PALLIATIVE'. Written via setclaim CTE SELECT INTO. Dropped and rebuilt each quarterly run.</div></div>
+        <div class="tbl-card"><div class="tname">QA_PALLIATIVE_AUTH</div><div class="ttype permout">Perm Output</div><div class="tdesc">CHGSD auth track permanent output. Contains referral/auth-sourced palliative members with authorizationid, memid, InclusionExclusionType. Written via SETAUTHREF CTE SELECT INTO. Dropped and rebuilt each quarterly run.</div></div>
+        <div class="tbl-card"><div class="tname">TEMPLATE_PALLIATIVE</div><div class="ttype permout">Perm Output</div><div class="tdesc">CHGSD DHCS submission template. One aggregated row: 'Community Health Group', 'H4377/D-SNP', Reporting Period, 'EAE', COUNT(DISTINCT memid), 17 Race/Eth SUM columns. Accessed via MS Excel OLE DB ODBC. CHPIV variant: CHPIV_TEMPLATE_PALLIATIVE.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title purple">EnrollmentManager (SQLPRODAPP01) — Race/Ethnicity Source</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.Member</div><div class="ttype source">Source</div><div class="tdesc">Master member table. ClientIndexNumber = CIN key. EthnicityIndustryCode field drives race/eth assignment via EIC → OMBdesc XWalk.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.healthcoverage</div><div class="ttype source">Source</div><div class="tdesc">Enrollment coverage spans. Fields: ClientIndexNumber, FileId, BenefitBeginDate, BenefitEndDate. Date window: BenefitEndDate >= @ClockStart AND BenefitBeginDate <= @ClockStop.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.healthcoverageoverlay</div><div class="ttype source">Source</div><div class="tdesc">Coverage overlay matched on ClientIndexNumber + FileId + BenefitBeginDate. Joined to healthcoverage to ensure file-level match for race/eth eligibility window.</div></div>
+        <div class="tbl-card"><div class="tname">EthnicityIndustryCode</div><div class="ttype source">Source</div><div class="tdesc">EIC code lookup (NOLOCK). Joined on m.EthnicityIndustryCode = eic.Code. Feeds XWalk join to resolve OMBdesc for each member.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title gold">Temp Tables — Session Work Tables (All #Prefix)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">#PREDISQUALIFYING_CLAIMS</div><div class="ttype worktemp">Temp</div><div class="tdesc">Prior-quarter palliative claim holders. All Z51.5 claims with startdate before @RangeStartDate. claimid CLUSTERED + memid NONCLUSTERED indexes. DUP validation SELECT runs immediately after build.</div></div>
+        <div class="tbl-card"><div class="tname">#QUALIFYING_CLAIMS</div><div class="ttype worktemp">Temp</div><div class="tdesc">Current-period new palliative claim holders. Z51.5 filter + date range + NOT IN #PREDISQUALIFYING_CLAIMS. Same clustered/nonclustered index pair. DUP validation SELECT after build.</div></div>
+        <div class="tbl-card"><div class="tname">#baselinememiso</div><div class="ttype worktemp">Temp</div><div class="tdesc">UNION ALL of Auth + Claim members resolved to CIN via uvw_BASELINE_MEMBERSHIP. All 17 Race/Eth flag columns initialized to 0. DUP validation on memid after build. All sequential UPDATEs applied here.</div></div>
+        <div class="tbl-card"><div class="tname">#MemberEnrollmentEthnicityRace</div><div class="ttype worktemp">Temp</div><div class="tdesc">CIN + OMBdesc pairs from EnrollmentManager join chain. Date-windowed to @ClockStart/@ClockStop. Used as source for all 17 flag UPDATEs on #baselinememiso.</div></div>
+        <div class="tbl-card"><div class="tname">#multiplerace</div><div class="ttype worktemp">Temp</div><div class="tdesc">CIN + COUNT(DISTINCT OMBdesc) AS Numberrace (excluding Hispanic/Latino). Numberrace >= 2 triggers Race_Two_Or_More_Races = 1 UPDATE. Numberrace = 1 used in individual race flag UPDATEs.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — RUNBOOK
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Analyst Runbook — Quarterly Execution Steps</div>
+    <div class="timeline">
+      <div class="tl"><strong>01 · @BRAND / @LOB Pre-Flight Check</strong><p>Confirm which script version to run: QA_DHCS_DSNP_PALLIATIVE_… (CHGSD, @BRAND = 'CHGSD', @LOB = 'DSNP') or CHPIV_QA_DHCS_DSNP_PALLIATIVE_… (CHPIV, @BRAND = 'CHPIV', @LOB = 'CHPIV'). Verify @leadlag = -4 and @leadlagmonths = 3 produce the correct reporting quarter window. The opening diagnostic SELECT on uvw_LINE_OF_BUSINESS must return valid DSNP/CHPIV benefit plan rows before proceeding.</p></div>
+      <div class="tl"><strong>02 · Dx Z51.5 Code Confirmation</strong><p>The second diagnostic SELECT on HMOPROD_PlanData.dbo.DiagCode WHERE codeid LIKE '%Z51.5%' confirms the code is active in the transactional system and returns the expected description 'Encounter for palliative care'. If this returns 0 rows, stop and investigate DiagCode table status before continuing.</p></div>
+      <div class="tl"><strong>03 · #PREDISQUALIFYING_CLAIMS DUP Validation</strong><p>After the Pre-Disqualify phase writes to #PREDISQUALIFYING_CLAIMS, confirm the DUP validation SELECT returns 0 rows. Review the InclusionExclusionType COUNT — the PALLIATIVE count here represents prior-quarter palliative members who will be excluded from the current period. Note this count for comparison against the final qualified member count.</p></div>
+      <div class="tl"><strong>04 · #QUALIFYING_CLAIMS + setclaim CTE → QA_PALLIATIVE_CLAIM</strong><p>After #QUALIFYING_CLAIMS is built and indexed, confirm its DUP validation returns 0 rows. The setclaim CTE writes INFORMATICS.dbo.QA_PALLIATIVE_CLAIM. Confirm the COUNT(DISTINCT memid) result makes sense relative to the pre-disqualify count and prior quarter's submission member count. A significant drop (&gt;20%) warrants investigation of the @RangeStartDate window.</p></div>
+      <div class="tl"><strong>05 · SETAUTHREF CTE → QA_PALLIATIVE_AUTH</strong><p>Auth track runs after Claims track completes. SETAUTHREF CTE uses referral + authdiag (Z51.5) + the same NOT IN #PREDISQUALIFYING_CLAIMS exclusion. @Authlob and date window (@ClockStart / @ClockStop) are verified at the AUTH parameter block. Confirm QA_PALLIATIVE_AUTH COUNT(DISTINCT memid). Auth count is typically lower than claims count — both are included in the UNION ALL for the template.</p></div>
+      <div class="tl"><strong>06 · #baselinememiso Build + Race/Eth UPDATEs</strong><p>Phase 3 unions QA_PALLIATIVE_AUTH and QA_PALLIATIVE_CLAIM, resolves CIN, and applies 8 sequential UPDATE passes. After all UPDATEs, review the #baselinememiso SELECT — Race_Unknown and Race_Asked_But_No_Answer_with_Eth_Not_Hispanic counts should be reasonable. If Race_Unknown exceeds ~30% of total members, investigate the EthnicityIndustryCode data in EnrollmentManager or the Ethnicity_EICandOMBDesc_XWalk crosswalk for missing entries. DUP validation on memid confirms 0 duplicate rows.</p></div>
+      <div class="tl"><strong>07 · TEMPLATE_PALLIATIVE Final Output + MS Excel Refresh</strong><p>The final SELECT writes INFORMATICS.dbo.TEMPLATE_PALLIATIVE (or CHPIV variant). Confirm the single-row output via the SELECT from TEMPLATE_PALLIATIVE. Open the DHCS submission MS Excel workbook and refresh the OLE DB connection to pull the new row. Validate: H Contract # = 'H4377/D-SNP', Reporting Period matches expected quarter dates, Member Count is reasonable vs prior quarter. Run both CHGSD and CHPIV scripts before populating the final DHCS submission form.</p></div>
+    </div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — CONTROLS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Analyst Controls &amp; Quality Gates</div>
+    <table class="mini-table">
+      <tr><th>Control</th><th>Recommended Validation</th><th>Failure Symptom</th></tr>
+      <tr><td>@BRAND lock</td><td>Confirm @BRAND = 'CHGSD' for CHGSD script, 'CHPIV' for CHPIV script. Never run with NULL or wrong brand.</td><td>Wrong brand returns incorrect benefit plan population — denominator and member set meaningless for that brand's DHCS submission.</td></tr>
+      <tr><td>@LOB lock</td><td>@LOB = 'DSNP' (CHGSD script) or @LOB = 'CHPIV' (CHPIV script). Never NULL.</td><td>NULL returns all LOBs — non-DSNP members contaminate the palliative cohort, violating measure definition.</td></tr>
+      <tr><td>Date window validation</td><td>Execute the opening diagnostic SELECT showing 'BETWEEN @RangeStartDate AND @RangeEndDate'. Confirm the dates correspond to the expected reporting quarter before proceeding.</td><td>Incorrect @leadlag or @leadlagmonths shifts the quarter window forward or back — wrong members in scope, wrong prior-quarter exclusion set.</td></tr>
+      <tr><td>Z51.5 DiagCode presence</td><td>Confirm the DiagCode diagnostic SELECT returns Z51.5 with description 'Encounter for palliative care'.</td><td>0 rows = code not loaded in DiagCode table — both tracks will qualify 0 members regardless of actual claim presence.</td></tr>
+      <tr><td>#PREDISQUALIFYING_CLAIMS DUP check</td><td>DUP validation SELECT must return 0 rows after Step 02.</td><td>&gt;0 rows = duplicate claimid in pre-disqualify set — possible cardinality issue in claimdiag ROW_NUMBER() subquery. Stop and investigate before continuing.</td></tr>
+      <tr><td>#QUALIFYING_CLAIMS DUP check</td><td>DUP validation SELECT must return 0 rows after Step 03.</td><td>&gt;0 rows = duplicate claimid in qualifying set — same investigation as pre-disqualify DUP. Member count output will be inflated.</td></tr>
+      <tr><td>Claims vs Auth member count</td><td>After Steps 04 and 05, compare COUNT(DISTINCT memid) for QA_PALLIATIVE_CLAIM vs QA_PALLIATIVE_AUTH. Auth is typically lower. Both are valid. Confirm neither is unexpectedly zero.</td><td>Zero auth count may indicate referral / authdiag table connectivity issue or no active Z51.5 authorization referrals in the period — verify with Sir Phil before submission.</td></tr>
+      <tr><td>#baselinememiso DUP check</td><td>DUP validation on memid must return 0 rows. If member count in #baselinememiso &lt; Auth count + Claim count, that is expected due to AUTH ∩ CLAIM overlap.</td><td>&gt;0 rows = double-counted members in race/eth template — SUM columns would overcount total population.</td></tr>
+      <tr><td>Race_Unknown ceiling</td><td>Race_Unknown SUM should not exceed ~30% of Member Count. Review Ethnicity_EICandOMBDesc_XWalk coverage if exceeded.</td><td>High Race_Unknown = missing EIC-to-OMB mappings or incomplete EnrollmentManager ethnicity data — DHCS may flag submission data quality.</td></tr>
+      <tr><td>TEMPLATE_PALLIATIVE single-row output</td><td>Final SELECT from TEMPLATE_PALLIATIVE must return exactly 1 row per script run. H Contract # must equal 'H4377/D-SNP'.</td><td>Multiple rows = GROUP BY missing from final aggregate. 0 rows = #baselinememiso is empty — trace back to Auth/Claim count issue.</td></tr>
+    </table>
+    <div class="callout"><b>Senior Analyst Note (WCARR):</b> The most common failure mode in this measure is an incorrect @leadlag / @leadlagmonths combination that shifts the date window. Always execute the parameter diagnostic SELECT first and confirm the reported BETWEEN dates match the target reporting quarter in the DHCS submission calendar. The pre-disqualification logic is equally critical — if #PREDISQUALIFYING_CLAIMS is empty when it should not be (e.g., after the first year of operation), the NOT IN exclusion has no effect and the qualified count will be higher than expected. Cross-validate against PROD_CHG_ODS.INFORMATICS.PreviousPalliativeMembers (Snowflake QA block, currently commented out) when in doubt.</div>
+    <div class="callout warn" style="margin-top:12px"><b>Dual-Script Reminder:</b> Both the CHGSD and CHPIV scripts must be executed before populating the final DHCS submission template. The CHPIV script targets INFORMATICS.dbo.CHPIV_TEMPLATE_PALLIATIVE — this is a separate permanent table from the CHGSD TEMPLATE_PALLIATIVE. Running only one script will leave one brand's submission data stale from the prior quarter.</div>
+  </div>
+</div><!-- /Slide 4 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 5 — PARAMETERS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Script Parameters — QA_DHCS_DSNP_PALLIATIVE_CLAIMS_AND_AUTHREFS</div>
+    <div class="subtitle" style="margin-bottom:4px">All parameters declared at the top of each script. Changes must be documented in the COMMENT(S) / CHANGE.LOG section with a C### reference per DUB C 2.0. @BRAND is the only parameter that differs between CHGSD and CHPIV scripts.</div>
+    <div class="param-grid">
+      <div class="param-card"><div class="pname">@BRAND</div><div class="pval">'CHGSD' | 'CHPIV'</div><div class="pdesc">Controls BRAND filter on uvw_LINE_OF_BUSINESS. 'CHGSD' = Community Health Group San Diego. 'CHPIV' = Community Health Plan of Imperial Valley. This is the ONLY parameter that differs between the two scripts.</div></div>
+      <div class="param-card"><div class="pname">@LOB</div><div class="pval">'DSNP' | 'CHPIV'</div><div class="pdesc">LINE_OF_BUSINESS LIKE filter. CHGSD script: 'DSNP'. CHPIV script: 'CHPIV'. Applied as FINAL FILTER per cardinality hierarchy guidance. Never NULL.</div></div>
+      <div class="param-card"><div class="pname">@PalliativeDx</div><div class="pval">nvarchar = 'Z51.5'</div><div class="pdesc">ICD-10-CM diagnosis code for Palliative Care. Applied via LIKE pattern '%Z51.5%' on claimdiag.codeid and authdiag.diagcode. Do not change without DHCS measure specification update.</div></div>
+      <div class="param-card"><div class="pname">@leadlag</div><div class="pval">decimal(9,0) = -4</div><div class="pdesc">Number of months to shift back from the 1st of the prior month. -4 = 4 months back. Determines start of the reporting quarter window. Adjust only for off-cycle or retrospective QA runs.</div></div>
+      <div class="param-card"><div class="pname">@leadlagmonths</div><div class="pval">int = 3</div><div class="pdesc">Duration of the reporting quarter in months. 3 = standard quarter. @RangeEndDate = @RangeStartDate + 3 months - 1 day. Do not reduce below 3 for standard quarterly submission.</div></div>
+      <div class="param-card"><div class="pname">@RangeStartDate</div><div class="pval">Derived via DATEADD</div><div class="pdesc">= DATEADD(MONTH, @leadlag, DATEADD(DAY, 1, EOMONTH(GETDATE(),-1))). Resolves to 1st of the month 4 months prior to the current run month. Used for Claims track pre-disqualify and qualify date filters.</div></div>
+      <div class="param-card"><div class="pname">@RangeEndDate</div><div class="pval">Derived via DATEADD</div><div class="pdesc">= DATEADD(day, -1, DATEADD(MONTH, @leadlagmonths, @RangeStartDate)). Last day of the 3-month window starting from @RangeStartDate. Used as upper bound for claim.startdate filter in #QUALIFYING_CLAIMS.</div></div>
+      <div class="param-card"><div class="pname">@ClockStart / @ClockStop</div><div class="pval">Same as Range dates</div><div class="pdesc">Auth track date window parameters. @ClockStart = @RangeStartDate, @ClockStop = @RangeEndDate. Used for referral.seendate BETWEEN filter and EnrollmentManager BenefitBeginDate / BenefitEndDate window.</div></div>
+      <div class="param-card"><div class="pname">@Authlob</div><div class="pval">nvarchar = 'DSNP'</div><div class="pdesc">LOB filter for the Auth/Referral track (SETAUTHREF CTE). Mirrors @LOB. Declared separately in the Auth parameter block for clarity — must match @LOB value used in the Claims track.</div></div>
+      <div class="param-card"><div class="pname">@when</div><div class="pval">datetime = NULL</div><div class="pdesc">Reserved parameter — currently SET to NULL in both scripts. Available for future targeted date overrides if off-cycle QA runs require a specific reference date. Do not set unless explicitly directed.</div></div>
+      <div class="param-card"><div class="pname">@Authrundt</div><div class="pval">TRY_CONVERT(date, GETDATE())</div><div class="pdesc">Auth track run timestamp — current date as of execution. Used for Auth-level date stamping in the SETAUTHREF output. Resolves dynamically — no override needed for standard quarterly runs.</div></div>
+    </div>
+    <div class="callout" style="margin-top:16px"><b>Change Log — C001 (20240523):</b> Added claimdrg (MS-DRG — Medicare Severity Diagnosis Related Groups) codes to DETAIL section. Applied to CHGSD script. Reference: inline change log in script header.</div>
+  </div>
+</div><!-- /Slide 5 -->
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft') buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+
+</body>
+</html>

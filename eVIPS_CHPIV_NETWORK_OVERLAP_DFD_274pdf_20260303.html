@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eVIPS CHPIV Network Overlap — Data Flow Diagram | CHGSD MSO | 20260303</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== DIAGRAM CANVAS ===== */
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.evips {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 880px;
+  }
+
+  .system-box.healthnet {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 580px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #f0f0f0;
+  }
+
+  /* ===== STEP SEQUENCE ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 185px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 200px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== FILTER / GAP RISK BOXES ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 175px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== OUTPUT — RESULT TABS ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1460px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #e8e0ff;
+  }
+
+  /* ===== OUTPUT — EXECUTIVE SUMMARY / QA ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1460px;
+    margin: 0 auto;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #d0ffe0;
+  }
+
+  /* ===== VERTICAL FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-evips     { background: rgba(255, 140, 140, 0.35); }
+  .swatch-healthnet { background: rgba(255, 200, 100, 0.35); }
+  .swatch-process   { background: rgba(100, 180, 255, 0.25); }
+  .swatch-gap       { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-output    { background: rgba(160, 140, 220, 0.35); }
+  .swatch-summary   { background: rgba(100, 220, 160, 0.35); }
+</style>
+</head>
+<body>
+
+  <!-- ===== TITLE BAR ===== -->
+  <div class="title-bar">
+    <h2>CHGSD (MSO) &#8212; CHPIV Direct &amp; External IPA vs. Static Health Net PDF Imperial County &#8212; Network Overlap Data Flow Diagram</h2>
+    <div class="subtitle">
+      eVIPS_CHPIV_NETWORK_OVERLAP_20260303.sql &nbsp;|&nbsp; CHGSD MSO Arrangement &nbsp;|&nbsp; D-SNP Transition Effective: January 1, 2026 &nbsp;|&nbsp; Analysis Date: March 03, 2026 &nbsp;|&nbsp; Sir Salim French &#8212; Director of Contracting
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+
+      <!-- SOURCE A: eVIPS / CHGSD MSO -->
+      <div class="system-box evips">
+        <span class="sys-label">Source A &#8212; CHGSD eVIPS Network (MSO) &nbsp;|&nbsp; INFORMATICS.dbo &nbsp;|&nbsp; Filter: [Participating Network] LIKE &#39;%CHPIV%DSNP%&#39;</span>
+        <div class="module-row">
+          <div class="module">PROVDIR_PCP<br><span style="font-size:10px;color:#aaa;">PCP<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">PROVDIR_SPE<br><span style="font-size:10px;color:#aaa;">Specialist<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">PROVDIR_SNF<br><span style="font-size:10px;color:#aaa;">SNF<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">PROVDIR_CLINIC<br><span style="font-size:10px;color:#aaa;">Clinic Urgent Care<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">PROVDIR_URC<br><span style="font-size:10px;color:#aaa;">Clinic Urgent Care<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">TimelyAccessFAC<br><span style="font-size:10px;color:#aaa;">DME<br>Type of Service = &#39;DME&#39;</span></div>
+          <div class="module">PROVDIR_MH<br><span style="font-size:10px;color:#aaa;">BH Professional<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">PROVDIR_VSP<br><span style="font-size:10px;color:#aaa;">VSP<br>NPIis &#8594; CLEANProviderID</span></div>
+          <div class="module">CHPIV_NETWORK_DATA<br><span style="font-size:10px;color:#aaa;">SECTION_NO Map<br>1=PCP &#183; 2&#8211;4=Spec<br>5=DME &#183; 8=UC</span></div>
+        </div>
+      </div>
+
+      <!-- SOURCE B: Static Health Net / Python Upload -->
+      <div class="system-box healthnet">
+        <span class="sys-label">Source B &#8212; Static Health Net PDF (Historical MSO) &nbsp;|&nbsp; Python Upload Pipeline</span>
+        <div class="module-row">
+          <div class="module">XLSX Source<br><span style="font-size:10px;color:#aaa;">STATIC_EXTERNAL_HEALTHNET_<br>PROVIDERS_20260303.xlsx<br>C:\Users\wcarr\Desktop</span></div>
+          <div class="module">Python Script<br><span style="font-size:10px;color:#aaa;">PYTHON_EXCEL_TO_SQL_<br>CHPIV_OVERLAP_20260303.py<br>openpyxl &#183; pyodbc &#183; Batch=1000</span></div>
+          <div class="module">SQL Landing Table<br><span style="font-size:10px;color:#aaa;">STATIC_EXTERNAL_274_<br>HEALTHNET_PROVIDERS<br>Dynamic DDL &#183; ImportedAt/By</span></div>
+          <div class="module">Source Reference<br><span style="font-size:10px;color:#aaa;">CHPIV_533_274_20260202<br>_00001_extracted.xlsx<br>CHPIV 274 Provider File.msg</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FLOW ARROWS 1 -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+    <div class="section-label">&#9660; Execution Sequence</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 00</span>
+        <strong>Error Trap / DROP</strong>
+        DROP TABLE IF EXISTS<br>eVIPS_CHPIV_OVERLAP_NETWORK<br>#CHGSDCHPIV &#183; #HealthnetCHPIV
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>UNION ALL &#8212; Source A</strong>
+        9-way UNION ALL across<br>PROVDIR tables +<br>CHPIV_NETWORK_DATA
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>SELECT INTO Permanent</strong>
+        eVIPS_CHPIV_OVERLAP_NETWORK<br>GROUP BY NPI, Name,<br>Provider_Category
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 03</span>
+        <strong>Python Upload &#8212; Source B</strong>
+        XLSX &#8594; pyodbc &#8594; Dynamic DDL<br>STATIC_EXTERNAL_274_<br>HEALTHNET_PROVIDERS
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 04</span>
+        <strong>CTE Deduplication</strong>
+        WITH CHGSDCHPIV<br>WITH HEALTHNETCHPIV<br>MAX(NAME/CATEGORY) GROUP BY NPI
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 05</span>
+        <strong>DECLARE Variables</strong>
+        @CHGSDCHPIV &#183; @HealthnetCHPIV<br>@OVERLAP &#183; @GAP_COUNT<br>@CRITICAL / HIGH / MEDIUM
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 06</span>
+        <strong>FULL OUTER JOIN</strong>
+        #HealthnetCHPIV JOIN #CHGSDCHPIV<br>ON E.NPI = I.NPI<br>Category-level breakdown
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 07</span>
+        <strong>Output Queries</strong>
+        EXECUTIVE_SUMMARY<br>CHPIV_ONLY &#183; CHGSD_ONLY<br>OVERLAP_IN_BOTH
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 08</span>
+        <strong>QA Validation</strong>
+        Hx QA SAMPLE: 3 NPI<br>spot-checks across all<br>3 permanent tables
+      </div>
+    </div>
+
+    <!-- FLOW ARROWS 2 -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 3: DERIVED DATA ELEMENTS ===== -->
+    <div class="section-label">&#9660; Derived Data Elements</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Provider Identity</strong>
+        CLEANProviderID (NPI),<br>INDEXNM / FacilityName,<br>LTRIM/RTRIM/ISNULL guard
+      </div>
+      <div class="data-element">
+        <strong>Provider Category</strong>
+        PCP &#183; Specialist &#183; SNF<br>Clinic Urgent Care &#183; DME<br>BH Professional &#183; VSP
+      </div>
+      <div class="data-element">
+        <strong>SECTION_NO Map</strong>
+        1=PCP &#183; 2&#8211;4=Specialist<br>5=DME &#183; 8=Urgent Care<br>ISNUMERIC() branch logic
+      </div>
+      <div class="data-element">
+        <strong>Network Overlap Flags</strong>
+        INNER JOIN &#8594; IN BOTH<br>LEFT JOIN I.NPI IS NULL &#8594; CHPIV ONLY<br>LEFT JOIN E.NPI IS NULL &#8594; CHGSD ONLY
+      </div>
+      <div class="data-element">
+        <strong>Gap Metrics</strong>
+        @GAP_COUNT = HealthnetCount<br>&#8722; @OVERLAP_COUNT<br>@GAP_PERCENTAGE (ROUND, 1dp)
+      </div>
+      <div class="data-element">
+        <strong>Gap Priority Tier</strong>
+        CRITICAL: PCP &#183; Urgent Care &#183; BH<br>HIGH: Specialist &#183; DME &#183; SNF<br>MEDIUM: All Other
+      </div>
+      <div class="data-element">
+        <strong>Expansion Opportunity</strong>
+        @CHGSD_EXPANSION =<br>@CHGSDCHPIV &#8722; @OVERLAP_COUNT<br>838 Providers (Enhancement)
+      </div>
+    </div>
+
+    <!-- FLOW ARROWS 3 -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: GAP RISK FLAGS ===== -->
+    <div class="section-label">&#9660; Gap Analysis &#8212; Coverage Risk Flags (CHPIV Providers NOT in CHGSD &#183; Requires Action)</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>BH Professional</strong>
+        23 Gap Providers<br>88.5% Gap Rate<br>&#9888; CRITICAL
+      </div>
+      <div class="filter-box">
+        <strong>Clinic Urgent Care</strong>
+        24 Gap Providers<br>92.3% Gap Rate<br>&#9888; CRITICAL
+      </div>
+      <div class="filter-box">
+        <strong>PCP</strong>
+        15 Gap Providers<br>53.6% Gap Rate<br>&#9888; CRITICAL
+      </div>
+      <div class="filter-box">
+        <strong>DME</strong>
+        5 Gap Providers<br>83.3% Gap Rate<br>HIGH Priority
+      </div>
+      <div class="filter-box">
+        <strong>Specialist</strong>
+        19 Gap Providers<br>26.4% Gap Rate<br>HIGH Priority
+      </div>
+      <div class="filter-box">
+        <strong>SNF</strong>
+        2 Gap Providers<br>66.7% Gap Rate<br>HIGH Priority
+      </div>
+      <div class="filter-box">
+        <strong>VSP</strong>
+        4 Gap Providers<br>26.7% Gap Rate<br>MEDIUM Priority
+      </div>
+      <div class="filter-box">
+        <strong>All Others</strong>
+        0 Gap Providers<br>0.0% Gap Rate<br>No Health Net Presence
+      </div>
+    </div>
+
+    <!-- FLOW ARROWS 4 -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 5: OUTPUT RESULT TABS ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">Output Results &nbsp;&#8594;&nbsp; EXECUTIVE_SUMMARY &nbsp;|&nbsp; CHPIV_ONLY &nbsp;|&nbsp; CHGSD_ONLY &nbsp;|&nbsp; OVERLAP_IN_BOTH &nbsp;|&nbsp; Category Breakdown</span>
+        <div class="report-modules">
+          <div class="report-module">EXECUTIVE_SUMMARY<br><span style="font-size:10px;opacity:0.75;">7 KPI Metrics<br>FORMAT(GETDATE()) Date Header<br>Transition: Jan 1, 2026</span></div>
+          <div class="report-module">CHPIV ONLY<br><span style="font-size:10px;opacity:0.75;">92 Providers<br>LEFT JOIN WHERE I.NPI IS NULL<br>Action: Contract / Referral</span></div>
+          <div class="report-module">CHGSD ONLY<br><span style="font-size:10px;opacity:0.75;">838 Providers<br>LEFT JOIN WHERE E.NPI IS NULL<br>Action: Enhancement Opp.</span></div>
+          <div class="report-module">OVERLAP IN BOTH<br><span style="font-size:10px;opacity:0.75;">84 Providers<br>INNER JOIN on NPI<br>47.7% of CHPIV Network</span></div>
+          <div class="report-module">GAP PRIORITY<br><span style="font-size:10px;opacity:0.75;">CRITICAL: 62<br>HIGH: 26<br>MEDIUM: 4</span></div>
+          <div class="report-module">CATEGORY BREAKDOWN<br><span style="font-size:10px;opacity:0.75;">FULL OUTER JOIN<br>COALESCE(E.Category,I.Category)<br>ORDER BY PROVIDER_CATEGORY</span></div>
+          <div class="report-module">INFORMATION_SCHEMA<br><span style="font-size:10px;opacity:0.75;">Table Design Validation<br>All 3 Permanent Tables<br>COLUMNS &#183; DATA_TYPE &#183; PK</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW ARROWS 5 -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: EXECUTIVE SUMMARY KPIs + QA ===== -->
+    <div class="output-section">
+      <div class="universe-box">
+        <span class="sys-label">Executive Summary KPI Output &nbsp;&#8594;&nbsp; Network Metrics + QA NPI Spot-Check Validation</span>
+        <div class="universe-modules">
+          <div class="universe-module">CHGSD eVIPS<br><span style="font-size:10px;opacity:0.7;">922 Total Providers<br>(Unique NPI)</span></div>
+          <div class="universe-module">Health Net CHPIV<br><span style="font-size:10px;opacity:0.7;">176 Total Providers<br>(Unique NPI)</span></div>
+          <div class="universe-module">Network Overlap<br><span style="font-size:10px;opacity:0.7;">84 In Both Networks<br>47.7% of CHPIV</span></div>
+          <div class="universe-module">CHPIV Gap<br><span style="font-size:10px;opacity:0.7;">92 Not in CHGSD<br>&#9888; REQUIRES ACTION</span></div>
+          <div class="universe-module">Gap Coverage Risk<br><span style="font-size:10px;opacity:0.7;">52.3% of CHPIV<br>Network Uncovered</span></div>
+          <div class="universe-module">CHGSD Expansion<br><span style="font-size:10px;opacity:0.7;">838 Enhancement<br>Opportunities</span></div>
+          <div class="universe-module">QA: 1457652463<br><span style="font-size:10px;opacity:0.7;">Expected Result:<br>CHPIV ONLY</span></div>
+          <div class="universe-module">QA: 1790751956<br><span style="font-size:10px;opacity:0.7;">Expected Result:<br>CHGSD ONLY</span></div>
+          <div class="universe-module">QA: 1083771489<br><span style="font-size:10px;opacity:0.7;">Expected Result:<br>IN BOTH NETWORKS</span></div>
+          <div class="universe-module">Table Design QA<br><span style="font-size:10px;opacity:0.7;">INFORMATION_SCHEMA<br>.COLUMNS &#183; All 3 Tables</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /diagram -->
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-evips"></div>Source A &#8212; CHGSD eVIPS Network (MSO &#183; 9 PROVDIR Tables)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-healthnet"></div>Source B &#8212; Static Health Net PDF (Python Upload Pipeline)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-process"></div>Execution Steps / CTE Processing</div>
+    <div class="legend-item"><div class="legend-swatch swatch-gap"></div>Gap Analysis &#8212; Coverage Risk Flags (CHPIV Not in CHGSD)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-output"></div>Output Result Tabs (EXECUTIVE_SUMMARY &#183; CHPIV_ONLY &#183; CHGSD_ONLY &#183; OVERLAP_IN_BOTH)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-summary"></div>Executive Summary KPIs + QA Spot-Check Validation</div>
+  </div>
+
+</body>
+</html>

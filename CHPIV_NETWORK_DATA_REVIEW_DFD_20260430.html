@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CHPIV Network Data Review — Data Flow Diagram</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35); --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38); --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38); --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40); --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36); --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,165,80,.38); --orangeFill:rgba(255,165,80,.13);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:22px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav button,.pill{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:8px 13px;cursor:pointer;font-size:13px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:34px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}
+  .metric span{font-size:12px;color:#aaa}
+  .section-label{text-align:center;font-size:12px;font-weight:700;color:#888;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%;min-height:650px}
+  .source-row,.step-row,.data-elements-row,.filter-row,.output-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+  .system-box,.step-box,.data-element,.filter-box,.output-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover{transform:translateY(-4px);filter:brightness(1.13)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:20px 22px 18px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:13px;font-weight:700;white-space:nowrap;color:#eee}
+  /* Source system colors — faithful to template conventions */
+  .sql{width:460px;background:var(--blueFill);border-color:var(--blue)}
+  .evips{width:440px;background:var(--purpleFill);border-color:var(--purple)}
+  .files{width:360px;background:var(--cyanFill);border-color:var(--cyan)}
+  .excel{width:340px;background:var(--goldFill);border-color:var(--gold)}
+  .sharepoint{width:320px;background:var(--greenFill);border-color:var(--green)}
+  .module-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:10px 12px;font-size:12.5px;font-weight:700;text-align:center;min-width:118px;color:#f1f1f1}
+  .module span{display:block;font-size:10.5px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .flow-arrows{display:flex;justify-content:center;gap:96px;margin:15px 0 9px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.25}50%{opacity:.78}}
+  .shaft{width:2px;height:22px;background:#ccc}
+  .head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+  .step-box{background:var(--purpleFill);border:1px solid var(--purple);padding:15px 13px 14px;font-size:11px;text-align:center;line-height:1.35;color:#e8e0ff;min-width:178px;max-width:210px}
+  .step-box strong,.data-element strong,.filter-box strong{display:block;font-size:12px;color:#fff;margin-bottom:4px}
+  .step-num{position:absolute;top:-10px;left:12px;background:#151515;padding:0 7px;font-size:10px;font-weight:700;color:#c9bbff;letter-spacing:.5px}
+  /* Change Log tag on step boxes */
+  .step-cl{position:absolute;top:-10px;right:10px;background:#151515;padding:0 7px;font-size:10px;font-weight:700;color:#9dd6ff;letter-spacing:.5px}
+  .data-element{background:rgba(80,80,80,.75);border:1px solid rgba(255,255,255,.12);padding:12px 12px;font-size:11px;text-align:center;line-height:1.4;color:#ddd;min-width:155px;max-width:195px}
+  .filter-box{background:var(--redFill);border:1px dashed var(--red);padding:10px 12px;font-size:10.8px;text-align:center;line-height:1.35;color:#ffb6b6;min-width:150px;max-width:200px}
+  .filter-box strong{color:#ff9696}
+  .output-box{width:min(1400px,100%);margin:0 auto;background:var(--greenFill);border:2px solid var(--green);padding:22px 28px}
+  .out-modules{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .out-module{background:rgba(100,220,160,.22);border:1px solid rgba(100,220,160,.43);border-radius:7px;padding:11px 14px;font-size:12px;font-weight:700;text-align:center;min-width:145px;color:#d5ffe6}
+  .out-module span{display:block;font-size:10.5px;color:#b8dec8;font-weight:400;margin-top:3px}
+  .detail{margin-top:24px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+  .detail-panel{min-height:190px}
+  .detail h3{font-size:22px;margin:8px 0}
+  .detail p,.detail li{color:#cfcfcf;font-size:14px;line-height:1.55}
+  .detail ul{margin:10px 0 0 20px}
+  .badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .badge{font-size:12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#252525;color:#ccc;padding:6px 10px}
+  .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+  .tl{border:1px solid rgba(255,255,255,.14);background:#242424;border-radius:13px;padding:14px;min-height:145px}
+  .tl strong{display:block;color:#fff;margin-bottom:8px}
+  .tl p{font-size:12.5px;color:#bbb;line-height:1.42}
+  .tl .cl-badge{display:inline-block;font-size:10px;font-weight:700;color:#9dd6ff;background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.3);border-radius:4px;padding:2px 7px;margin-bottom:6px;letter-spacing:.5px}
+  .callout{border-left:4px solid rgba(100,180,255,.7);padding:14px 16px;background:rgba(100,180,255,.09);border-radius:0 12px 12px 0;margin-top:16px;color:#d7ecff}
+  .callout-gold{border-left:4px solid rgba(255,200,100,.7);padding:14px 16px;background:rgba(255,200,100,.09);border-radius:0 12px 12px 0;margin-top:16px;color:#fff8dc}
+  .legend{display:flex;gap:20px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa}
+  .swatch{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.15)}
+  .print-note{font-size:12px;color:#888;text-align:center;margin-top:18px}
+  .mini-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+  .mini-table th,.mini-table td{border:1px solid rgba(255,255,255,.12);padding:10px;text-align:left;vertical-align:top}
+  .mini-table th{color:#fff;background:#282828}
+  .mini-table td{color:#cfcfcf}
+  .progress{height:8px;background:#242424;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.1);margin-top:15px}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,#7fbfff,#c8b6ff);animation:load 2.6s ease forwards}
+  @keyframes load{to{width:100%}}
+  /* Source legend chips */
+  .src-chip{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:2px 8px;margin:3px 2px;letter-spacing:.4px}
+  .src-external{background:rgba(120,230,240,.18);border:1px solid var(--cyan);color:#9ff5ff}
+  .src-direct{background:rgba(100,180,255,.18);border:1px solid var(--blue);color:#9dd6ff}
+  .src-evips{background:rgba(160,140,220,.18);border:1px solid var(--purple);color:#d0c8ff}
+  .src-pharm{background:rgba(255,200,100,.18);border:1px solid var(--gold);color:#ffe3a0}
+  @media print{.topbar{display:none}.slide{display:block;page-break-after:always}.card{box-shadow:none}.deck{width:100%;padding:20px}body{background:#151515}.diagram{transform:scale(.65);transform-origin:top left;height:650px}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- ═══════════════════════════  TOP BAR  ═══════════════════════════ -->
+  <div class="topbar">
+    <div class="brand">
+      <h1>CHPIV Network Data Review — Data Flow</h1>
+      <div>INFORMATICS.dbo.CHPIV_NETWORK_DATA · eVips_chgcv · SQLPRODAPP01 · 20260226 → 20260430</div>
+    </div>
+    <div class="nav">
+      <button class="active" onclick="showSlide(0,this)">Overview</button>
+      <button onclick="showSlide(1,this)">Interactive DFD</button>
+      <button onclick="showSlide(2,this)">Change Log</button>
+      <button onclick="showSlide(3,this)">Controls</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════  SLIDE 0 — OVERVIEW  ═══════════════════════════ -->
+  <section class="slide active">
+    <div class="hero">
+      <div class="card">
+        <div class="kicker">Interactive HTML Data Flow Diagram Presentation</div>
+        <div class="title">CHPIV Network Data Review Production Workflow</div>
+        <div class="subtitle">
+          This presentation maps the full data pipeline that populates
+          <strong style="color:#9dd6ff">INFORMATICS.dbo.CHPIV_NETWORK_DATA</strong> — beginning with
+          CHPIV_PROVIDER_DIRECTORY_DATA isolation, advancing through the PROVDIR
+          provider and facility UNION legs, incorporating Pharmacy additions (C002),
+          and culminating in the April 2026 expansion: a net-new eVIPS Direct
+          Non-Provider Directory INSERT drawn live from <em>eVips_chgcv</em>, with
+          7 Network Analysis add-on columns supporting DMHC MY204 / HCAI ID compliance.
+        </div>
+        <div class="callout">
+          <b>Primary target table:</b> <span style="color:#ffe3a0">INFORMATICS.dbo.CHPIV_NETWORK_DATA</span><br>
+          <b>Execution host:</b> SQLPRODAPP01 · <b>Change C001 author:</b> Ms. Johanna (20260116)<br>
+          <b>Script lineage:</b> CHPIV_NETWORK_DATA_REVIEW_20260226.sql → 20260430.sql
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Pipeline Metrics</div>
+        <div class="metric-grid">
+          <div class="metric"><strong>3</strong><span>Data source streams (April)</span></div>
+          <div class="metric"><strong>7</strong><span>Net-new add-on columns</span></div>
+          <div class="metric"><strong>5+4+1</strong><span>PROVDIR legs (People · Places · Pharm)</span></div>
+          <div class="metric"><strong>NOT EXISTS</strong><span>NPI dedup gate on eVIPS insert</span></div>
+        </div>
+        <div class="progress"><div class="bar"></div></div>
+        <p class="subtitle" style="margin-top:14px">
+          February baseline: 2 sources, 3 sections, ~51KB. April expansion: 3 sources, 4 sections,
+          ~126KB (+148%). The April build closes the eVIPS-to-PROVDIR gap and introduces
+          HCAI / DMHC schema columns.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="kicker">Executive Summary — Pipeline Phases</div>
+      <table class="mini-table">
+        <tr><th>Phase</th><th>Purpose</th><th>Primary artifact / system</th><th>Version</th></tr>
+        <tr>
+          <td>Section 1 — Pre-Insert Validation</td>
+          <td>DROP / recreate CHPIV_NETWORK_DATA from CHPIV_PROVIDER_DIRECTORY_DATA via dual-inner-join MAX ImportedAt isolation. Exclude 'CHPIV Direct' GROUP (C001).</td>
+          <td>INFORMATICS.dbo.CHPIV_PROVIDER_DIRECTORY_DATA</td>
+          <td>Both</td>
+        </tr>
+        <tr>
+          <td>Section 2 — PROVDIR INSERT</td>
+          <td>Multi-leg UNION ALL from all PROVDIR tables (People + Places + Pharmacy) filtered to CHPIV-DSNP network.</td>
+          <td>PROVDIR_PCP, NPMP, SPE, MH, AHP, VSP, HOSGENERALACUTE, HOSMH, SNF, HOSPICE, HHC, LAB, CLINIC, PHARM_*</td>
+          <td>Both · Pharm added C002</td>
+        </tr>
+        <tr>
+          <td>Section 3 — eVIPS Direct Non-ProvDir INSERT</td>
+          <td>Net-new April block. Draws from eVips_chgcv via temp tables (#chpiv, #hcai, #LIC_FAC, #LIC_PROV, #PHONEprimary, #baselineprovider, #baselinefacility). NOT EXISTS NPI gate prevents duplication.</td>
+          <td>eVips_chgcv.dbo (vwPractices, vwPractitionerDemographics, vwPractitionerProducts, etc.)</td>
+          <td>April only</td>
+        </tr>
+        <tr>
+          <td>Section 4 — Post-Insert Validation</td>
+          <td>Record count reconciliation (before / after), GROUP-level audit, COUNTY-level audit using 30-minute recency window.</td>
+          <td>INFORMATICS.dbo.CHPIV_NETWORK_DATA</td>
+          <td>Both (renumbered in April)</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════  SLIDE 1 — INTERACTIVE DFD  ═══════════════════════════ -->
+  <section class="slide">
+    <div class="card">
+      <div class="kicker">Faithful Dark DFD Layout — Click Any Node</div>
+      <div class="diagram">
+
+        <!-- ── ROW 1: Source Systems ── -->
+        <div class="section-label">Source Systems / Execution Inputs</div>
+        <div class="source-row">
+
+          <div class="system-box sql node"
+            data-title="CHPIV_PROVIDER_DIRECTORY_DATA — IPA / External Roster"
+            data-body="The EXTERNAL CHPIV ROSTER xlsx FILE source. Dual-inner-join MAX ImportedAt isolation ensures only the most recent import records per GROUP and per GROUP+NPI are carried forward. The WHERE clause excludes GROUP = 'CHPIV Direct' per C001 (Ms. Johanna, 20260116). This is the seed table for CHPIV_NETWORK_DATA in both the February and April builds."
+            data-tags="INFORMATICS|CHPIV_PROVIDER_DIRECTORY_DATA|MAX ImportedAt|C001 exclusion|External Roster">
+            <span class="sys-label">External IPA Roster (INFORMATICS DB)</span>
+            <div class="module-row">
+              <div class="module">CHPIV_PROVIDER_DIRECTORY_DATA<span>Seed / foundation source</span></div>
+              <div class="module">MAX ImportedAt Join<span>Dual GROUP + NPI isolation</span></div>
+              <div class="module">C001 Exclusion<span>NOT IN ('CHPIV Direct')</span></div>
+            </div>
+          </div>
+
+          <div class="system-box files node"
+            data-title="PROVDIR Tables — People + Places + Pharmacy"
+            data-body="The CHGSD CHPIV Direct Contract arm. Thirteen PROVDIR tables across three categories: People (PROVDIR_PCP, NPMP, SPE, MH, AHP, VSP), Places — Acute/MH (PROVDIR_HOSGENERALACUTE, HOSMH), Places — Post-Acute/Ancillary (PROVDIR_SNF, HOSPICE, HHC, LAB), Clinic (PROVDIR_CLINIC), and Pharmacy (PROVDIR_PHARM_RCP, MO, HI, LTC, ITU). All legs filter to Participating Network = CHPIV-DSNP. Pharmacy added as C002 in February 2026."
+            data-tags="PROVDIR_PCP|PROVDIR_NPMP|PROVDIR_SPE|PROVDIR_MH|PROVDIR_AHP|PROVDIR_VSP|HOSGENERALACUTE|HOSMH|SNF|HOSPICE|HHC|LAB|CLINIC|PHARM_RCP|PHARM_MO|PHARM_HI|PHARM_LTC|PHARM_ITU|CHPIV-DSNP">
+            <span class="sys-label">PROVDIR Tables — INFORMATICS DB</span>
+            <div class="module-row">
+              <div class="module">People (6 tables)<span>PCP·NPMP·SPE·MH·AHP·VSP</span></div>
+              <div class="module">Places — Acute (2 tables)<span>HOSGENERALACUTE·HOSMH</span></div>
+              <div class="module">Places — Post-Acute (4 tables)<span>SNF·HOSPICE·HHC·LAB</span></div>
+              <div class="module">Clinic (1 table)<span>PROVDIR_CLINIC</span></div>
+              <div class="module">Pharmacy (5 tables) C002<span>RCP·MO·HI·LTC·ITU</span></div>
+            </div>
+          </div>
+
+          <div class="system-box evips node"
+            data-title="eVips_chgcv — CHPIV Direct Non-Provider Directory (April Only)"
+            data-body="The net-new April 2026 source. Draws CHPIV-DSNP providers and facilities directly from the eVIPS credentialing system using vwPractitionerDemographics, vwPractitionerProducts, vwPractitionerProductSpecialties, vwPractitionerLocations, vwPracticeLocations, vwLocationProducts, vwFacilities, vwLocationServices (HCAI, Pharmacy Type/Service, Group Spec), vwEntityAssignments, vwPractitionerAlternateIDs (TGI + Telehealth + QNXT), vwPracticeLicenses, vwPractitionerLicenses, vwLocationPhones, vwLocationAccreditations, and vwzipcodes. Product filter: ProductName LIKE '%CHPIV%' OR '%MEDICARE%C%'."
+            data-tags="eVips_chgcv|CHPIV-DSNP|vwPractitionerDemographics|vwPractitionerProducts|vwPracticeLocations|vwLocationProducts|TGI|Telehealth|QNXT|HCAI|April 2026">
+            <span class="sys-label">eVips_chgcv — eVIPS Direct (April Only)</span>
+            <div class="module-row">
+              <div class="module">Practitioner Views<span>Demographics·Products·Specialties</span></div>
+              <div class="module">Practice / Location Views<span>Practices·PracticeLocations·LocationProducts</span></div>
+              <div class="module">Services / Accreditations<span>LocationServices·Accreditations·Licenses</span></div>
+              <div class="module">Alternate IDs<span>TGI · Telehealth · QNXT</span></div>
+              <div class="module">HCAI ID<span>vwLocationServices HCAI type</span></div>
+            </div>
+          </div>
+
+          <div class="system-box excel node"
+            data-title="INFORMATICS.dbo.ZIP_CODES — Geographic Reference"
+            data-body="Used in both the eVIPS provider baseline and facility baseline to resolve COUNTY from ZIP code. Cross-references DMHC 'CA County and ZIP Code Combinations - Revised 3.24.2020.xlsx' standard. Also cross-referenced against eVips_chgcv.dbo.vwzipcodes for San Diego region filtering logic."
+            data-tags="ZIP_CODES|COUNTY|DMHC|eVips_chgcv.vwzipcodes|Geographic reference">
+            <span class="sys-label">INFORMATICS — Reference</span>
+            <div class="module-row">
+              <div class="module">ZIP_CODES<span>DMHC county + ZIP crosswalk</span></div>
+              <div class="module">eVips vwzipcodes<span>San Diego region filter</span></div>
+            </div>
+          </div>
+
+        </div><!-- /source-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ── ROW 2: Execution Sequence ── -->
+        <div class="section-label">Execution Sequence</div>
+        <div class="step-row">
+
+          <div class="step-box node"
+            data-title="SECTION 1 — Pre-Insert Validation"
+            data-body="DROP TABLE IF EXISTS CHPIV_NETWORK_DATA. SELECT INTO from CHPIV_PROVIDER_DIRECTORY_DATA using two inner joins: (1) MAX ImportedAt by GROUP to isolate the freshest import batch per group; (2) MAX ImportedAt by GROUP + NPI_NO to resolve to the most recent per-provider record. WHERE NOT IN ('CHPIV Direct') per C001. Adds [Accessibility Codes] and [Data Sourced From] columns. Then: DROP COLUMN ID + ADD ID IDENTITY(1,1) PK. Pre-counts @Main_Count_Before."
+            data-tags="Pre-Insert|DROP TABLE IF EXISTS|SELECT INTO|MAX ImportedAt|C001|IDENTITY PK">
+            <span class="step-num">SECTION 1</span>
+            <strong>Pre-Insert Validation</strong>
+            DROP → SELECT INTO<br>
+            Dual MAX ImportedAt<br>
+            C001 GROUP exclusion<br>
+            IDENTITY PK rebuild
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 2 · Leg A — PROVDIR People INSERT"
+            data-body="UNION of six People tables (PROVDIR_PCP, NPMP, SPE, MH, AHP, VSP) filtered to Participating Network IN ('CHPIV-DSNP'). SELECT DISTINCT with full 96-column mapping: CITY, GROUP (from Participating Network), SPECIALTY (from SPEC), LNAME/FNAME parsed from INDEXNM via CHARINDEX, Mname from MiddleName, TITLE = INDEXNM, PHY_ID = lookup_key, NPI_NO from NPIis, BOARD_CERT_ID from BOARD CERTIFIED LIKE '%YES%', PHY_PANEL_STATUS from ACCEPTING NEW PATIENTS pattern, [Provider Gender] → GENDER, COUNTY, Telehealth_Indicator. Data Sourced From = 'CHPIV Direct Provider Directory' (April) / 'CHGSD CHPIV Direct Contract' (February)."
+            data-tags="PROVDIR_PCP|PROVDIR_NPMP|PROVDIR_SPE|PROVDIR_MH|PROVDIR_AHP|PROVDIR_VSP|UNION|CHPIV-DSNP|People">
+            <span class="step-num">S2 · LEG A</span>
+            <strong>PROVDIR People</strong>
+            6-table UNION<br>
+            PCP·NPMP·SPE·MH·AHP·VSP<br>
+            CHPIV-DSNP filter<br>
+            Full column mapping
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 2 · Leg B — PROVDIR Acute Facilities INSERT"
+            data-body="UNION of PROVDIR_HOSGENERALACUTE + PROVDIR_HOSMH filtered to Participating Network IN ('CHPIV-DSNP'). SELECT DISTINCT as PLACES. LNAME = ISNULL(HospitalName, INDEXNM). FNAME / Mname / GENDER = NULL (facilities). PPG_ID mapped from [Clinic QNXT provid]. [FINALhosp_FULL_NAME] → HOSP_NAME. BOARD_CERT_ID = CASE BOARD CERTIFIED LIKE '%YES%'."
+            data-tags="PROVDIR_HOSGENERALACUTE|PROVDIR_HOSMH|Acute|Facilities|PLACES|CHPIV-DSNP">
+            <span class="step-num">S2 · LEG B</span>
+            <strong>Acute Facilities</strong>
+            HOSGENERALACUTE<br>+ HOSMH UNION<br>
+            PLACES mapping<br>
+            HospitalName → LNAME
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 2 · Leg C — PROVDIR Post-Acute / Ancillary INSERT"
+            data-body="UNION of PROVDIR_SNF, PROVDIR_HOSPICE, PROVDIR_HHC, PROVDIR_LAB filtered to CHPIV-DSNP. SELECT DISTINCT as PLACES. Same column mapping as Leg B — LNAME = ISNULL(HospitalName, INDEXNM), FNAME/GENDER = NULL, HOSP_NAME from FINALhosp_FULL_NAME."
+            data-tags="PROVDIR_SNF|PROVDIR_HOSPICE|PROVDIR_HHC|PROVDIR_LAB|Post-Acute|Ancillary|CHPIV-DSNP">
+            <span class="step-num">S2 · LEG C</span>
+            <strong>Post-Acute / Ancillary</strong>
+            SNF·HOSPICE·HHC·LAB<br>
+            4-table UNION<br>
+            PLACES mapping
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 2 · Leg D — PROVDIR Clinic INSERT"
+            data-body="PROVDIR_CLINIC only. SELECT DISTINCT as PLACES. LNAME = ISNULL([Clinic Name], INDEXNM). BOARD_CERT_ID = TRY_CONVERT(nvarchar(1), NULL) — differs from People legs where BOARD CERTIFIED LIKE '%YES%' is evaluated. HOSP_NAME = NULL."
+            data-tags="PROVDIR_CLINIC|Clinic|CHPIV-DSNP|PLACES|Clinic Name">
+            <span class="step-num">S2 · LEG D</span>
+            <strong>Clinic</strong>
+            PROVDIR_CLINIC<br>
+            Clinic Name → LNAME<br>
+            HOSP_NAME = NULL<br>
+            BOARD_CERT_ID = NULL
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 2 · Leg E — PROVDIR Pharmacy INSERT (C002)"
+            data-body="Five Pharmacy tables UNION: PROVDIR_PHARM_RCP, PROVDIR_PHARM_MO, PROVDIR_PHARM_HI, PROVDIR_PHARM_LTC, PROVDIR_PHARM_ITU (original PROVDIR_PHARM commented out). SPECIALTY = CHAPTER_NAME. LNAME = ISNULL([Pharmacy Name], INDEXNM). ACCEPT_NEW_PAT = 'Y' (hardcoded). PRV_CCT_IND_PHY_CCT_IND = NULL (not 'N/A' as in other legs). BOARD_CERT_ID, LIC_ID, HOSP_NAME, CERTIFICATION = NULL. ACCESS_REQ = NULL. PHY_PANEL_STATUS = NULL. [Accessibility Codes] = NULL. Added per Change Log C002 effective 20260226."
+            data-tags="C002|PROVDIR_PHARM_RCP|PROVDIR_PHARM_MO|PROVDIR_PHARM_HI|PROVDIR_PHARM_LTC|PROVDIR_PHARM_ITU|Pharmacy|CHAPTER_NAME|Pharmacy Name">
+            <span class="step-num">S2 · LEG E</span>
+            <span class="step-cl">C002</span>
+            <strong>Pharmacy (C002)</strong>
+            5-table UNION<br>
+            Pharmacy Name → LNAME<br>
+            ACCEPT_NEW_PAT = 'Y'<br>
+            Pharm-specific NULLs
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 3 — eVIPS Direct Non-ProvDir INSERT (April Only)"
+            data-body="Net-new April 2026 block. Six temp tables built in sequence: #chpiv (CHPIV-DSNP practice/location/provider isolation from eVIPS), #hcai (HCAI IDs from vwLocationServices), #LIC_FAC (facility CA licenses), #LIC_PROV (provider CA licenses), #PHONEprimary (primary phones), then #baselineprovider (full provider join chain with NOT EXISTS NPI gate) and #baselinefacility (full facility join chain with NOT EXISTS NPI gate). Final INSERT uses #baselineprovider UNION ALL #baselinefacility aliased as chpivdirectnonprovdir. Data Sourced From = 'CHPIV Direct Non - Provider Directory'. SECTION_NO = 'NON PROVIDER DIRECTORY PROVIDER' or 'NON PROVIDER DIRECTORY FACILITY'."
+            data-tags="April 2026|eVips_chgcv|#chpiv|#hcai|#LIC_FAC|#LIC_PROV|#PHONEprimary|#baselineprovider|#baselinefacility|NOT EXISTS|NPI gate|CHPIV Direct Non - Provider Directory">
+            <span class="step-num">SECTION 3</span>
+            <strong>eVIPS Direct Non-ProvDir</strong>
+            6 temp tables → INSERT<br>
+            NOT EXISTS NPI gate<br>
+            People + Facilities<br>
+            April only
+          </div>
+
+          <div class="step-box node"
+            data-title="SECTION 4 — Post-Insert Validation"
+            data-body="@Main_Count_After = COUNT(*) from CHPIV_NETWORK_DATA. PRINT: Main Table Records (After), Total Records Added (@Main_Count_After - @Main_Count_Before). SELECT GROUP, COUNT(*) WHERE ImportedAt >= DATEADD(MINUTE,-30,GETDATE()) ORDER BY GROUP. SELECT COUNTY, COUNT(*) with same 30-minute recency window. Section numbered as Section 3 in February, Section 4 in April (after eVIPS block shifted numbering)."
+            data-tags="Post-Insert|@Main_Count_After|GROUP audit|COUNTY audit|30-minute recency|Validation">
+            <span class="step-num">SECTION 4</span>
+            <strong>Post-Insert Validation</strong>
+            Count reconciliation<br>
+            GROUP-level audit<br>
+            COUNTY-level audit<br>
+            30-min recency window
+          </div>
+
+        </div><!-- /step-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ── ROW 3: Derived Data Elements ── -->
+        <div class="section-label">Derived / Controlled Data Elements</div>
+        <div class="data-elements-row">
+
+          <div class="data-element node"
+            data-title="IPA Roster Isolation — MAX ImportedAt"
+            data-body="Two nested subqueries isolate the freshest CHPIV_PROVIDER_DIRECTORY_DATA records: isorefreshset (MAX ImportedAt by GROUP) and iso (MAX ImportedAt by GROUP + NPI_NO). Both are INNER JOINed to chpiv alias ensuring only the most current import batch per group-NPI combination seeds the base table."
+            data-tags="MAX ImportedAt|isorefreshset|iso|GROUP|NPI_NO|Freshest records">
+            <strong>IPA Roster Isolation</strong>
+            Dual MAX ImportedAt<br>
+            GROUP + NPI keys<br>
+            Most-current-record only
+          </div>
+
+          <div class="data-element node"
+            data-title="PROVDIR 96-Column Mapping"
+            data-body="All PROVDIR legs map to the same 96-column target schema: 8 Core Provider cols (CITY, GROUP, SPECIALTY, LNAME, FNAME, Mname, TITLE, PHY_ID), 5 Address/Contact, 25 Language (PHY_LANG01–25), 2 Hospital/Cert, 16 Extender (EXT1A–EXT4D), 7 Admin (SECTION_NO, DIR_ID, ACCEPT_NEW_PAT, PPG_NAME, CLNC_SER_TYP, PPG_ID, NPI_NO), 9 Accessibility Indicators, 3 Additional Provider Info (LIC_ID, EMAIL, BOARD_CERT_ID), 15 Office Language, 6 Provider Status/Prefs, 1 AFTERHOUR_PHONE, 4 Provider Characteristics, 1 External Link, 2 Audit Cols (ImportedAt, ImportedBy), 2 Business Rule (COUNTY, Telehealth_Indicator), plus [Accessibility Codes] and [Data Sourced From]."
+            data-tags="96 columns|PROVDIR|Schema mapping|Language cols|Extender cols|Accessibility Indicators">
+            <strong>PROVDIR Column Map</strong>
+            96-column target schema<br>
+            Lang 01–25 cols<br>
+            EXT 1A–4D cols<br>
+            Audit + Business Rule
+          </div>
+
+          <div class="data-element node"
+            data-title="eVIPS Temp Table Chain"
+            data-body="Six temp tables built in dependency order: (1) #chpiv — CHPIV-DSNP practice+provider isolation from eVIPS views; (2) #hcai — HCAI IDs from vwLocationServices; (3) #LIC_FAC — facility CA licenses from vwPracticeLicenses (primary, non-archived); (4) #LIC_PROV — provider CA licenses from vwPractitionerLicenses (primary, non-archived); (5) #PHONEprimary — primary phone from vwLocationPhones; (6a) #baselineprovider and (6b) #baselinefacility — full provider and facility extraction with all quality controls applied."
+            data-tags="#chpiv|#hcai|#LIC_FAC|#LIC_PROV|#PHONEprimary|#baselineprovider|#baselinefacility|Temp table chain|Dependency order">
+            <strong>eVIPS Temp Table Chain</strong>
+            #chpiv → #hcai<br>
+            → #LIC_FAC / #LIC_PROV<br>
+            → #PHONEprimary<br>
+            → #baselineprovider / #baselinefacility
+          </div>
+
+          <div class="data-element node"
+            data-title="7 Network Analysis Add-On Columns (April)"
+            data-body="All seven columns are stub-populated (NULL / 0) across every UNION leg and the eVIPS direct INSERT. Schema: [TAXONOMY CODE] decimal(10,0), [TRAINING] nvarchar(255), [LOCATION NPI] decimal(10,0), [LOCATION NAME] nvarchar(25), [STAFFED BEDS] int (default 0), [CULTURAL COMPETENCY] nvarchar(255), [HCAI ID] nvarchar(25). Full taxonomy enrichment is available via a commented CTE joining tblNPIData + ANCTaxonomyCrosswalk via CROSS APPLY across 15 taxonomy code columns."
+            data-tags="TAXONOMY CODE|TRAINING|LOCATION NPI|LOCATION NAME|STAFFED BEDS|CULTURAL COMPETENCY|HCAI ID|Add-on columns|April 2026|decimal(10,0)|nvarchar(25)">
+            <strong>7 Add-On Columns</strong>
+            TAXONOMY CODE<br>
+            LOCATION NPI · HCAI ID<br>
+            STAFFED BEDS · TRAINING<br>
+            CULTURAL COMPETENCY
+          </div>
+
+          <div class="data-element node"
+            data-title="NOT EXISTS NPI Deduplication Gate"
+            data-body="Both #baselineprovider and #baselinefacility carry a NOT EXISTS anti-join against INFORMATICS.dbo.CHPIV_NETWORK_DATA keyed on NPI_NO. This is the definitive deduplication mechanism: eVIPS direct records are only inserted if no row with the same NPI_NO already exists in the target table from the earlier PROVDIR legs. This is semantically equivalent to a LEFT JOIN ... WHERE joined_table.key IS NULL anti-join pattern but is correct, sargable, and SQL-idiomatic per inline documentation."
+            data-tags="NOT EXISTS|NPI_NO|Anti-join|Deduplication|Sargable|CHPIV_NETWORK_DATA|Idiomatic SQL">
+            <strong>NOT EXISTS NPI Gate</strong>
+            Anti-join on NPI_NO<br>
+            Prevents double-count<br>
+            Applies to both<br>
+            provider + facility legs
+          </div>
+
+          <div class="data-element node"
+            data-title="[Data Sourced From] Label Evolution"
+            data-body="Three distinct source labels identify record provenance: (1) 'EXTERNAL CHPIV ROSTER xlsx FILE' — from CHPIV_PROVIDER_DIRECTORY_DATA seed (Section 1, both versions); (2) 'CHPIV Direct Provider Directory' (April) / 'CHGSD CHPIV Direct Contract' (February) — from PROVDIR legs; (3) 'CHPIV Direct Non - Provider Directory' — new April eVIPS direct leg only."
+            data-tags="Data Sourced From|EXTERNAL CHPIV ROSTER xlsx FILE|CHPIV Direct Provider Directory|CHGSD CHPIV Direct Contract|CHPIV Direct Non - Provider Directory|Provenance">
+            <strong>[Data Sourced From]</strong>
+            External IPA Roster<br>
+            CHPIV Direct ProvDir<br>
+            CHPIV Direct Non-ProvDir<br>
+            3 labels (April)
+          </div>
+
+        </div><!-- /data-elements-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ── ROW 4: Manual Controls / Checkpoints ── -->
+        <div class="section-label">Manual Controls / Checkpoints</div>
+        <div class="filter-row">
+
+          <div class="filter-box node"
+            data-title="Checkpoint — GROUP Exclusion C001"
+            data-body="WHERE ISNULL([GROUP],'') NOT IN ('CHPIV Direct') — this is the C001 business rule from Ms. Johanna's email correspondence (20260116, Subject: RE: CHPIV Network Data Alignment). Must be preserved in every future build. Use IN / NOT IN, never <> or != on NULLable columns per DUB C 2.0 standards."
+            data-tags="C001|NOT IN|CHPIV Direct|Ms. Johanna|DUB C 2.0|Business rule">
+            <strong>C001 — GROUP Exclusion</strong>
+            NOT IN ('CHPIV Direct')<br>
+            from PROVDIR seed<br>
+            Ms. Johanna directive
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — CHPIV-DSNP Network Filter"
+            data-body="Every PROVDIR leg and the eVIPS direct legs must filter to [Participating Network] IN ('CHPIV-DSNP') or ProductName IN ('CHPIV-DSNP'). This is the single most critical gate to prevent non-CHPIV records from polluting the network data table."
+            data-tags="CHPIV-DSNP|Participating Network|ProductName|Network filter|Critical gate">
+            <strong>CHPIV-DSNP Filter</strong>
+            All PROVDIR legs<br>
+            All eVIPS legs<br>
+            IN ('CHPIV-DSNP') only
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — eVIPS Archive / Status Filters"
+            data-body="In #baselineprovider: vpdARCHIVE IN ('N'), vppsARCHIVE IN ('N'), vplocARCHIVE IN ('N'), vpraclocARCHIVE IN ('N'), vpp.Archived IN ('N'), PractitionerStatus IN ('ACTIVE',''), StatusTypeName IN ('Y','','Active','Active - Per Diem'). In #baselinefacility: vp.Archived IN ('N'), PracticeStatus IN ('ACTIVE','CONTRACTED','NA',''), vpl.Archived IN ('N'), vlp.Archived IN ('N'), StatusTypeName IN ('ACTIVE','') OR LIKE '%PARTICIP%'."
+            data-tags="Archive=N|PractitionerStatus|PracticeStatus|StatusTypeName|Active|eVIPS quality filters">
+            <strong>eVIPS Quality Filters</strong>
+            Archived = N (all layers)<br>
+            Active status required<br>
+            Provider + Facility<br>
+            separate logic
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — NOT EXISTS NPI Dedup Validation"
+            data-body="Before executing Section 3, confirm that Section 2 has fully committed. The NOT EXISTS gate only prevents cross-section NPI duplicates if Section 2's COMMIT has completed. If the TRY block is entered after Section 2 raises an error, the ROLLBACK will wipe Section 2 records and Section 3's NOT EXISTS check will find an empty target — potentially allowing eVIPS records that should have been suppressed."
+            data-tags="NOT EXISTS|Dedup|Commit order|TRY/CATCH|Rollback risk|Execution order">
+            <strong>NOT EXISTS Dedup Check</strong>
+            Confirm S2 committed<br>
+            before S3 executes<br>
+            Rollback risk if<br>
+            TRY fails mid-run
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — Post-Insert Reconciliation"
+            data-body="Compare @Main_Count_After - @Main_Count_Before against expected record count. Review GROUP distribution for unexpected groups or missing CHPIV-DSNP segments. Review COUNTY distribution — all CHPIV records should report Imperial County per business rule. Confirm [Data Sourced From] distribution across three labels (April) or two labels (February)."
+            data-tags="@Main_Count_After|GROUP audit|COUNTY audit|Imperial County|Data Sourced From|Reconciliation">
+            <strong>Post-Insert Reconcile</strong>
+            Count delta audit<br>
+            GROUP distribution<br>
+            COUNTY = Imperial<br>
+            Source label audit
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — 7 Add-On Column Population (Future)"
+            data-body="In the April 2026 build all 7 Network Analysis add-on columns are stub-populated. The taxonomy CTE is present but commented out. Future production readiness requires: (1) activating the chpivnpitax CTE joined to tblNPIData + ANCTaxonomyCrosswalk, (2) resolving LOCATION NPI from eVIPS vwPractitionerLocations.NationalProviderID, (3) populating STAFFED BEDS from facility data, (4) sourcing HCAI IDs from the active #hcai temp table, (5) confirming TAXONOMY CODE intent (⚠ KEY ANCHOR per inline comment)."
+            data-tags="TAXONOMY CODE|HCAI ID|STAFFED BEDS|LOCATION NPI|chpivnpitax CTE|tblNPIData|ANCTaxonomyCrosswalk|Future population|⚠ KEY ANCHOR">
+            <strong>Add-On Col Population</strong>
+            All 7 columns = NULL/0<br>
+            Taxonomy CTE commented<br>
+            ⚠ TAXONOMY CODE<br>
+            intent to confirm
+          </div>
+
+        </div><!-- /filter-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ── ROW 5: Final Output ── -->
+        <div class="output-box node"
+          data-title="Final Output — INFORMATICS.dbo.CHPIV_NETWORK_DATA"
+          data-body="The final product is a fully refreshed INFORMATICS.dbo.CHPIV_NETWORK_DATA table containing three distinct record populations (April): (1) External IPA Roster records from CHPIV_PROVIDER_DIRECTORY_DATA, (2) CHPIV Direct Provider Directory records from all 13 PROVDIR tables across People / Places / Pharmacy, (3) CHPIV Direct Non-Provider Directory records from eVIPS direct extraction. Table is delivered via SQLPRODAPP01 to the Provider Directory refresh sequence SSA job: 'Provider Directory refresh sequence — The regular script has executed we may now proceed with the DirectoryExpert step.' Output file path: file://fileserver01/CHPIV/Provider%20Directory%20Updates/Outgoing/."
+          data-tags="CHPIV_NETWORK_DATA|SQLPRODAPP01|DirectoryExpert|fileserver01|Provider Directory|Final output">
+          <span class="sys-label">Final Operational Output — INFORMATICS.dbo.CHPIV_NETWORK_DATA</span>
+          <div class="out-modules">
+            <div class="out-module">External IPA Records<span>CHPIV_PROVIDER_DIRECTORY_DATA seed</span></div>
+            <div class="out-module">PROVDIR Direct Records<span>13 tables · People + Places + Pharm</span></div>
+            <div class="out-module">eVIPS Direct Records<span>Non-ProvDir · April 2026 only</span></div>
+            <div class="out-module">7 Add-On Columns<span>HCAI ID · Taxonomy · Staffed Beds</span></div>
+            <div class="out-module">SQLPRODAPP01 SSA Job<span>DirectoryExpert refresh sequence</span></div>
+            <div class="out-module">fileserver01 Outgoing<span>CHPIV/Provider Directory Updates</span></div>
+          </div>
+        </div>
+
+      </div><!-- /diagram -->
+    </div><!-- /card -->
+
+    <!-- Detail panel + Legend -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click a node in the diagram</h3>
+        <p id="detailBody">The details panel will show data source ownership, transformation logic, business rules, change log context, and quality controls for the selected step or element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span>
+          <span class="badge">DFD</span>
+          <span class="badge">CHPIV Network Data</span>
+          <span class="badge">Dark Mode</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>SQL / IPA Roster source</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>PROVDIR tables</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>eVIPS direct / execution steps</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>Reference / geographic data</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>Final output</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Manual checkpoint / quality gate</div>
+        </div>
+        <p class="print-note" style="margin-top:16px">Tip: use browser print to export to PDF. Navigation buttons are hidden in print mode.</p>
+        <div class="callout-gold" style="margin-top:14px">
+          <b>April 2026 expansion:</b> The eVIPS Direct Non-Provider Directory block (Section 3) is the primary net-new content in the 20260430 build. All nodes marked with blue <em>step-cl</em> badges (C001, C002) denote tracked change log items.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════  SLIDE 2 — CHANGE LOG  ═══════════════════════════ -->
+  <section class="slide">
+    <div class="card">
+      <div class="kicker">Change Log — February 2026 → April 2026</div>
+      <div class="timeline">
+        <div class="tl">
+          <span class="cl-badge">C001</span>
+          <strong>GROUP Exclusion</strong>
+          <p>REMOVE 'CHPIV Direct' providers from EXTERNAL file. Per Ms. Johanna conversation 20260116. Subject: "RE: CHPIV Network Data Alignment." WHERE NOT IN ('CHPIV Direct'). Both builds.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">C002</span>
+          <strong>Pharmacy Addition</strong>
+          <p>Pharmacy INSERT leg added as of 20260226. Five pharmacy tables: PROVDIR_PHARM_RCP, MO, HI, LTC, ITU. ACCEPT_NEW_PAT hardcoded 'Y'. CHAPTER_NAME → SPECIALTY. Both builds.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">APRIL NET-NEW</span>
+          <strong>7 Add-On Schema Columns</strong>
+          <p>TAXONOMY CODE, TRAINING, LOCATION NPI, LOCATION NAME, STAFFED BEDS, CULTURAL COMPETENCY, HCAI ID added to INSERT target and all SELECT legs. All stub-populated NULL/0. April only.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">APRIL NET-NEW</span>
+          <strong>Section 3 — eVIPS Direct</strong>
+          <p>Full new section: six temp tables (#chpiv, #hcai, #LIC_FAC, #LIC_PROV, #PHONEprimary, #baselineprovider, #baselinefacility) plus INSERT from chpivdirectnonprovdir alias. April only.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">APRIL</span>
+          <strong>[Data Sourced From] Rename</strong>
+          <p>PROVDIR legs: 'CHGSD CHPIV Direct Contract' (Feb) → 'CHPIV Direct Provider Directory' (April). New label: 'CHPIV Direct Non - Provider Directory' for eVIPS direct leg. April only.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">APRIL</span>
+          <strong>NOT EXISTS NPI Gate</strong>
+          <p>Explicit anti-join on NPI_NO in both #baselineprovider and #baselinefacility guards against double-counting eVIPS records that already exist from PROVDIR legs. April only.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">APRIL</span>
+          <strong>HCAI ID Infrastructure</strong>
+          <p>#hcai temp table from vwLocationServices WHERE ServiceTypeName LIKE '%HCAI%'. Implements DMHC MY204 / APL 24-019 HCAI ID requirement for Hospital and Clinic Report Form. April only.</p>
+        </div>
+        <div class="tl">
+          <span class="cl-badge">APRIL</span>
+          <strong>Taxonomy CTE (Commented)</strong>
+          <p>chpivnpitax CTE ready but commented. Joins tblNPIData via CROSS APPLY across 15 taxonomy code columns → ANCTaxonomyCrosswalk. Infrastructure for future TAXONOMY CODE population. April only.</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:22px">
+        <b>File size delta:</b> February ~51KB → April ~126KB (+148%). The size increase is almost entirely attributable to the 7-column add-on schema propagated across every UNION leg (each leg adds ~700 characters of repeated column definitions) plus the new Section 3 eVIPS block (~50KB of complex join logic).
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════  SLIDE 3 — CONTROLS  ═══════════════════════════ -->
+  <section class="slide">
+    <div class="card">
+      <div class="kicker">Analyst Controls / Quality Gates</div>
+      <table class="mini-table">
+        <tr><th>Control</th><th>Recommended validation</th><th>Failure symptom / risk</th></tr>
+        <tr>
+          <td>C001 — GROUP exclusion</td>
+          <td>Confirm WHERE NOT IN ('CHPIV Direct') is present in the CHPIV_PROVIDER_DIRECTORY_DATA seed SELECT before any execution.</td>
+          <td>CHPIV Direct providers flow in via the External file and duplicate records already inserted from the Direct contract arm.</td>
+        </tr>
+        <tr>
+          <td>CHPIV-DSNP network filter</td>
+          <td>Confirm all PROVDIR and eVIPS UNION legs include AND [Participating Network] IN ('CHPIV-DSNP') or ProductName IN ('CHPIV-DSNP').</td>
+          <td>Non-CHPIV provider records (CHGSD, other networks) contaminate the CHPIV network data table.</td>
+        </tr>
+        <tr>
+          <td>eVIPS archive / status filters</td>
+          <td>Confirm all six archive flag AND conditions and PractitionerStatus / PracticeStatus / StatusTypeName conditions are intact in both #baselineprovider and #baselinefacility.</td>
+          <td>Inactive, terminated, or archived providers/facilities appear in the network directory output.</td>
+        </tr>
+        <tr>
+          <td>NOT EXISTS NPI dedup gate</td>
+          <td>Verify Section 2 COMMIT has fully executed before Section 3 begins. Inspect NOT EXISTS subquery in both baseline temp tables.</td>
+          <td>If TRY block rolls back Section 2, Section 3's NOT EXISTS check passes incorrectly and creates duplicates on re-run.</td>
+        </tr>
+        <tr>
+          <td>IDENTITY PK integrity</td>
+          <td>Confirm DROP COLUMN ID + ADD ID IDENTITY(1,1) NOT NULL PRIMARY KEY executes before the Section 2 INSERT.</td>
+          <td>PK violation or missing IDENTITY column breaks downstream system joins that depend on the ID surrogate key.</td>
+        </tr>
+        <tr>
+          <td>Post-insert GROUP / COUNTY audit</td>
+          <td>Review GROUP distribution — confirm CHPIV-DSNP is the dominant or sole group. Review COUNTY — all CHPIV records should reflect Imperial County per business rule.</td>
+          <td>Unexpected GROUP values suggest a filter regression. Non-Imperial COUNTY values suggest a ZIP_CODES crosswalk miss or a provider located outside CHPIV service area.</td>
+        </tr>
+        <tr>
+          <td>7 add-on column population</td>
+          <td>Confirm [TAXONOMY CODE] intent (decimal(10,0) — ⚠ KEY ANCHOR per inline comment). Activate chpivnpitax CTE when taxonomy data is ready. Verify #hcai table is populated before HCAI ID is mapped.</td>
+          <td>All 7 columns remain NULL/0 indefinitely if CTE is never activated, creating a schema gap for the DMHC MY204 / HCAI ID submission requirement.</td>
+        </tr>
+        <tr>
+          <td>[Data Sourced From] label accuracy</td>
+          <td>Confirm three distinct labels in April output: 'EXTERNAL CHPIV ROSTER xlsx FILE', 'CHPIV Direct Provider Directory', 'CHPIV Direct Non - Provider Directory'. Run a GROUP BY [Data Sourced From] COUNT(*) to verify all three populate.</td>
+          <td>Records from Section 3 appearing with Section 2's label (or vice versa) indicate a copy-paste error in the SELECT stub for a specific UNION leg.</td>
+        </tr>
+      </table>
+      <div class="callout" style="margin-top:22px">
+        <b>Senior analyst note:</b> The strongest near-term improvement opportunity is activating the TAXONOMY CODE and HCAI ID population paths currently stubbed at NULL/0. The infrastructure (chpivnpitax CTE, #hcai temp table) is fully written in the April build — only the ⚠ TAXONOMY CODE intent confirmation and the #hcai-to-[HCAI ID] mapping wiring remain outstanding to fulfill DMHC MY204 compliance for the CHPIV Hospital and Clinic Report Form.
+      </div>
+      <div class="callout-gold" style="margin-top:14px">
+        <b>DUB C 2.0 reminder:</b> All future extensions to this script must maintain: one space between any two tokens, left-aligned commas, uppercase SQL keywords, (NOLOCK) inline where applied, explicit AS on all aliases, CASE / WHEN / THEN / ELSE / END each on new lines, and IN / NOT IN (never &lt;&gt; or != on NULLable GROUP columns per C001 precedent).
+      </div>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') { buttons[Math.min(buttons.length - 1, idx + 1)].click(); }
+  if (e.key === 'ArrowLeft')  { buttons[Math.max(0, idx - 1)].click(); }
+});
+</script>
+</body>
+</html>
