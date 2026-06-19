@@ -1,0 +1,231 @@
+
+<style>
+  .tab-btn { background: transparent; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 8px 18px; font-size: 14px; cursor: pointer; color: var(--color-text-secondary); transition: all 0.15s; }
+  .tab-btn.active { background: var(--color-background-secondary); color: var(--color-text-primary); font-weight: 500; border-color: var(--color-border-primary); }
+  .tab-btn:hover:not(.active) { background: var(--color-background-secondary); }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .formula-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+  .f-box { padding: 8px 14px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; text-align: center; min-width: 80px; }
+  .f-op { font-size: 18px; font-weight: 400; color: var(--color-text-secondary); }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 1.2rem 0; }
+  .stat { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .stat-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .quote-box { border-left: 3px solid; padding: 12px 16px; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; margin: 1rem 0; font-size: 14px; line-height: 1.65; }
+  .pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-tertiary); margin: 1.5rem 0 0.5rem; }
+  .row-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; }
+  .row-item:last-child { border-bottom: none; }
+  .row-label { color: var(--color-text-secondary); }
+  .row-val { font-weight: 500; }
+  .green { color: #1D9E75; }
+  .amber { color: #BA7517; }
+  .red { color: #A32D2D; }
+  .blue { color: #185FA5; }
+  .builder-row { display: flex; justify-content: space-between; padding: 9px 12px; border-radius: var(--border-radius-md); margin: 4px 0; font-size: 14px; cursor: pointer; transition: background 0.12s; }
+  .builder-row:hover { background: var(--color-background-secondary); }
+  .builder-row.included { background: #EAF3DE; }
+  .builder-row.excluded { background: #FCEBEB; }
+  .check { font-size: 13px; font-weight: 500; }
+  .result-bar { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; }
+</style>
+
+<h2 class="sr-only">EBITDA explained through the lens of Robert F. Smith and Chamath Palihapitiya</h2>
+
+<div style="padding: 1rem 0 0.5rem;">
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem;">
+    <button class="tab-btn active" onclick="switchTab('rfs')">Sir Robert F. Smith</button>
+    <button class="tab-btn" onclick="switchTab('chamath')">Sir Chamath</button>
+    <button class="tab-btn" onclick="switchTab('builder')">Build it yourself</button>
+  </div>
+
+  <!-- RFS PANEL -->
+  <div class="panel active" id="panel-rfs">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+      <div style="width: 40px; height: 40px; border-radius: 50%; background: #E6F1FB; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; color: #185FA5; flex-shrink: 0;">RFS</div>
+      <div>
+        <p style="font-size: 15px; font-weight: 500; margin: 0;">Robert F. Smith</p>
+        <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Founder & CEO, Vista Equity Partners · PE lens</p>
+      </div>
+    </div>
+
+    <div class="quote-box" style="border-color: #378ADD; background: #E6F1FB;">
+      <span style="font-size: 12px; font-weight: 500; color: #185FA5; display: block; margin-bottom: 6px;">THE CORE FRAMING</span>
+      "EBITDA tells you how much cash the business is capable of generating from its core operations — before anyone takes their cut. It's the number that tells you whether the underlying engine actually works."
+    </div>
+
+    <p class="section-label">What it strips out & why</p>
+    <div class="row-item"><span class="row-label"><b style="font-weight:500">I</b>nterest expense</span><span class="row-val blue">Financing decision — not operations</span></div>
+    <div class="row-item"><span class="row-label"><b style="font-weight:500">T</b>axes</span><span class="row-val blue">Jurisdiction artifact — varies by deal structure</span></div>
+    <div class="row-item"><span class="row-label"><b style="font-weight:500">D</b>epreciation</span><span class="row-val blue">Non-cash — prior capex already spent</span></div>
+    <div class="row-item"><span class="row-label"><b style="font-weight:500">A</b>mortization</span><span class="row-val blue">Non-cash — accounting write-down of intangibles</span></div>
+
+    <div class="quote-box" style="border-color: #1D9E75; background: #EAF3DE; margin-top: 1.2rem;">
+      <span style="font-size: 12px; font-weight: 500; color: #0F6E56; display: block; margin-bottom: 6px;">THE PE DEAL PERSPECTIVE</span>
+      RFS uses EBITDA as the denominator in deal multiples. A software business bought at 12× EBITDA means: if EBITDA stays flat, you'd recover the purchase price in ~12 years. His Vista playbook focuses on <em>expanding</em> that EBITDA — operational efficiency, pricing power, churn reduction — to make the exit multiple work.
+    </div>
+
+    <p class="section-label">RFS deal math — simplified</p>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Purchase price</div><div class="stat-val">$120M</div></div>
+      <div class="stat"><div class="stat-label">Entry EBITDA</div><div class="stat-val">$10M</div></div>
+      <div class="stat"><div class="stat-label">Entry multiple</div><div class="stat-val">12×</div></div>
+      <div class="stat"><div class="stat-label">Target exit EBITDA</div><div class="stat-val">$18M</div></div>
+      <div class="stat"><div class="stat-label">Exit multiple</div><div class="stat-val">14×</div></div>
+      <div class="stat"><div class="stat-label">Exit value</div><div class="stat-val green">$252M</div></div>
+    </div>
+
+    <div class="quote-box" style="border-color: #BA7517; background: #FAEEDA;">
+      <span style="font-size: 12px; font-weight: 500; color: #854F0B; display: block; margin-bottom: 6px;">THE CAUTION</span>
+      RFS also warns: EBITDA is a proxy, not the truth. High EBITDA with high capex needs (heavy industry, hardware) is very different from high EBITDA with low capex (pure software). Always check EBITDA minus capex — that's true free cash flow power.
+    </div>
+  </div>
+
+  <!-- CHAMATH PANEL -->
+  <div class="panel" id="panel-chamath">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+      <div style="width: 40px; height: 40px; border-radius: 50%; background: #EEEDFE; display: flex; align-items: center; justify-content: center; font-weight: 500; font-size: 13px; color: #534AB7; flex-shrink: 0;">CP</div>
+      <div>
+        <p style="font-size: 15px; font-weight: 500; margin: 0;">Chamath Palihapitiya</p>
+        <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Founder, Social Capital · VC/SPAC lens</p>
+      </div>
+    </div>
+
+    <div class="quote-box" style="border-color: #7F77DD; background: #EEEDFE;">
+      <span style="font-size: 12px; font-weight: 500; color: #534AB7; display: block; margin-bottom: 6px;">THE CORE FRAMING</span>
+      "EBITDA is the Rosetta Stone of finance. It's how you compare a German industrial company, a Brazilian retailer, and a San Francisco SaaS startup on the same axis. It normalizes away the noise of capital structure and accounting choices."
+    </div>
+
+    <p class="section-label">The "noise" Chamath wants to remove</p>
+    <div class="row-item"><span class="row-label">Different debt levels</span><span class="row-val" style="color: #7F77DD;">Interest varies → distorts net income</span></div>
+    <div class="row-item"><span class="row-label">Different tax regimes</span><span class="row-val" style="color: #7F77DD;">Country/structure artifact, not ops</span></div>
+    <div class="row-item"><span class="row-label">Different asset bases</span><span class="row-val" style="color: #7F77DD;">D&A timing is an accounting convention</span></div>
+    <div class="row-item"><span class="row-label">One-time charges</span><span class="row-val" style="color: #7F77DD;">Often adjusted out in "Adjusted EBITDA"</span></div>
+
+    <div class="quote-box" style="border-color: #1D9E75; background: #EAF3DE; margin-top: 1.2rem;">
+      <span style="font-size: 12px; font-weight: 500; color: #0F6E56; display: block; margin-bottom: 6px;">THE VC/GROWTH TAKE</span>
+      For high-growth companies, Chamath argues EBITDA margin trajectory matters more than the current number. A company going from −40% to −10% EBITDA margin in 3 years is showing operational leverage — the ability to scale revenue faster than costs. That's the story VCs pay for.
+    </div>
+
+    <p class="section-label">Margin expansion — the real signal</p>
+    <div style="position: relative; height: 130px; margin: 0.5rem 0 1rem;">
+      <canvas id="marginChart"></canvas>
+    </div>
+
+    <div class="quote-box" style="border-color: #D85A30; background: #FAECE7;">
+      <span style="font-size: 12px; font-weight: 500; color: #993C1D; display: block; margin-bottom: 6px;">THE CHAMATH CRITIQUE</span>
+      He's also a prominent critic of EBITDA abuse. "Adjusted EBITDA" can strip out stock-based comp, restructuring charges, and more — turning a cash-burning company into a 'profitable' one on paper. His rule: if a company's adjustments exceed 20–25% of EBITDA, be very skeptical.
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-label">Reported EBITDA</div><div class="stat-val">$50M</div></div>
+      <div class="stat"><div class="stat-label">Stock-based comp (stripped)</div><div class="stat-val amber">−$22M</div></div>
+      <div class="stat"><div class="stat-label">"True" EBITDA</div><div class="stat-val red">$28M</div></div>
+      <div class="stat"><div class="stat-label">Adjustment %</div><div class="stat-val red">44% ⚠</div></div>
+    </div>
+  </div>
+
+  <!-- BUILDER PANEL -->
+  <div class="panel" id="panel-builder">
+    <p style="font-size: 14px; color: var(--color-text-secondary); margin: 0 0 1rem;">Click each line item to toggle it in or out. See how EBITDA builds from net income.</p>
+
+    <div id="builder-items"></div>
+
+    <div class="result-bar">
+      <div>
+        <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px;">EBITDA</div>
+        <div style="font-size: 26px; font-weight: 500;" id="ebitda-result">$0M</div>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px;">EBITDA margin</div>
+        <div style="font-size: 26px; font-weight: 500;" id="ebitda-margin">0%</div>
+      </div>
+    </div>
+
+    <button onclick="sendPrompt('How would RFS and Chamath use this EBITDA number to value the business?')" style="margin-top: 12px; width: 100%; padding: 10px; font-size: 14px;">How would they value this business? ↗</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['rfs','chamath','builder'][i] === id);
+  });
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (id === 'chamath' && !window.chartBuilt) buildChart();
+}
+
+function buildChart() {
+  window.chartBuilt = true;
+  const ctx = document.getElementById('marginChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Y1','Y2','Y3','Y4','Y5'],
+      datasets: [{
+        label: 'EBITDA margin %',
+        data: [-40, -22, -10, 2, 15],
+        borderColor: '#7F77DD',
+        backgroundColor: 'rgba(127,119,221,0.08)',
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#7F77DD',
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          grid: { color: 'rgba(128,128,128,0.12)' },
+          ticks: { font: { size: 11 }, callback: v => v + '%', color: '#888' }
+        },
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#888' } }
+      }
+    }
+  });
+}
+
+const REVENUE = 100;
+const items = [
+  { label: 'Net income (base)', val: 8, included: true, locked: true, note: 'Start here' },
+  { label: '+ Interest expense', val: 5, included: false, note: 'Add back — financing choice' },
+  { label: '+ Income taxes', val: 3, included: false, note: 'Add back — jurisdiction artifact' },
+  { label: '+ Depreciation', val: 7, included: false, note: 'Add back — non-cash' },
+  { label: '+ Amortization', val: 2, included: false, note: 'Add back — non-cash intangibles' },
+];
+
+function renderBuilder() {
+  const el = document.getElementById('builder-items');
+  el.innerHTML = items.map((item, i) => `
+    <div class="builder-row ${item.included ? 'included' : (i === 0 ? '' : 'excluded')}" onclick="${i === 0 ? '' : 'toggle(' + i + ')'}">
+      <div>
+        <span style="font-size:14px; font-weight:500;">${item.label}</span>
+        <span style="font-size:11px; color:var(--color-text-tertiary); margin-left:8px;">${item.note}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:14px; font-weight:500;">$${item.val}M</span>
+        ${i === 0 ? '<span class="pill" style="background:#EAF3DE;color:#0F6E56;">base</span>' : 
+          item.included ? '<span class="check green">✓ in</span>' : '<span class="check red">✗ out</span>'}
+      </div>
+    </div>
+  `).join('');
+
+  const total = items.reduce((s, item) => item.included ? s + item.val : s, 0);
+  const margin = Math.round((total / REVENUE) * 100);
+  document.getElementById('ebitda-result').textContent = '$' + total + 'M';
+  document.getElementById('ebitda-margin').textContent = margin + '%';
+}
+
+function toggle(i) {
+  items[i].included = !items[i].included;
+  renderBuilder();
+}
+
+renderBuilder();
+</script>

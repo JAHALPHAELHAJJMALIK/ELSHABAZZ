@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #ccc;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 780px;
+  }
+
+  .system-box.vsp {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 280px;
+  }
+
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 380px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #f0f0f0;
+  }
+
+  /* ===== STEP SEQUENCE LABELS ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 175px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENT LABELS (between source and output) ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 185px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== EXCLUSION FILTER ROW ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 165px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== OUTPUT REPORT CONTAINER ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #e8e0ff;
+  }
+
+  /* ===== UNIVERSE OUTPUT ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #d0ffe0;
+  }
+
+  /* ===== VERTICAL FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-qnxt { background: rgba(255, 140, 140, 0.35); }
+  .swatch-vsp { background: rgba(255, 200, 100, 0.35); }
+  .swatch-informatics { background: rgba(140, 200, 255, 0.35); }
+  .swatch-exclusion { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-summary { background: rgba(160, 140, 220, 0.35); }
+  .swatch-universe { background: rgba(100, 220, 160, 0.35); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>Organization Determination &amp; Reconsiderations &#8212; Data Flow Diagram</h2>
+    <div class="subtitle">CMS Part C Reporting &nbsp;|&nbsp; LOB: D-SNP &nbsp;|&nbsp; Reporting Period: CY 2025 (01/01/2025 &#8211; 12/31/2025) &nbsp;|&nbsp; Due: 02/28/2026</div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+
+      <!-- QNXT System -->
+      <div class="system-box qnxt">
+        <span class="sys-label">QNXT System (HMOPROD_PlanData)</span>
+        <div class="module-row">
+          <div class="module">Claims<br><span style="font-size:10px;color:#aaa;">dbo.claim<br>dbo.claimdetail</span></div>
+          <div class="module">Auth / Referral<br><span style="font-size:10px;color:#aaa;">dbo.referral<br>dbo.authservice</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">dbo.member<br>dbo.enrollkeys</span></div>
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.provider<br>dbo.affiliation</span></div>
+          <div class="module">Contracts<br><span style="font-size:10px;color:#aaa;">dbo.contractinfo</span></div>
+        </div>
+      </div>
+
+      <!-- VSP System -->
+      <div class="system-box vsp">
+        <span class="sys-label">VSP (ClaimManager)</span>
+        <div class="module-row">
+          <div class="module">VSP Claims<br><span style="font-size:10px;color:#aaa;">vsp.Claim<br>vsp.CurrentClaim</span></div>
+          <div class="module">Service Lines<br><span style="font-size:10px;color:#aaa;">vsp.serviceline<br>vsp.diagnosis</span></div>
+        </div>
+      </div>
+
+      <!-- INFORMATICS Reference Tables -->
+      <div class="system-box informatics">
+        <span class="sys-label">INFORMATICS Reference (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">LOB View<br><span style="font-size:10px;color:#aaa;">uvw_LINE_OF_<br>BUSINESS</span></div>
+          <div class="module">Paid Claims<br><span style="font-size:10px;color:#aaa;">uvw_CLAIMS_<br>PAID</span></div>
+          <div class="module">PAR Status<br><span style="font-size:10px;color:#aaa;">uvw_FALSE_<br>PROVIDER_PAR</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Execution Sequence</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 00</span>
+        <strong>CPT Exclusion Table</strong>
+        MediCalOnly_CPT_<br>Exclusions (419 codes)<br>One-time setup
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>VSP Claims Pull</strong>
+        NEWODG_VSP<br>Non-contract provider<br>claims via SFTP
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>QNXT Claims Pull</strong>
+        NEWODG_CLAIMS<br>By okpaydate (Post Date)<br>Claim categorization
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 03</span>
+        <strong>Auth/Referral Pull</strong>
+        NEWODG_AUTHS<br>By seendate + Auth<br>Notification Letter Sent
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 07</span>
+        <strong>Template Summary</strong>
+        Subsection 1 (A&#8211;G)<br>Subsection 2 (A&#8211;L)<br>Quarterly rollup
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 08</span>
+        <strong>Universe File</strong>
+        CMS Data Validation<br>Subsection 2 detail<br>Type + Decision_ID
+      </div>
+    </div>
+
+    <!-- ===== ROW 3: DATA ELEMENTS DERIVED ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Derived Data Elements</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Member Demographics</strong>
+        HealthPlanID, CIN,<br>DOB, Age, Fullname,<br>Primary/Secondary
+      </div>
+      <div class="data-element">
+        <strong>Claim Categorization</strong>
+        PaidClaims, DeniedClaims,<br>SoftDenial, Adjusted,<br>Reversal, Void, Encounter
+      </div>
+      <div class="data-element">
+        <strong>Auth Disposition</strong>
+        HeaderStatus (Approved,<br>Modified, Denied, Closed),<br>Reason Codes (353&#8211;364)
+      </div>
+      <div class="data-element">
+        <strong>Contract Status</strong>
+        contractedVerification<br>(Y/N), PAR status,<br>Refer-From provider
+      </div>
+      <div class="data-element">
+        <strong>Timeliness</strong>
+        TAT (Business Days /<br>Hours), Extension flag,<br>Expedited / Standard
+      </div>
+      <div class="data-element">
+        <strong>Quarterly Assignment</strong>
+        DetermQuarter by<br>Post Date (Claims) /<br>Seen Date (Auths)
+      </div>
+      <div class="data-element">
+        <strong>Notification Attribute</strong>
+        Auth Notification<br>Letter Sent Date,<br>Modified flag
+      </div>
+    </div>
+
+    <!-- ===== ROW 4: EXCLUSION FILTERS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Exclusion Filters Applied (Claims + Auths)</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>Medi-Cal Only CPTs</strong>
+        419 codes from<br>MediCalOnly_CPT_<br>Exclusions table
+      </div>
+      <div class="filter-box">
+        <strong>Void Claims</strong>
+        Header or Detail<br>status LIKE '%VOID%'
+      </div>
+      <div class="filter-box">
+        <strong>Adjusted Claims</strong>
+        claimid LIKE '%A%'
+      </div>
+      <div class="filter-box">
+        <strong>Reversals</strong>
+        claimid LIKE '%R%'<br>or status REVERS*
+      </div>
+      <div class="filter-box">
+        <strong>Soft Denials</strong>
+        SoftDenials table +<br>uvw_CLAIMS_PAID
+      </div>
+      <div class="filter-box">
+        <strong>Dup / Prev Paid</strong>
+        Denial message:<br>duplicate claim,<br>amount previously paid
+      </div>
+      <div class="filter-box">
+        <strong>Encounters</strong>
+        isencounter, manual-<br>encounter, capitated
+      </div>
+      <div class="filter-box">
+        <strong>NMT / NEMT</strong>
+        Trans01, Trans03,<br>Trans04 (Auths only)
+      </div>
+    </div>
+
+    <!-- ===== ROW 5: FLOW ARROWS TO OUTPUT ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: OUTPUT REPORTS ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">Template Summary &nbsp;&#8594;&nbsp; Subsection 1 (Org Determinations) + Subsection 2 (Disposition)</span>
+        <div class="report-modules">
+          <div class="report-module">1-A: Total<br>Org Determ</div>
+          <div class="report-module">1-B: Withdrawn<br>(Closed + 354)</div>
+          <div class="report-module">1-C: Dismissals<br>(353,355,359,362,364)</div>
+          <div class="report-module">1-D: Enrollee/Rep<br>Services</div>
+          <div class="report-module">1-E: Enrollee/Rep<br>Claims (160932)</div>
+          <div class="report-module">1-F: Non-Contract<br>Services</div>
+          <div class="report-module">1-G: Non-Contract<br>Claims (VSP + QNXT)</div>
+        </div>
+        <div class="report-modules" style="margin-top:10px;">
+          <div class="report-module">2-A/B: Fully Fav<br>Services</div>
+          <div class="report-module">2-C/D: Fully Fav<br>Claims</div>
+          <div class="report-module">2-E/F: Partially Fav<br>Services (Modified)</div>
+          <div class="report-module">2-G/H: Partially Fav<br>Claims</div>
+          <div class="report-module">2-I/J: Adverse<br>Services (Denied)</div>
+          <div class="report-module">2-K/L: Adverse<br>Claims</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 7: UNIVERSE FILE ===== -->
+    <div class="output-section">
+      <div class="universe-box">
+        <span class="sys-label">CMS Data Validation Universe &nbsp;&#8594;&nbsp; Subsection 2 Case-Level Detail</span>
+        <div class="universe-modules">
+          <div class="universe-module">Contract_No<br><span style="font-size:10px;opacity:0.7;">H4733 (D-SNP)</span></div>
+          <div class="universe-module">Member_ID<br><span style="font-size:10px;opacity:0.7;">HealthPlanID</span></div>
+          <div class="universe-module">Case_ID<br><span style="font-size:10px;opacity:0.7;">AuthID / ClaimID</span></div>
+          <div class="universe-module">Receipt_Date<br><span style="font-size:10px;opacity:0.7;">MM/DD/CCYY</span></div>
+          <div class="universe-module">Extension<br><span style="font-size:10px;opacity:0.7;">0 = No / 1 = Yes</span></div>
+          <div class="universe-module">Expedited<br><span style="font-size:10px;opacity:0.7;">0 = No / 1 = Yes</span></div>
+          <div class="universe-module">Resolved_Date<br><span style="font-size:10px;opacity:0.7;">MM/DD/CCYY</span></div>
+          <div class="universe-module">Type<br><span style="font-size:10px;opacity:0.7;">1&#8211;8</span></div>
+          <div class="universe-module">Decision_ID<br><span style="font-size:10px;opacity:0.7;">1&#8211;6</span></div>
+          <div class="universe-module">Data_Source<br><span style="font-size:10px;opacity:0.7;">UM/Auth, Claims</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>QNXT System (HMOPROD_PlanData)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-vsp"></div>VSP ClaimManager (SQLPROD02)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS Reference Views</div>
+    <div class="legend-item"><div class="legend-swatch swatch-exclusion"></div>Exclusion Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-summary"></div>Template Summary Output</div>
+    <div class="legend-item"><div class="legend-swatch swatch-universe"></div>CMS Universe File</div>
+  </div>
+
+</body>
+</html>

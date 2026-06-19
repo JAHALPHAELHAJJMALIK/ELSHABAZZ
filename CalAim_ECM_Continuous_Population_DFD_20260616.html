@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECM Continuous Population Report | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  /* DFD STRUCTURE */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  /* INTERACTIVE NODES */
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* SOURCE SYSTEM BOXES */
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:380px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:340px;background:var(--purpleFill);border-color:var(--purple)}
+  .claimsdb{width:420px;background:var(--greenFill);border-color:var(--green)}
+  .ecmdb{width:360px;background:var(--cyanFill);border-color:var(--cyan)}
+  .caldb{width:280px;background:var(--goldFill);border-color:var(--gold)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* STEP BOXES */
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:195px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+  .s-red{background:var(--redFill);border-color:var(--red)}
+
+  /* DATA ELEMENTS */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  /* FILTER/CHECKPOINT BOXES */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  /* OUTPUT BOX */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  /* DETAIL + LEGEND */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .badge.cyan{background:rgba(120,230,240,.12);border-color:rgba(120,230,240,.35);color:#8ee8f0}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  /* CODESET SLIDE */
+  .codeset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .codeset-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px}
+  .codeset-box .cs-header{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .cs-db{font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .cs-db.qnxt{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cs-db.ecm{background:rgba(120,230,240,.13);border:1px solid rgba(120,230,240,.30);color:#8ee8f0}
+  .cs-db.enroll{background:rgba(160,140,220,.13);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .cs-db.info{background:rgba(100,180,255,.13);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .codeset-box .cs-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .code-pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .code-pill{background:#1c1c1c;border:1px solid rgba(255,200,100,.35);border-radius:6px;padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;font-weight:700}
+  .code-pill.field{border-color:rgba(120,230,240,.30);color:#8ee8f0;font-family:inherit;font-size:11px}
+  .code-pill.enroll{border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .code-pill.green{border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .cs-note{font-size:11px;color:#777;line-height:1.45;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .cs-note b{color:#aaa}
+
+  /* SOURCE TABLE SLIDE */
+  .db-section{margin-bottom:24px}
+  .db-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .db-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .db-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .db-title.purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .db-title.cyan{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.28);color:#8ee8f0}
+  .db-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .tbl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tbl-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:13px 15px}
+  .tbl-card .tname{font-size:12.5px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:5px}
+  .tbl-card .ttype{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:7px;display:inline-block}
+  .ttype.staging{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .ttype.worktemp{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .ttype.source{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .ttype.view{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .ttype.ref{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.25);color:#8ee8f0}
+  .ttype.anchor{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.25);color:#ffe08a}
+
+  /* TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* CONTROLS TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#1e1e1e;padding:10px 13px;text-align:left;color:#9dd6ff;font-weight:700;border-bottom:1px solid rgba(255,255,255,.10)}
+  .mini-table td{padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.06);color:#ccc;vertical-align:top}
+  .mini-table tr:hover td{background:rgba(100,180,255,.04)}
+
+  /* CALLOUT */
+  .callout{background:rgba(100,180,255,.07);border:1px solid rgba(100,180,255,.22);border-radius:10px;padding:14px 18px;margin-top:18px;font-size:13px;color:#bbb;line-height:1.55}
+  .callout b{color:#9dd6ff}
+  .callout.warn{background:rgba(255,170,80,.07);border-color:rgba(255,170,80,.25)}.callout.warn b{color:#ffb060}
+
+  /* PARAM GRID */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .param-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:14px 16px}
+  .pname{font-family:'Courier New',monospace;font-size:13px;color:#ffe08a;font-weight:700;margin-bottom:4px}
+  .pval{font-size:12px;color:#7de0b2;margin-bottom:6px;font-family:'Courier New',monospace}
+  .pdesc{font-size:11.5px;color:#888;line-height:1.45}
+
+  /* COST CATEGORY GRID */
+  .cost-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}
+  .cost-card{background:#222;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:14px 16px}
+  .cost-card .cat-head{font-size:13.5px;font-weight:700;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .cost-card .cat-sub{font-size:11.5px;color:#888;line-height:1.45;margin-bottom:8px}
+  .cost-card .sub-pills{display:flex;flex-wrap:wrap;gap:6px}
+  .sub-pill{font-size:11px;padding:3px 9px;border-radius:5px;font-weight:700}
+  .sub-pill.inp{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .sub-pill.out{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .sub-pill.pro{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.25);color:#ffe08a}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <h1>ECM Continuous Population Report — CalAIM</h1>
+    <div>CHGSD Informatics · SQLPRODAPP01 / INFORMATICS · Peer Review v4 · Author: WCARR · 20260616</div>
+  </div>
+  <nav class="nav">
+    <button onclick="showSlide(0,this)" class="active">① Overview</button>
+    <button onclick="showSlide(1,this)">② Data Flow</button>
+    <button onclick="showSlide(2,this)">③ Run Protocol</button>
+    <button onclick="showSlide(3,this)">④ Controls</button>
+    <button onclick="showSlide(4,this)">⑤ Parameters</button>
+    <button onclick="showSlide(5,this)">⑥ Cost Categories</button>
+    <button onclick="showSlide(6,this)">⑦ Source Tables</button>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — OVERVIEW
+══════════════════════════════════════════ -->
+<div class="slide active">
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">CalAIM · Enhanced Care Management</div>
+      <div class="title">ECM Continuous Population<br>Cost &amp; Utilization Report</div>
+      <div class="subtitle">Identifies members continuously enrolled in Medi-Cal and ECM-active during an 18-month assessment window, then cross-references pre/post inpatient, outpatient facility, and professional claims to produce a PMPM utilization baseline. The COO-requested refresh spans CY2021 baseline vs. CY2025 measurement.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>CY2021</strong><span>Baseline enrollment period — non-ECM flag</span></div>
+        <div class="metric"><strong>CY2025</strong><span>Measurement period — ECM enrolled flag</span></div>
+        <div class="metric"><strong>12 months</strong><span>Continuous enrollment threshold (@ContinuousMonths)</span></div>
+        <div class="metric"><strong>3 cost buckets</strong><span>Inpatient · Outpatient Facility · Professional</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Pipeline Architecture</div>
+      <div class="subtitle" style="margin-bottom:14px">Two parallel continuous enrollment tracks feed a single #CALAIM_Mem anchor, which drives three claim CTEs. Final UNION feeds #QAPEERREVIEW_CalAimMemberClaims_Continuous_v3.</div>
+      <div class="legend">
+        <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div> INFORMATICS (SQLPRODAPP01) — calendar, LOB views</div>
+        <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div> HMOPROD_PLANDATA — enrollment, member, enrollkeys</div>
+        <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div> ECM Attribute — qattribute 'ECM Enrolled'</div>
+        <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div> HMOPROD_PlanData — claim / claimdetail / provider</div>
+        <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div> INFORMATICS.Calendar — inpatient day-span splitter</div>
+        <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red)"></div> Analyst quality checkpoints / exclusion gates</div>
+      </div>
+      <div class="print-note">Click any node on the Data Flow slide to expand details. ← → arrow keys navigate slides.</div>
+    </div>
+  </div>
+
+  <!-- scope callout -->
+  <div class="card" style="margin-top:0">
+    <div class="kicker">Dual-Track Design — Two Enrollment Populations</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#8ee8f0;margin-bottom:8px">Track A — ECM Attribute Population (qattribute)</div>
+        <div style="font-size:13px;color:#bbb;line-height:1.6">Anchors on <code style="color:#ffe08a;font-size:12px">HMOPROD_PLANDATA.dbo.memberattribute</code> filtered by <code style="color:#ffe08a;font-size:12px">qa.description = 'ECM Enrolled'</code> via CROSS APPLY. Reporting window: <strong>@ClockStartECM – @ClockStopECM</strong> (01/01/2022 – 06/30/2023). ISO calendar anchors to last day of month. Produces <strong>#RANKLAG → #ContinuousEnrollment → #TotalDaysEnrolled → #GAP</strong>. Members must have ≥ 12 continuous months. Output: <strong>#CONTINOUSENROLLMENT_FINAL</strong>.</div>
+      </div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#c4b8f0;margin-bottom:8px">Track B — Medi-Cal Enrollkeys Population (2021 Baseline)</div>
+        <div style="font-size:13px;color:#bbb;line-height:1.6">Anchors on <code style="color:#ffe08a;font-size:12px">HMOPROD_PLANDATA.dbo.enrollkeys</code> joined to <code style="color:#ffe08a;font-size:12px">uvw_LINE_OF_BUSINESS</code> and intersected against <code style="color:#ffe08a;font-size:12px">#ECMEnrolled_FINAL</code>. Reporting window: <strong>@CEClockStart – @CEClockStop</strong> (01/01/2021 – 12/31/2021). ISO day = 1st of month. segtype = 'INT', IsSubscriber = 'Y'. Produces <strong>#RANKLAG_v2 → #ContinuousEnrollment_v2 → #EligiblePopulation_v2</strong>. WHILE loop propagates consecutive index. Output feeds <strong>#CALAIM_Mem</strong>.</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px"><b>Analyst Note (WCARR):</b> The dual-track design is intentional. Track A establishes WHO was ECM-enrolled for the 18-month window. Track B establishes WHO was continuously enrolled in Medi-Cal all of 2021. The intersection (#CALAIM_Mem = Track A ∩ Track B) is the analytical population for claim cost comparison. ECMEnrolled flag = 1 for 2022+ months, = 0 for 2021 baseline months.</div>
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — DATA FLOW
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Interactive Data Flow Diagram</div>
+    <div class="subtitle" style="margin-bottom:6px">Click any node to expand detail. Layers flow top → bottom: Source Systems → Processing Steps → Derived Elements → Quality Checkpoints → Output.</div>
+
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE SYSTEMS -->
+      <div class="section-label">Source Systems &amp; Reference Objects</div>
+      <div class="source-row">
+
+        <div class="system-box sql node" data-title="INFORMATICS — SQLPRODAPP01" data-body="Primary Informatics database on SQLPRODAPP01. Provides date spine objects: date_calendarISO (50-year ISO calendar, used for ECM attribute track), date_calendarCE (40-year calendar 1st of month only, used for enrollkeys track), and Calendar (used for inpatient day-span splitting). Also exposes uvw_LINE_OF_BUSINESS joining enrollkeys to LOB metadata." data-tags="SQLPRODAPP01|INFORMATICS|date_calendarISO|date_calendarCE|uvw_LINE_OF_BUSINESS|Calendar">
+          <div class="sys-label">INFORMATICS · SQLPRODAPP01</div>
+          <div class="module-row">
+            <div class="module">date_calendarISO<span>50-yr ISO calendar</span></div>
+            <div class="module">date_calendarCE<span>40-yr 1st-of-month</span></div>
+            <div class="module">Calendar<span>Inpt day-span</span></div>
+            <div class="module">uvw_LINE_OF_BUSINESS<span>LOB metadata view</span></div>
+          </div>
+        </div>
+
+        <div class="system-box enrolldb node" data-title="HMOPROD_PLANDATA — Enrollment &amp; Member" data-body="Core enrollment and member tables on HMOPROD_PLANDATA. memberattribute (with qattribute join) is the ECM enrollment signal. enrollkeys provides the full LOB enrollment spine for baseline. member provides demographics: DOB, fullname, secondaryid (CIN), IsSubscriber. Used across both Track A and Track B." data-tags="HMOPROD_PLANDATA|memberattribute|qattribute|enrollkeys|member|CIN|IsSubscriber">
+          <div class="sys-label">HMOPROD_PLANDATA — Enrollment</div>
+          <div class="module-row">
+            <div class="module code">memberattribute<span>ECM attribute anchor</span></div>
+            <div class="module code">qattribute<span>'ECM Enrolled' desc</span></div>
+            <div class="module">enrollkeys<span>LOB enrollment spine</span></div>
+            <div class="module">member<span>DOB · CIN · name</span></div>
+          </div>
+        </div>
+
+        <div class="system-box claimsdb node" data-title="HMOPROD_PlanData — Claims" data-body="Claims source for cost category analysis. Three claim forms accessed: UB04 with facilitycode IN (1,2,8) + billclasscode IN (1,2) = Inpatient Hospital/SNF; UB04 NOT matching inpatient = Outpatient Facility; 1500 formtype = Professional. claim.status filter: ADJUCATED / PAID / PAY / REV / REVERSED / REVSYNCH. claimdetail.status excludes DENY / VOID. planids: QMXBP0782 (MediCal), QMXBP0823 / QMXBP0822 (CMC)." data-tags="claim|claimdetail|provider|affiliation|UB04|1500|QMXBP0782|QMXBP0823|QMXBP0822">
+          <div class="sys-label">HMOPROD_PlanData — Claims</div>
+          <div class="module-row">
+            <div class="module">claim<span>UB04 + 1500 forms</span></div>
+            <div class="module">claimdetail<span>revcode · amtpaid · units</span></div>
+            <div class="module">provider<span>provid · payto</span></div>
+            <div class="module">affiliation<span>PayTo mapping</span></div>
+          </div>
+        </div>
+
+        <div class="system-box ecmdb node" data-title="ECM Enrolled FINAL — Anchor Population" data-body="#ECMEnrolled_FINAL is a pre-computed temp table representing members with ≥ 12 ECM enrollment months during the 18-month assessment span (01/01/2022 – 06/30/2023). Built by joining memberattribute to member filtered by qa.description = 'ECM Enrolled'. Carries ECM_Provider_ID and ECM_Provider_Name. Both Track B and #CALAIM_Mem depend on this anchor via INNER JOIN." data-tags="#ECMEnrolled_FINAL|ECM_Provider_ID|ECM_Provider_Name|18-month assessment|≥12 months">
+          <div class="sys-label">#ECMEnrolled_FINAL — Anchor</div>
+          <div class="module-row">
+            <div class="module code">ECM_Provider_ID<span>Assigned ECM provider</span></div>
+            <div class="module code">ECM_Provider_Name<span>Provider fullname</span></div>
+            <div class="module">≥ 12 months ECM<span>18-month window filter</span></div>
+          </div>
+        </div>
+
+      </div><!-- /source-row -->
+
+      <!-- flow arrows A→B -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW B: ENROLLMENT PROCESSING STEPS -->
+      <div class="section-label">Enrollment Processing — Dual-Track (7 Steps)</div>
+      <div class="step-row">
+
+        <div class="step-box s-cyan node" data-title="STEP 01 — #RANKLAG: ECM Attribute Spine (Track A)" data-body="CROSS APPLY of date_calendarISO × memberattribute. ISO date anchor = last_day_in_month. DENSE_RANK and ROW_NUMBER computed OVER (PARTITION BY memid ORDER BY calendar_date ASC). Applies @ClockStartECM / @ClockStopECM date fence. Computes AGE at @ClockStopECM, DaysEnrolled, MonthsEnrolled. INDEX: (memid, EligibilityStart). Output: #RANKLAG." data-tags="Track A|#RANKLAG|DENSE_RANK|ROW_NUMBER|CROSS APPLY|memberattribute|last_day_in_month">
+          <span class="step-num">Step 01</span><strong>#RANKLAG</strong>
+          ECM Attribute spine<br>Track A · last_day<br>DENSE_RANK + ROW_NUMBER
+        </div>
+
+        <div class="step-box s-purple node" data-title="STEP 02 — #ContinuousEnrollment: LAG/LEAD Gap Analysis (Track A)" data-body="Computes LAG(EligibilityStart), LEAD(EligibilityStart), LAG(EligibilityEnd), LEAD(EligibilityEnd) over PARTITION BY memid. Three sequential UPDATE passes: (1) GAPinDAYs = 0 for RANKis=1; (2) GAPinDAYs = DATEDIFF days between PREVIOUS end and current start−1, handling 2078-12-31 sentinel; (3) GAPinMONTHs by DATEDIFF months. @GAPOF = 1: members with GAPinMONTHs ≥ 1 count as gapped." data-tags="Track A|#ContinuousEnrollment|LAG|LEAD|GAPinDAYs|GAPinMONTHs|2078-12-31 sentinel">
+          <span class="step-num">Step 02</span><strong>Gap Analysis A</strong>
+          LAG / LEAD gaps<br>@GAPOF = 1<br>GAPinDAYs · MONTHS
+        </div>
+
+        <div class="step-box s-blue node" data-title="STEP 03 — WHILE LOOP: Consecutive Index Propagation (Track A)" data-body="Iterative feedback loop propagates [Index EligibilityID], [Index Eligibility Start Date], [Index Eligibility End Date] from seed rows (RANKis=1 or CONSECUTIVE=0) forward through consecutive segments (CONSECUTIVE=1, GAPinMONTHs=0). Loop runs until @@ROWCOUNT = 0. Final pass computes CONSECUTIVE MONTH(S) and CONSECUTIVE DAY(S) via MAX(Index End Date) per IndexEligibilityID." data-tags="Track A|WHILE LOOP|Index EligibilityID|CONSECUTIVE|@@ROWCOUNT|Index Eligibility Start Date">
+          <span class="step-num">Step 03</span><strong>WHILE Loop A</strong>
+          Index propagation<br>@@ROWCOUNT break<br>CONSECUTIVE MONTH(S)
+        </div>
+
+        <div class="step-box s-pink node" data-title="STEP 04 — #CONTINOUSENROLLMENT_FINAL: 12-Month Filter" data-body="SELECT DISTINCT from #EligiblePopulation_v2 WHERE [Total Month(s) Enrolled] = 12. This is the strict continuous enrollment filter — members must have exactly 12 months during the baseline @CEClockStart–@CEClockStop (01/01/2021–12/31/2021). Carries Health Plan ID, fullname, CONSECUTIVE MONTH(S), Total Year(s) Enrolled, and a formatted tenure string." data-tags="#CONTINOUSENROLLMENT_FINAL|12 months|Total Month(s) Enrolled|CEClockStart|CEClockStop|2021 baseline">
+          <span class="step-num">Step 04</span><strong>#ContEnroll FINAL</strong>
+          = 12 months filter<br>2021 baseline lock<br>Health Plan ID · CIN
+        </div>
+
+        <div class="step-box s-green node" data-title="STEP 05 — #RANKLAG_v2: Enrollkeys Spine (Track B)" data-body="CROSS APPLY of date_calendarCE × enrollkeys (segtype='INT', IsSubscriber='Y'). Joined to uvw_LINE_OF_BUSINESS and INNER JOINed to #ECMEnrolled_FINAL. ISO day = @isoday (1). Date fence: @CEClockStart–@CEClockStop. Computes same DENSE_RANK / ROW_NUMBER, AGE at @CEClockStop, DaysEnrolled. Creates parallel _v2 temp table series. INDEX: (memid, EligibilityStart)." data-tags="Track B|#RANKLAG_v2|enrollkeys|segtype INT|IsSubscriber Y|#ECMEnrolled_FINAL intersection|date_calendarCE">
+          <span class="step-num">Step 05</span><strong>#RANKLAG_v2</strong>
+          Enrollkeys spine<br>Track B · segtype INT<br>IsSubscriber = Y
+        </div>
+
+        <div class="step-box s-gold node" data-title="STEP 06 — #ContinuousEnrollment_v2 + WHILE LOOP (Track B)" data-body="Mirror of Steps 02–03 executed on the _v2 table series. LAG/LEAD gap computation, three UPDATE passes for GAPinDAYs and GAPinMONTHs, WHILE loop consecutive index propagation. Produces #TotalDaysEnrolled_v2, #GAP_v2, #EligiblePopulation_v2. All gap logic identical to Track A — @GAPOF=1, @MAXGAP=1." data-tags="Track B|#ContinuousEnrollment_v2|GAPinDAYs|GAPinMONTHs|WHILE LOOP|#EligiblePopulation_v2|@MAXGAP=1">
+          <span class="step-num">Step 06</span><strong>Gap Analysis B</strong>
+          _v2 mirror of Track A<br>WHILE loop B<br>#EligiblePopulation_v2
+        </div>
+
+        <div class="step-box s-orange node" data-title="STEP 07 — #CALAIM_Mem: Population Intersection" data-body="INNER JOIN of #ECMEnrolled_FINAL and #CONTINOUSENROLLMENT_FINAL on memid. SELECT DISTINCT carries: Indicator='ENR', MemID, fullname, ECMEnrolled flag, ECM_Provider_ID, ECM_Provider_Name, EffDate, TermDate. This is the final analytical population: members who were BOTH ECM-enrolled for ≥12 months (18-month window) AND continuously enrolled in Medi-Cal for all of 2021." data-tags="#CALAIM_Mem|Intersection|#ECMEnrolled_FINAL|#CONTINOUSENROLLMENT_FINAL|ECMEnrolled|ECM_Provider_ID|Final population">
+          <span class="step-num">Step 07</span><strong>#CALAIM_Mem</strong>
+          ECM ∩ ContinuousEnroll<br>Final analytic pop<br>ECMEnrolled · Provider
+        </div>
+
+      </div><!-- /step-row -->
+
+      <!-- flow arrows B→C -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW C: CLAIM CTE PROCESSING -->
+      <div class="section-label">Claim CTE Processing — Three Cost Buckets</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node" data-title="Inpatient CTE Chain — #InptMemberComparison" data-body="6-CTE chain: inpthosp (claimid seed: facilitycode IN 1/2/8, billclasscode IN 1/2, UB04) → inptclaims (cost_category CASE: 1-INPATIENT-HOSPITAL / 2-INPATIENT-SNF / 3-INPATIENT-OTHER) → claiminitial (day-span via INFORMATICS.Calendar) → ClaimDays (LAG-based boundary detection per memid/LOB/provid/cost_category) → StaysInitial / StaysFinal (admission consolidation, days calc) → inptwpaid (LEFT JOIN paid back to stays) → inptagg → inpt_days (month boundary split via EOMONTH) → daysfinal (days2 weighting per ROW_NUMBER) → #InptMemberComparison (paidfinal = paid × days2/days, admits flag = ROW_NUMBER=1)." data-tags="#InptMemberComparison|inpthosp|inptclaims|ClaimDays|StaysFinal|paidfinal|days2|admits|EOMONTH|INPATIENT-HOSPITAL|INPATIENT-SNF">
+          <span class="step-num">Inpatient</span><strong>#InptMember</strong>
+          6-CTE chain<br>UB04 fc 1/2/8<br>paidfinal · days2
+        </div>
+
+        <div class="step-box s-green node" data-title="Outpatient Facility CTE Chain — #OutptMemberComparison" data-body="outptfac (claimid seed: UB04 NOT matching inpatient criteria) → optclaims (cost_category: revcode LIKE '045%' + facilitycode=1 + billclasscode IN 3/4 = '1-FACILITY-ER'; else '2-FACILITY-OTHER') → detail (visit_identifier = memid+provid+startdate concat, aggregated paid) → outptfinal (COUNT DISTINCT visit_identifier as admits_visits, SUM paid) → #OutptMemberComparison. Renamed: Emergency Room / Facility Non-ER." data-tags="#OutptMemberComparison|outptfac|optclaims|1-FACILITY-ER|2-FACILITY-OTHER|visit_identifier|admits_visits|revcode 045">
+          <span class="step-num">Outpatient</span><strong>#OutptMember</strong>
+          UB04 non-inpatient<br>ER vs Facility Other<br>visit_identifier
+        </div>
+
+        <div class="step-box s-gold node" data-title="Professional CTE Chain — #ProfMemberComparison" data-body="prof (claimid seed: formtype = '1500') → profwps (primarystatus logic: NULL stat1/stat2/stat3 or V = 'P') → professional cost_category CASE: '1-PROFESSIONAL-SPECIALTY' / '2-PROFESSIONAL-PCP' / '3-PROFESSIONAL-EMERGTRANSPORT' / '4-PROFESSIONAL-OTHER'. Final: sum(paid), sum(admits_visits), sum(days_units) per memid/DOS_Month/cost_category → #ProfMemberComparison. Renamed: Specialty / Primary Care / Emergency Transportation / Other." data-tags="#ProfMemberComparison|1500|primarystatus|1-PROFESSIONAL-SPECIALTY|2-PROFESSIONAL-PCP|3-PROFESSIONAL-EMERGTRANSPORT|4-PROFESSIONAL-OTHER">
+          <span class="step-num">Professional</span><strong>#ProfMember</strong>
+          1500 formtype<br>4 sub-categories<br>primarystatus logic
+        </div>
+
+      </div><!-- /step-row -->
+
+      <!-- flow arrows C→D -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW D: DERIVED DATA ELEMENTS -->
+      <div class="section-label">Derived / Controlled Data Elements</div>
+      <div class="data-elements-row">
+
+        <div class="data-element node" data-title="##Base — Global Temp Table" data-body="A global temp table (##Base) provides the Cartesian-like base of members × calendar months × cost_category. Built from #CONTINOUSENROLLMENT_FINAL crossed with a distinct set of cost_categories (UNION of inpatient, outpatient, professional categories). LEFT JOINed by each claim CTE on memid + DOS_Month + SubCostCategory. This ensures all member/month/category combinations appear in the output — zero-fill for months with no claims." data-tags="##Base|Global temp|member × month × category|Zero-fill|CalendarDate|cost_category UNION">
+          <strong>##Base</strong>Global temp<br>member × month × category<br>zero-fill scaffold
+        </div>
+
+        <div class="data-element node" data-title="ECMEnrolled Flag" data-body="Default = 1 (SET ECMEnrolled = 1 on all rows). Then second UPDATE sets ECMEnrolled = 0 WHERE YEAR(MemberMonth) = 2021. This flags 2021 rows as the pre-ECM baseline cohort and 2022+ rows as the ECM-active measurement cohort. Enables pre/post comparison within a single output table." data-tags="ECMEnrolled|1=ECM active|0=2021 baseline|pre-post|YEAR(MemberMonth)">
+          <strong>ECMEnrolled Flag</strong>0 = 2021 baseline<br>1 = ECM active<br>pre/post marker
+        </div>
+
+        <div class="data-element node" data-title="SubCostCategory Rename" data-body="UPDATE #QAPEERREVIEW_CalAimMemberClaims_Continuous_v3 applies a CASE statement renaming all 9 raw cost_category values to display-friendly labels: 1-INPATIENT-HOSPITAL → Inpatient Hospital; 2-INPATIENT-SNF → Inpatient SNF; 3-INPATIENT-OTHER → Inpatient Other; 1-FACILITY-ER → Emergency Room; 2-FACILITY-OTHER → Facility Non-ER; 1-PROFESSIONAL-SPECIALTY → Specialty; 2-PROFESSIONAL-PCP → Primary Care; 3-PROFESSIONAL-EMERGTRANSPORT → Emergency Transportation; 4-PROFESSIONAL-OTHER → Other." data-tags="SubCostCategory|CASE rename|Inpatient Hospital|SNF|Emergency Room|Facility Non-ER|Specialty|Primary Care|Emergency Transportation">
+          <strong>SubCostCategory</strong>9-way CASE rename<br>display labels<br>Excel-ready
+        </div>
+
+        <div class="data-element node" data-title="Baseline Enrollment Count" data-body="Final UPDATE sets [Baseline Enrollment] = COUNT(DISTINCT memid) FROM #CONTINOUSENROLLMENT_FINAL as a scalar subquery. This stamps the denominator (total continuously enrolled Medi-Cal members) onto every row of the output table, enabling PMPM calculations in the downstream Excel report." data-tags="Baseline Enrollment|denominator|COUNT DISTINCT|CONTINOUSENROLLMENT_FINAL|PMPM|scalar subquery">
+          <strong>Baseline Enrollment</strong>Denominator stamp<br>COUNT DISTINCT memid<br>PMPM denominator
+        </div>
+
+        <div class="data-element node" data-title="Final SELECT Output" data-body="Two SELECT statements finalize the output: (1) SELECT * FROM #QAPEERREVIEW_CalAimMemberClaims_Continuous_v3 — full member-level detail. (2) Aggregate summary: YEAR(MemberMonth), SubCostCategory, SUM(admits_visits) AS Total_Visits, SUM(Paid) AS Paid_Amount WHERE YEAR IN (2021, 2025) GROUP BY year + SubCostCategory ORDER BY year, SubCostCategory. Second result set is the Excel report feed." data-tags="SELECT *|Final output|YEAR 2021 2025|Total_Visits|Paid_Amount|Excel report|GROUP BY year SubCostCategory">
+          <strong>Final Output</strong>Detail + Summary SELECTs<br>2021 vs 2025<br>→ Excel report
+        </div>
+
+      </div><!-- /data-elements-row -->
+
+      <!-- flow arrows D→E -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW E: CHECKPOINTS -->
+      <div class="section-label">Analyst Quality Checkpoints</div>
+      <div class="filter-row">
+        <div class="filter-box node" data-title="Checkpoint — LOB Lock" data-body="@lob = 'MEDI-CAL BENEFIT PLAN'. Options include IN ('COMMUNITY Y MAS (HMO C-SNP)','DSNP MEDI-CAL PLAN','MEDI-CAL BENEFIT PLAN'). NULL returns all LOBs — inflates both populations. Never run without explicit LOB assignment." data-tags="Control|@lob|MEDI-CAL BENEFIT PLAN|LOB lock">
+          <strong>LOB Lock?</strong>@lob ≠ NULL<br>MEDI-CAL BENEFIT PLAN
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — ECMEnrolled_FINAL Row Count" data-body="#ECMEnrolled_FINAL must return rows before proceeding. Zero rows = memberattribute / qattribute not returning 'ECM Enrolled' records. Validate COUNT(DISTINCT memid) after population is built. Expected: active ECM roster for the 18-month span." data-tags="Control|#ECMEnrolled_FINAL|row count|memberattribute|qattribute|ECM Enrolled">
+          <strong>ECM Anchor Rows?</strong>#ECMEnrolled_FINAL<br>COUNT &gt; 0
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — 12-Month Filter Survivors" data-body="#CONTINOUSENROLLMENT_FINAL WHERE [Total Month(s) Enrolled] = 12 is the hardest filter in the pipeline. If no members pass, either the baseline date range or the segtype/IsSubscriber filters are misconfigured. Validate row count BEFORE claim CTEs run." data-tags="Control|#CONTINOUSENROLLMENT_FINAL|12 months|segtype INT|IsSubscriber Y">
+          <strong>12-Mo Survivors?</strong>#CONTINOUSENROLLMENT<br>_FINAL &gt; 0 rows
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — #CALAIM_Mem Intersection" data-body="#CALAIM_Mem = INNER JOIN of ECMEnrolled_FINAL ∩ CONTINOUSENROLLMENT_FINAL. If either source has zero rows, #CALAIM_Mem is empty and ALL claim CTEs return zero results silently. Validate this intersection COUNT before executing inpatient / outpatient / professional CTEs." data-tags="Control|#CALAIM_Mem|intersection|silent zero|claim CTE dependency">
+          <strong>#CALAIM_Mem &gt; 0?</strong>ECM ∩ ContinuousEnroll<br>silent zero risk
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — planid Scope" data-body="All claim CTEs filter: planid IN ('QMXBP0823','QMXBP0822','QMXBP0782'). QMXBP0782 = MediCal, QMXBP0823/0822 = CMC. If planids change or new plans are added, this filter must be updated. Claims outside these three planids are excluded silently." data-tags="Control|planid|QMXBP0782|QMXBP0823|QMXBP0822|MediCal|CMC|silent exclusion">
+          <strong>planid Scope?</strong>0782 · 0823 · 0822<br>MediCal + CMC only
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — Year Filter on Final SELECT" data-body="The aggregate summary output filters WHERE YEAR(MemberMonth) IN ('2021','2025'). If CY2025 claims have not yet been loaded or the @ClockStartCostCategory / @ClockStopCostCategory dates do not cover 2025, the 2025 rows return empty. Validate that max(startdate) in claim tables reaches into CY2025 before distributing." data-tags="Control|YEAR 2021 2025|@ClockStartCostCategory|@ClockStopCostCategory|CY2025 data availability">
+          <strong>2025 Claims Loaded?</strong>YEAR IN (2021,2025)<br>validate max(startdate)
+        </div>
+      </div><!-- /filter-row -->
+
+      <!-- flow arrows E→F -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW F: OUTPUT -->
+      <div class="section-label">Output</div>
+      <div class="output-box node" data-title="#QAPEERREVIEW_CalAimMemberClaims_Continuous_v3 — Final Output Table" data-body="Member-level output table combining ##Base scaffold with LEFT JOINed claim cost data. Columns: MemID, ECMEnrolled (0/1), ECM_Provider_ID, ECM_Provider_Name, MemberCategory, MemberMonth (CalendarDate), CostCategory (Inpatient/Outpatient/Professional), SubCostCategory (display label), Paid (SUM), Admits_Visits (SUM), Days (SUM), carriermemid, QNXTLanguage, EICDesc, sex, Baseline Enrollment (scalar denominator). Aggregated summary SELECT by YEAR × SubCostCategory for CY2021 vs CY2025 feeds Excel deliverable." data-tags="#QAPEERREVIEW_CalAimMemberClaims_Continuous_v3|MemID|ECMEnrolled|MemberMonth|CostCategory|SubCostCategory|Paid|Admits_Visits|Days|Baseline Enrollment|COO deliverable">
+        <div class="sys-label">#QAPEERREVIEW_CalAimMemberClaims_Continuous_v3</div>
+        <div class="out-modules">
+          <div class="out-module">MemID / ECMEnrolled<span>Member + flag per row</span></div>
+          <div class="out-module">ECM_Provider_ID / Name<span>Assigned ECM provider</span></div>
+          <div class="out-module">MemberMonth<span>CalendarDate (monthly)</span></div>
+          <div class="out-module">CostCategory<span>Inpatient · Outpatient · Professional</span></div>
+          <div class="out-module">SubCostCategory<span>9 display labels</span></div>
+          <div class="out-module">Paid / Admits_Visits / Days<span>Zero-filled from ##Base</span></div>
+          <div class="out-module">Baseline Enrollment<span>Scalar denominator stamp</span></div>
+          <div class="out-module">→ Excel Summary<span>YEAR 2021 vs 2025</span></div>
+        </div>
+      </div>
+
+      <!-- DETAIL PANEL -->
+      <div class="detail">
+        <div class="detail-panel">
+          <h3 id="detailTitle">Select a node above to expand details</h3>
+          <p id="detailBody">Click any colored box in the diagram to see a full description of that component — source tables, processing logic, parameter dependencies, and risk notes.</p>
+          <div class="badge-row" id="detailTags"></div>
+        </div>
+        <div class="detail-panel">
+          <div class="legend">
+            <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div> Track A — ECM Attribute (memberattribute / qattribute)</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div> Track A — LAG/LEAD Gap Analysis</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--pinkFill);border-color:var(--pink)"></div> Continuous Enrollment Final (12-month filter)</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div> Track B — Enrollkeys Spine / Claim CTEs</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div> Track B Gap Analysis / Professional Claims</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--orangeFill);border-color:var(--orange)"></div> #CALAIM_Mem Intersection</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red)"></div> Quality Checkpoints / Exclusion Gates</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — RUN PROTOCOL
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Analyst Run Protocol — ECM Continuous Population Report</div>
+    <div class="timeline">
+      <div class="tl"><strong>01 · Parameter Confirmation</strong><p>Confirm all date parameters before execution. @ClockStartECM / @ClockStopECM set the 18-month ECM window (currently 01/01/2022 – 06/30/2023). @CEClockStart / @CEClockStop set the 2021 baseline (01/01/2021 – 12/31/2021). @ClockStartCostCategory / @ClockStopCostCategory set the measurement period (01/01/2025 – 12/31/2025). @BaselineClockStart/Stop must remain 2021. @lob = 'MEDI-CAL BENEFIT PLAN' — never NULL.</p></div>
+      <div class="tl"><strong>02 · #ECMEnrolled_FINAL Validation</strong><p>Execute the ECMEnrolled_FINAL build block first. Run SELECT COUNT(DISTINCT memid) FROM #ECMEnrolled_FINAL to confirm the ECM roster is populated. Zero rows = memberattribute / qattribute connectivity issue or date fence misconfiguration. Do not proceed if zero.</p></div>
+      <div class="tl"><strong>03 · Track A Enrollment Run (#RANKLAG → #CONTINOUSENROLLMENT_FINAL)</strong><p>Execute Track A blocks sequentially. After #CONTINOUSENROLLMENT_FINAL, validate: SELECT COUNT(DISTINCT memid) FROM #CONTINOUSENROLLMENT_FINAL. Expected to return the 2021 continuously enrolled cohort (Total Month(s) Enrolled = 12). If empty, check enrollkeys segtype = 'INT' and IsSubscriber = 'Y' filters, and verify @CEClockStart / @CEClockStop date fence is correct.</p></div>
+      <div class="tl"><strong>04 · Track B Enrollment Run (#RANKLAG_v2 → #EligiblePopulation_v2)</strong><p>Execute Track B blocks. The WHILE loop on #ContinuousEnrollment_v2 runs until @@ROWCOUNT_v2 = 0 — this may take several seconds on large populations. After WHILE loop, validate #EligiblePopulation_v2 row count. All index propagation must complete before #CONTINOUSENROLLMENT_FINAL filter is applied.</p></div>
+      <div class="tl"><strong>05 · #CALAIM_Mem Intersection Validation</strong><p>After both tracks complete, execute #CALAIM_Mem build. Run SELECT COUNT(DISTINCT memid) FROM #CALAIM_Mem. This is the final analytical population. If materially smaller than expected, investigate whether #ECMEnrolled_FINAL and #CONTINOUSENROLLMENT_FINAL overlap correctly. If zero, ALL downstream claim CTEs will return empty results silently.</p></div>
+      <div class="tl"><strong>06 · Claim CTE Execution (Inpatient → Outpatient → Professional)</strong><p>Execute three claim CTE chains in order. After each INTO temp table, run a quick SELECT TOP 10 to confirm rows. Inpatient: verify paidfinal and days2 are non-null for at least some rows. Outpatient: verify admits_visits count. Professional: verify primarystatus logic is producing 'P' values. All three filter planid IN ('QMXBP0782','QMXBP0823','QMXBP0822') — confirm these planids are active.</p></div>
+      <div class="tl"><strong>07 · ##Base + UNION Assembly + SubCostCategory Rename</strong><p>Execute ##Base build. Execute the three-way UNION INSERT into #QAPEERREVIEW_CalAimMemberClaims_Continuous_v3. Execute three UPDATE statements: ECMEnrolled=1 (all rows), ECMEnrolled=0 (2021), SubCostCategory rename CASE, Baseline Enrollment scalar stamp. Validate UPDATE row counts — SubCostCategory rename should touch all rows, Baseline Enrollment stamp should also touch all rows.</p></div>
+      <div class="tl"><strong>08 · Output Validation &amp; Excel Delivery</strong><p>Execute final SELECT * for member-level detail review. Execute aggregate summary SELECT (YEAR IN 2021, 2025, GROUP BY SubCostCategory). Validate: (a) Both years appear in aggregate output. (b) SubCostCategory covers all 9 expected labels. (c) Paid amounts and visit counts are non-zero for major categories. (d) Baseline Enrollment denominator is consistent across all rows. Forward aggregate summary to COO report workbook for refresh.</p></div>
+    </div>
+    <div class="callout warn"><b>Peer Review Note (WCARR):</b> The primary risk in this pipeline is the silent-zero pattern. If #ECMEnrolled_FINAL or #CONTINOUSENROLLMENT_FINAL return zero rows, the INNER JOIN producing #CALAIM_Mem returns zero, and all three claim CTEs LEFT JOIN against an empty table — producing zero-filled output with no error. The pipeline will complete successfully and return a "clean" output that is actually empty. Step 05 validation is the critical gate.</div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — CONTROLS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Analyst Controls &amp; Quality Gates</div>
+    <table class="mini-table">
+      <tr><th>Control</th><th>Recommended Validation</th><th>Failure Symptom</th></tr>
+      <tr><td>LOB lock</td><td>@lob = 'MEDI-CAL BENEFIT PLAN'. Never run with NULL or '%'.</td><td>All LOBs returned — denominator inflation, PMPM comparison meaningless.</td></tr>
+      <tr><td>ECM Attribute filter</td><td>qa.description = 'ECM Enrolled' — confirm qattribute table contains this value and is populated for the ECM window.</td><td>#ECMEnrolled_FINAL returns zero rows — entire pipeline produces empty output silently.</td></tr>
+      <tr><td>12-month continuous filter</td><td>@ContinuousMonths = 12 and [Total Month(s) Enrolled] = 12 in #CONTINOUSENROLLMENT_FINAL. Do not lower threshold.</td><td>Members with gaps or partial-year enrollment included in baseline — comparison is not continuous-enrollment-anchored.</td></tr>
+      <tr><td>segtype = 'INT' + IsSubscriber = 'Y'</td><td>Track B enrollkeys filter. Confirm these values are correctly populated in HMOPROD_PLANDATA.dbo.enrollkeys for 2021 enrollment records.</td><td>#RANKLAG_v2 empty → #CONTINOUSENROLLMENT_FINAL empty → #CALAIM_Mem empty → silent zero claims output.</td></tr>
+      <tr><td>WHILE loop termination</td><td>Both WHILE loops (Track A and B) must terminate (@@ROWCOUNT = 0). If loop runs indefinitely, a circular consecutive index is indicated — validate that GAPinMONTHs = 0 filter is working correctly.</td><td>Query runs indefinitely — session timeout. Indicates data anomaly in consecutive index propagation.</td></tr>
+      <tr><td>planid scope</td><td>All three claim CTEs filter planid IN ('QMXBP0782','QMXBP0823','QMXBP0822'). Confirm these planids are active and cover the desired LOBs for both 2021 and 2025.</td><td>Claims from new or renamed planids silently excluded — Paid and visit counts underreported.</td></tr>
+      <tr><td>CY2025 data availability</td><td>@ClockStartCostCategory = 01/01/2025, @ClockStopCostCategory = 12/31/2025. Validate MAX(startdate) in claim tables reaches into 2025 before running. Final SELECT filters YEAR IN (2021, 2025).</td><td>2025 rows return zero Paid / zero visits in aggregate summary — COO report shows flat measurement year.</td></tr>
+      <tr><td>Baseline Enrollment stamp</td><td>After final UPDATE, all rows should have identical non-null [Baseline Enrollment]. Run SELECT DISTINCT [Baseline Enrollment] FROM #QAPEERREVIEW_... — should return exactly one value.</td><td>NULL denominator — PMPM calculation in Excel fails or divides by zero.</td></tr>
+      <tr><td>SubCostCategory completeness</td><td>SELECT DISTINCT SubCostCategory FROM #QAPEERREVIEW_... should return all 9 expected labels. Missing category = CASE logic gap or no claims of that type in the period.</td><td>Excel report missing a cost category row — incomplete utilization picture for COO.</td></tr>
+    </table>
+    <div class="callout"><b>Senior Analyst Note (WCARR):</b> The silent-zero risk is elevated in this pipeline because the analytical population is built through two sequential INNER JOINs (#ECMEnrolled_FINAL ∩ #CONTINOUSENROLLMENT_FINAL). Both parents must be non-empty for #CALAIM_Mem to return rows. The inpatient claim CTE is the most complex (6 sub-CTEs with day-span splitting via INFORMATICS.Calendar) — if Calendar table coverage does not reach into the claim date range, ClaimDays returns NULL boundaries and paidfinal will be zero despite non-zero paid on source claims. Validate Calendar table max(CalendarDate) before inpatient run.</div>
+  </div>
+</div><!-- /Slide 4 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 5 — PARAMETERS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Script Parameters — v4 WCarr 20260616</div>
+    <div class="subtitle" style="margin-bottom:4px">All parameters declared at the top of the script. Date fence changes require coordination with downstream Excel workbook column ranges. COO refresh requires updating @ClockStartCostCategory / @ClockStopCostCategory to CY2025.</div>
+    <div class="param-grid">
+      <div class="param-card"><div class="pname">@CEClockStart</div><div class="pval">date = '01/01/2021'</div><div class="pdesc">Baseline Medi-Cal enrollment window start. 2021 calendar year. Do not change for COO refresh — this anchors the continuous enrollment baseline.</div></div>
+      <div class="param-card"><div class="pname">@CEClockStop</div><div class="pval">date = '12/31/2021'</div><div class="pdesc">Baseline Medi-Cal enrollment window end. Full CY2021. Members must have all 12 months within this window.</div></div>
+      <div class="param-card"><div class="pname">@ClockStartECM</div><div class="pval">datetime = '01/01/2022'</div><div class="pdesc">ECM 18-month assessment window start. Track A anchor. Members must have ≥12 ECM-enrolled months between ClockStartECM and ClockStopECM.</div></div>
+      <div class="param-card"><div class="pname">@ClockStopECM</div><div class="pval">datetime = '06/30/2023'</div><div class="pdesc">ECM 18-month assessment window end. 18-month span from Jan 2022 through Jun 2023. Also used as AGE denominator in DATEDIFF calculation.</div></div>
+      <div class="param-card"><div class="pname">@IPPdtECM</div><div class="pval">date = GETDATE()</div><div class="pdesc">Index Patient Period date — dynamic. Resolves to today. Used in ECM enrollment currency checks.</div></div>
+      <div class="param-card"><div class="pname">@ClockStartCostCategory</div><div class="pval">date = '01/01/2025'</div><div class="pdesc">Measurement period start for claim CTEs. COO refresh target year. All three claim CTEs (inpatient, outpatient, professional) use this as the primary date fence.</div></div>
+      <div class="param-card"><div class="pname">@ClockStopCostCategory</div><div class="pval">date = '12/31/2025'</div><div class="pdesc">Measurement period end. Full CY2025. Claims with startdate between ClockStart and ClockStop are included in measurement cohort.</div></div>
+      <div class="param-card"><div class="pname">@BaselineClockStartCostCategory</div><div class="pval">date = '01/01/2021'</div><div class="pdesc">Baseline claim period start. Mirrors CEClockStart. Claims from this period are flagged ECMEnrolled=0 in the final table.</div></div>
+      <div class="param-card"><div class="pname">@BaselineClockStopCostCategory</div><div class="pval">date = '12/31/2021'</div><div class="pdesc">Baseline claim period end. Full CY2021. All three claim CTEs use an OR clause to include both baseline and measurement period claims.</div></div>
+      <div class="param-card"><div class="pname">@ContinuousMonths</div><div class="pval">decimal = 12</div><div class="pdesc">Continuous enrollment threshold. = 12 for this report. Hard filter in #CONTINOUSENROLLMENT_FINAL WHERE clause. Do not reduce.</div></div>
+      <div class="param-card"><div class="pname">@GAPOF / @MAXGAP</div><div class="pval">int = 1 / int = 1</div><div class="pdesc">Gap tolerance — members may have at most 1 gap of 1 month. Both tracks use GAPinMONTHs >= @GAPOF as the gap detection criterion.</div></div>
+      <div class="param-card"><div class="pname">@lob</div><div class="pval">nvarchar = 'MEDI-CAL BENEFIT PLAN'</div><div class="pdesc">LOB filter applied in Track B enrollkeys join. Never NULL. Options: 'MEDI-CAL BENEFIT PLAN', 'DSNP MEDI-CAL PLAN', 'COMMUNITY Y MAS (HMO C-SNP)'.</div></div>
+      <div class="param-card"><div class="pname">@isoday</div><div class="pval">int = 1</div><div class="pdesc">Calendar day for date_calendarCE ISO anchor. = 1 = 1st of month. Track B only (date_calendarCE is 1st-of-month only). Track A uses last_day_in_month.</div></div>
+      <div class="param-card"><div class="pname">@isomem</div><div class="pval">nvarchar = NULL</div><div class="pdesc">QA sample filter. NULL = all members. Set to a memid (e.g. '%1083184%') for targeted member-level testing. Always NULL for production runs.</div></div>
+      <div class="param-card"><div class="pname">@mmstart / @mmstop</div><div class="pval">01/01/2021 / 12/31/2025</div><div class="pdesc">Full member-month span for ##Base scaffold — from earliest baseline month to latest measurement month. Defines the calendar cross in the base table.</div></div>
+    </div>
+    <div class="callout" style="margin-top:16px"><b>COO Refresh Checklist:</b> For the current requested refresh, only @ClockStartCostCategory (01/01/2025) and @ClockStopCostCategory (12/31/2025) need updating if CY2025 is the new measurement year. @mmstop should be updated to 12/31/2025 to include the measurement window in the base scaffold. All enrollment parameters (CEClock, ClockStartECM, ClockStopECM, @ContinuousMonths) remain unchanged — the baseline and ECM assessment populations are fixed anchors.</div>
+  </div>
+</div><!-- /Slide 5 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 6 — COST CATEGORIES
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Cost Category Architecture — 3 Buckets · 9 Sub-Categories</div>
+    <div class="subtitle" style="margin-bottom:4px">Each claim form type feeds a dedicated CTE chain. The cost_category CASE logic is applied at claim extraction, then renamed to display labels via a final UPDATE statement. Output is consumed by the Excel COO report as a pre-aggregated YEAR × SubCostCategory pivot.</div>
+    <div class="cost-grid">
+      <div class="cost-card">
+        <div class="cat-head"><span style="color:#9dd6ff;font-size:16px">⬛</span> Inpatient — UB04</div>
+        <div class="cat-sub">Seed: facilitycode IN ('1','2','8') AND billclasscode IN ('1','2') AND formtype = 'UB04'. Day-span splitting via INFORMATICS.Calendar with LAG boundary detection. paidfinal = paid × (days2 / days) weighted allocation. admits = ROW_NUMBER() = 1 per stay.</div>
+        <div class="sub-pills">
+          <span class="sub-pill inp">Inpatient Hospital</span>
+          <span class="sub-pill inp">Inpatient SNF</span>
+          <span class="sub-pill inp">Inpatient Other</span>
+        </div>
+        <div class="cs-note"><b>CASE logic:</b> facilitycode='1' + billclasscode IN 1/2 → Hospital; facilitycode='2' → SNF; else → Other. Original raw labels: 1-INPATIENT-HOSPITAL / 2-INPATIENT-SNF / 3-INPATIENT-OTHER.</div>
+      </div>
+      <div class="cost-card">
+        <div class="cat-head"><span style="color:#7de0b2;font-size:16px">⬛</span> Outpatient Facility — UB04</div>
+        <div class="cat-sub">Seed: UB04 NOT matching inpatient criteria (NOT facilitycode IN 1/2/8 + billclasscode IN 1/2). visit_identifier = memid + provid + startdate concatenation. admits_visits = COUNT DISTINCT visit_identifier. No day-span splitting — single DOS aggregation.</div>
+        <div class="sub-pills">
+          <span class="sub-pill out">Emergency Room</span>
+          <span class="sub-pill out">Facility Non-ER</span>
+        </div>
+        <div class="cs-note"><b>CASE logic:</b> revcode LIKE '045%' AND facilitycode='1' AND billclasscode IN ('3','4') → '1-FACILITY-ER'; else → '2-FACILITY-OTHER'. Renamed: Emergency Room / Facility Non-ER.</div>
+      </div>
+      <div class="cost-card">
+        <div class="cat-head"><span style="color:#ffe08a;font-size:16px">⬛</span> Professional — 1500</div>
+        <div class="cat-sub">Seed: formtype = '1500'. primarystatus logic: if stat1/stat2/stat3 all NULL or 'V' → treat as 'P'. Aggregates paid, admits_visits, days_units per memid / DOS_Month / cost_category. No day-span splitting.</div>
+        <div class="sub-pills">
+          <span class="sub-pill pro">Specialty</span>
+          <span class="sub-pill pro">Primary Care</span>
+          <span class="sub-pill pro">Emergency Transportation</span>
+          <span class="sub-pill pro">Other</span>
+        </div>
+        <div class="cs-note"><b>CASE logic:</b> 1-PROFESSIONAL-SPECIALTY → Specialty; 2-PROFESSIONAL-PCP → Primary Care; 3-PROFESSIONAL-EMERGTRANSPORT → Emergency Transportation; 4-PROFESSIONAL-OTHER → Other. Sub-category CASE logic (specialty vs PCP etc.) is in profwps CTE — confirm logic matches current billing patterns.</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:18px"><b>Final Output UNION:</b> All three claim CTEs LEFT JOIN against ##Base (member × month × cost_category scaffold) to ensure zero-fill for months with no claims. The three result sets are UNIONed with consistent column order: MemID · ECMEnrolled · ECM_Provider_ID · ECM_Provider_Name · MemberCategory · MemberMonth · CostCategory · SubCostCategory · Paid · Admits_Visits · Days · carriermemid · QNXTLanguage · EICDesc · sex · [Baseline Enrollment].</div>
+    <div class="callout warn" style="margin-top:10px"><b>Peer Review Flag (WCARR):</b> The Professional CTE contains a SELECT * FROM #OutptMemberComparison on line ~1532 outside the CTE chain — this appears to be a debug/validation SELECT left in the production script. This will emit an additional result set during execution. Should be commented out or removed before COO delivery run. Additionally, #QAPEERREVIEW_CalAimMemberClaims_Continuous_v3 has a commented-out TRUNCATE/INSERT pattern at the top — if the table is intended to be permanent/persistent across runs, the TRUNCATE should be uncommented. Currently the script uses DROP TABLE IF EXISTS pattern implicitly through the INTO clause, which creates a new temp table each session.</div>
+  </div>
+</div><!-- /Slide 6 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 7 — SOURCE TABLES
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Source Tables &amp; Temp Table Inventory</div>
+
+    <div class="db-section">
+      <div class="db-title blue">INFORMATICS · SQLPRODAPP01</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">date_calendarISO</div><div class="ttype ref">Reference</div><div class="tdesc">50-year ISO calendar. Track A date spine. Provides calendar_date, first_day_in_month, last_day_in_month, calendar_day. Used with CROSS APPLY on memberattribute. ISO anchor = last_day_in_month.</div></div>
+        <div class="tbl-card"><div class="tname">date_calendarCE</div><div class="ttype ref">Reference</div><div class="tdesc">40-year calendar 1st-of-month only. Track B date spine. calendar_day = @isoday (1). Used with CROSS APPLY on enrollkeys. Narrower coverage than ISO — confirm max date.</div></div>
+        <div class="tbl-card"><div class="tname">Calendar</div><div class="ttype ref">Reference</div><div class="tdesc">Day-level calendar used in inpatient CTE chain (claiminitial) to expand claim spans into individual CalendarDates. Must cover full range of claim startdate through enddate. Validate MAX(CalendarDate).</div></div>
+        <div class="tbl-card"><div class="tname">uvw_LINE_OF_BUSINESS</div><div class="ttype view">View</div><div class="tdesc">LOB metadata view joining enrollkeys to LINE_OF_BUSINESS string. Used in Track B to filter @lob = 'MEDI-CAL BENEFIT PLAN'. Also carries PROGRAM field.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title purple">HMOPROD_PLANDATA — Enrollment</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">memberattribute</div><div class="ttype source">Source</div><div class="tdesc">ECM enrollment signal table. Joined to qattribute on attributeid. Track A anchor — CROSS APPLY against date_calendarISO. Contains effdate, termdate per attribute per member.</div></div>
+        <div class="tbl-card"><div class="tname">qattribute</div><div class="ttype source">Source</div><div class="tdesc">Attribute code table. Filtered: qa.description = 'ECM Enrolled'. Maps attributeid to ECM enrollment designation. Must be populated and current.</div></div>
+        <div class="tbl-card"><div class="tname">enrollkeys</div><div class="ttype source">Source</div><div class="tdesc">Full LOB enrollment spine. Track B anchor. Filtered: segtype='INT', IsSubscriber='Y'. Provides carriermemid (Health Plan ID), planid, effdate, termdate. CROSS APPLY with date_calendarCE.</div></div>
+        <div class="tbl-card"><div class="tname">member</div><div class="ttype source">Source</div><div class="tdesc">Member demographics. Provides DOB (for AGE calc), fullname, secondaryid (CIN, 9-char substring), IsSubscriber. Joined across both tracks and claim CTEs.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title green">HMOPROD_PlanData — Claims</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">claim</div><div class="ttype source">Source</div><div class="tdesc">Claim header. Fields: claimid, memid, facilitycode, billclasscode, formtype, startdate, enddate, admitdate, cleandate, provid, affiliationid, planid, status, resubclaimid. Status filter: ADJUCATED/PAID/PAY/REV/REVERSED/REVSYNCH. Exclude resubclaimid + claimid LIKE '%R%'.</div></div>
+        <div class="tbl-card"><div class="tname">claimdetail</div><div class="ttype source">Source</div><div class="tdesc">Claim line detail. Fields: claimid, claimline, revcode, amountpaid, servunits. status filter: NOT IN ('DENY','VOID'). servunits &lt; 100,000 for inpatient. revcode used for ER detection (LIKE '045%').</div></div>
+        <div class="tbl-card"><div class="tname">provider</div><div class="ttype source">Source</div><div class="tdesc">Provider reference. Joined twice per claim CTE: once on claim.provid (rendering provider), once on affiliation.affiliateid (PayTo provider). Provides fullname for both.</div></div>
+        <div class="tbl-card"><div class="tname">affiliation</div><div class="ttype source">Source</div><div class="tdesc">PayTo mapping table. LEFT JOINed on claim.affiliationid = affiliation.affiliationid. Used to resolve PayTo provid and fullname for all three claim types.</div></div>
+      </div>
+    </div>
+
+    <div class="db-section">
+      <div class="db-title gold">Temp Table Lineage (In-Session)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">#RANKLAG</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Track A ECM attribute spine with DENSE_RANK and ROW_NUMBER. Dropped after #ContinuousEnrollment is created.</div></div>
+        <div class="tbl-card"><div class="tname">#ContinuousEnrollment</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Track A LAG/LEAD gap analysis. UPDATEd with GAPinDAYs, GAPinMONTHs, consecutive index. Feeds #TotalDaysEnrolled and #GAP.</div></div>
+        <div class="tbl-card"><div class="tname">#TotalDaysEnrolled / #GAP</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Track A aggregation helpers. #TotalDaysEnrolled: SUM(Days/Months) per memid. #GAP: COUNT of gap events per memid. Used to UPDATE [GAP(s) of] column.</div></div>
+        <div class="tbl-card"><div class="tname">#RANKLAG_v2</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Track B enrollkeys spine. Mirror of #RANKLAG but from enrollkeys with LOB and subscriber filters. Dropped after #ContinuousEnrollment_v2.</div></div>
+        <div class="tbl-card"><div class="tname">#ContinuousEnrollment_v2</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Track B LAG/LEAD gap analysis. Same structure as Track A. Feeds #TotalDaysEnrolled_v2, #GAP_v2, #EligiblePopulation_v2.</div></div>
+        <div class="tbl-card"><div class="tname">#EligiblePopulation_v2</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Track B join of #ContinuousEnrollment_v2 × #TotalDaysEnrolled_v2. Full eligible population before 12-month filter.</div></div>
+        <div class="tbl-card"><div class="tname">#CONTINOUSENROLLMENT_FINAL</div><div class="ttype anchor">Anchor</div><div class="tdesc">12-month filtered 2021 baseline population. WHERE Total Month(s) Enrolled = 12. Critical anchor — feeds #CALAIM_Mem and [Baseline Enrollment] denominator stamp.</div></div>
+        <div class="tbl-card"><div class="tname">#ECMEnrolled_FINAL</div><div class="ttype anchor">Anchor</div><div class="tdesc">Pre-built ECM 18-month assessment population (≥12 ECM months). Carries ECM_Provider_ID and ECM_Provider_Name. Must exist before Track B runs.</div></div>
+        <div class="tbl-card"><div class="tname">#CALAIM_Mem</div><div class="ttype anchor">Anchor</div><div class="tdesc">Final analytical population: INNER JOIN of #ECMEnrolled_FINAL ∩ #CONTINOUSENROLLMENT_FINAL. Zero rows = silent zero claims. Critical validation point.</div></div>
+        <div class="tbl-card"><div class="tname">#InptMemberComparison</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Inpatient claim result. Columns: memid, line_of_business, provid, payto, cost_category, dos_month, paidfinal (weighted), admits (flag), days2.</div></div>
+        <div class="tbl-card"><div class="tname">#OutptMemberComparison</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Outpatient facility claim result. Columns: memid, line_of_business, dos_month, cost_category, admits_visits (count distinct), paid.</div></div>
+        <div class="tbl-card"><div class="tname">#ProfMemberComparison</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Professional claim result. Columns: memid, dos_month, cost_category, paid, admits_visits, days_units. primarystatus P logic applied.</div></div>
+        <div class="tbl-card"><div class="tname">##Base</div><div class="ttype worktemp">Work Temp</div><div class="tdesc">Global temp table. Member × month × cost_category scaffold. Zero-fill base. Built from #CONTINOUSENROLLMENT_FINAL × DISTINCT cost_categories UNION.</div></div>
+        <div class="tbl-card"><div class="tname">#QAPEERREVIEW_..._v3</div><div class="ttype staging">Output</div><div class="tdesc">Final output table. Three-way UNION of claim CTEs LEFT JOINed against ##Base. 16 columns including ECMEnrolled flag, SubCostCategory display labels, Baseline Enrollment denominator. COO report source.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 7 -->
+
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    const titleEl = document.getElementById('detailTitle');
+    const bodyEl = document.getElementById('detailBody');
+    const tagsEl = document.getElementById('detailTags');
+    if (titleEl) titleEl.textContent = n.dataset.title || 'Selected node';
+    if (bodyEl) bodyEl.textContent = n.dataset.body || '';
+    if (tagsEl) {
+      const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+      tagsEl.innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+    }
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft') buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMS Audit — Provider Directory DFD v1 | CHGSD Credentialing</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  /* DFD STRUCTURE */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  /* INTERACTIVE NODES */
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* SOURCE SYSTEM BOXES */
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .file2023{width:380px;background:var(--blueFill);border-color:var(--blue)}
+  .file2024{width:380px;background:var(--greenFill);border-color:var(--green)}
+  .file2025{width:380px;background:var(--goldFill);border-color:var(--gold)}
+  .guidancebox{width:340px;background:var(--purpleFill);border-color:var(--purple)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+  .module.warn{background:rgba(255,100,100,.08);border-color:rgba(255,100,100,.28);color:#ff9090}
+  .module.warn span{color:#cc7070}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* STEP BOXES */
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:220px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+
+  /* DATA ELEMENTS */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:200px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  /* FILTER/CHECKPOINT BOXES */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:210px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  /* OUTPUT BOX */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  /* DETAIL + LEGEND */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  /* CATEGORY MAPPING SLIDE */
+  .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .cat-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px;border-radius:10px;cursor:pointer;transition:.25s}
+  .cat-box:hover{transform:translateY(-3px);filter:brightness(1.12)}
+  .cat-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 5px rgba(100,180,255,.10)}
+  .cat-header{font-size:14px;font-weight:700;color:#fff;margin-bottom:4px}
+  .cat-label{font-size:11px;padding:2px 9px;border-radius:999px;font-weight:700;display:inline-block;margin-bottom:8px}
+  .cat-blue{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);color:#9dd6ff}
+  .cat-green{background:rgba(100,220,160,.12);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cat-gold{background:rgba(255,200,100,.12);border:1px solid rgba(255,200,100,.35);color:#ffe08a}
+  .cat-purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.35);color:#c4b8f0}
+  .cat-pink{background:rgba(255,140,200,.12);border:1px solid rgba(255,140,200,.35);color:#ffacd8}
+  .cat-cyan{background:rgba(120,230,240,.12);border:1px solid rgba(120,230,240,.35);color:#8ee8f0}
+  .cat-orange{background:rgba(255,170,80,.12);border:1px solid rgba(255,170,80,.35);color:#ffb060}
+  .cat-red-off{background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.25);color:#888;text-decoration:line-through}
+  .cat-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .cat-pill-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+  .cat-pill{background:#1c1c1c;border:1px solid rgba(120,230,240,.30);border-radius:6px;padding:4px 9px;font-family:'Courier New',monospace;font-size:11px;color:#8ee8f0;font-weight:700}
+  .cat-pill.filter{border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .cat-pill.omit{border-color:rgba(255,100,100,.25);color:#ff9090;text-decoration:line-through}
+  .cat-counts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+  .yr-badge{background:#252525;border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:3px 8px;font-size:11px;color:#ccc}
+  .cat-note{font-size:11px;color:#666;border-top:1px solid rgba(255,255,255,.07);padding-top:7px;margin-top:7px;line-height:1.4}
+  .cat-note b{color:#999}
+
+  /* SOURCE SHEETS SLIDE */
+  .yr-section{margin-bottom:26px}
+  .yr-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .yr-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .yr-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .yr-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .sheet-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .sheet-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:12px 14px}
+  .sheet-name{font-size:12px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:4px}
+  .sheet-type{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:6px;display:inline-block}
+  .st-included{background:rgba(100,220,160,.12);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .st-omitted{background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.22);color:#ff9090}
+  .st-excluded{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .st-new{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .sheet-desc{font-size:11px;color:#888;line-height:1.4}
+
+  /* TIMELINE (Runbook) */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* CONTROLS TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .callout-red{background:rgba(255,100,100,.07);border-left-color:rgba(255,100,100,.45)}
+  .callout-red b{color:#ff9090}
+  .callout-green{background:rgba(100,220,160,.07);border-left-color:rgba(100,220,160,.45)}
+  .callout-green b{color:#7de0b2}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <div class="brand">
+    <h1>CMS Audit — Provider Directory Consolidation · Data Flow Diagram v1</h1>
+    <div>CHGSD · HCS CREDENTIALING · #PYTHON_FRONTLINE_build_cms_directory · Completed 06/17/2026 · Federal Fiscal Years 2023 · 2024 · 2025</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Category Map</button>
+    <button onclick="showSlide(2,this)">③ Source Sheets</button>
+    <button onclick="showSlide(3,this)">④ Runbook</button>
+    <button onclick="showSlide(4,this)">⑤ Governance</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — MAIN DFD
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">CMS Audit Request · CFR § 438.68</div>
+      <div class="title">Provider Directory Consolidation</div>
+      <div class="subtitle">Consolidates provider and facility network data from three Federal Fiscal Year snapshots (January 1 of each year) into a single searchable deliverable. Sources three historical eVIP Provider Directory files. Classifies each record into the <strong>9 applicable CMS categories (a–j, i omitted)</strong> with NPIs and provider names per CMS guidance. Produced by <strong>#PYTHON_FRONTLINE_build_cms_directory.py</strong> using the python-calamine fast-read engine.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>17,501</strong><span>Deduplicated records in final output</span></div>
+        <div class="metric"><strong>62,280</strong><span>Raw rows extracted before deduplication</span></div>
+        <div class="metric"><strong>9 of 10</strong><span>Active CMS categories (i. Pediatric Dental omitted)</span></div>
+        <div class="metric"><strong>3 FFY Snapshots</strong><span>2023 · 2024 · 2025 · Jan 1 effective date each</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Guidance &amp; Authorization Trail</div>
+      <div class="subtitle" style="margin-bottom:12px">Scope confirmed through email chain initiated by <strong>Heidi Arndt</strong> (deadline 6/20/2026):</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">Johanna Tellechea, BS · Credentialing Services Manager<span>Confirmed: OB/GYN dual-category · No Pediatric Dental contracted · MC line of business · Format = Excel</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Dr. Alan Conrad, MD, MMM, CPE, FACHE, FAAPL · CMO<span>LTSS scope ruling: SNF=YES · RCF=YES · CBAS=YES · HHC=NO · HOSLTACH=NO · Hospice=NO</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Blanca Cecilia Villa (Cecy) · Operations<span>LTSS candidate list vetted: confirmed Community Based Adult Services, Nursing Facilities - Residential Care, Skilled Nursing Facilities</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Walter Carr · CHGSD Informatics<span>Script author · eVIP PROVDIR_HOSLTACH sheets added to source files · HHC removed from scope</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE FILES -->
+      <div class="section-label">Source Files — eVIP Provider Directory (January 1 of Each Federal Fiscal Year)</div>
+      <div class="source-row">
+
+        <div class="system-box file2023 node"
+          data-title="AUDIT_CMS_PROVDIR_eVIP_20230105.xlsx — FFY 2023"
+          data-body="Federal Fiscal Year 2023 provider directory snapshot effective January 1, 2023. Contains 27 worksheets covering all provider/facility chapters. Notable: PROVDIR_HOSMH (Mental Health Hospitals) tab does NOT appear in this file — first introduced in 2024. All other CMS-relevant sheets present. Raw rows extracted: ~21,783 before dedup."
+          data-tags="FFY 2023|20230105|eVIP|27 Sheets|No HOSMH">
+          <span class="sys-label">AUDIT_CMS_PROVDIR_eVIP_20230105.xlsx · FFY 2023</span>
+          <div class="module-row">
+            <div class="module">PROVDIR_PCP<span>Primary Care Physician<br>a. Adult · b. Pediatric</span></div>
+            <div class="module">PROVDIR_SPE<span>Specialists + OB/GYN<br>c. OB/GYN · f. Specialists</span></div>
+            <div class="module">PROVDIR_MH<span>Mental Health<br>d. Adult · e. Pediatric</span></div>
+            <div class="module">PROVDIR_HOS + HOSGAH + HOSADD<span>Hospitals (HOSMH absent in 2023)<br>g. Hospital</span></div>
+            <div class="module">PROVDIR_PHARM<span>Pharmacy<br>h. Pharmacy</span></div>
+            <div class="module code">SNF · RCF · CBAS<span>LTSS trio<br>j. Long-Term Services</span></div>
+          </div>
+        </div>
+
+        <div class="system-box file2024 node"
+          data-title="AUDIT_CMS_PROVDIR_eVIP_20240104.xlsx — FFY 2024"
+          data-body="Federal Fiscal Year 2024 provider directory snapshot effective January 1, 2024. Contains 31 worksheets. Introduces PROVDIR_CHW (Community Health Workers), PROVDIR_DOULA, and PROVDIR_HOSMH (Mental Health Hospitals, added to g. Hospital). Raw rows extracted: ~20,959 before dedup."
+          data-tags="FFY 2024|20240104|eVIP|31 Sheets|New: CHW DOULA HOSMH">
+          <span class="sys-label">AUDIT_CMS_PROVDIR_eVIP_20240104.xlsx · FFY 2024</span>
+          <div class="module-row">
+            <div class="module">PROVDIR_PCP<span>Primary Care Physician<br>a. Adult · b. Pediatric</span></div>
+            <div class="module">PROVDIR_SPE<span>Specialists + OB/GYN<br>c. OB/GYN · f. Specialists</span></div>
+            <div class="module">PROVDIR_MH<span>Mental Health<br>d. Adult · e. Pediatric</span></div>
+            <div class="module">PROVDIR_HOS + HOSGAH + HOSADD + HOSMH<span>All hospital tabs<br>g. Hospital</span></div>
+            <div class="module">PROVDIR_PHARM<span>Pharmacy<br>h. Pharmacy</span></div>
+            <div class="module code">SNF · RCF · CBAS<span>LTSS trio<br>j. Long-Term Services</span></div>
+          </div>
+        </div>
+
+        <div class="system-box file2025 node"
+          data-title="AUDIT_CMS_PROVDIR_eVIP_20250102.xlsx — FFY 2025"
+          data-body="Federal Fiscal Year 2025 provider directory snapshot effective January 1, 2025. Contains 32 worksheets. Adds PROVDIR_ICF (Intermediate Care Facilities) and PROVDIR_HOSLTACH (Long-Term Acute Care Hospitals). ICF is not in LTSS scope per Dr. Conrad. HOSLTACH was ruled out of LTSS scope (NO). Raw rows extracted: ~19,538 before dedup."
+          data-tags="FFY 2025|20250102|eVIP|32 Sheets|New: ICF HOSLTACH">
+          <span class="sys-label">AUDIT_CMS_PROVDIR_eVIP_20250102.xlsx · FFY 2025</span>
+          <div class="module-row">
+            <div class="module">PROVDIR_PCP<span>Primary Care Physician<br>a. Adult · b. Pediatric</span></div>
+            <div class="module">PROVDIR_SPE<span>Specialists + OB/GYN<br>c. OB/GYN · f. Specialists</span></div>
+            <div class="module">PROVDIR_MH<span>Mental Health<br>d. Adult · e. Pediatric</span></div>
+            <div class="module">PROVDIR_HOS + HOSGAH + HOSADD + HOSMH<span>All hospital tabs<br>g. Hospital</span></div>
+            <div class="module">PROVDIR_PHARM<span>Pharmacy<br>h. Pharmacy</span></div>
+            <div class="module code">SNF · RCF · CBAS<span>LTSS trio<br>j. Long-Term Services</span></div>
+            <div class="module warn">HOSLTACH · ICF<span>Present in file<br>Excluded from output</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW B: PYTHON SCRIPT PROCESSING STEPS -->
+      <div class="section-label">Python Script Processing — #PYTHON_FRONTLINE_build_cms_directory.py (6 Steps)</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node"
+          data-title="STEP 01 — Sheet Name Discovery"
+          data-body="For each source file, python-calamine (CalamineWorkbook.from_path) reads the workbook's actual sheet name list without loading any data. Sheet names are normalised by stripping trailing whitespace (e.g., 'PROVDIR_HOSADD ' → 'PROVDIR_HOSADD'). This produces the avail dict mapping canonical name to actual name, handling any name variants across years."
+          data-tags="CalamineWorkbook|Sheet Names|Normalise|Trailing Space|avail dict">
+          <span class="step-num">Step 01</span><strong>Sheet Discovery</strong>
+          CalamineWorkbook<br>strip trailing spaces<br>avail name dict
+        </div>
+
+        <div class="step-box s-purple node"
+          data-title="STEP 02 — Column-Selective Load (python-calamine)"
+          data-body="For each target sheet, pd.read_excel(..., engine='calamine', dtype=str) loads the full sheet as string-typed DataFrame. Only the 4 required columns are retained: NPIis (NPI number), INDEXNM (formatted provider/facility name), SPEC (specialty code), AGE RESTRICTION (used for Mental Health adult/pediatric split). All other columns are dropped immediately. Missing columns are backfilled with empty string. NaN → empty string via fillna('')."
+          data-tags="python-calamine|usecols|NPIis|INDEXNM|SPEC|AGE RESTRICTION|dtype=str|fillna">
+          <span class="step-num">Step 02</span><strong>Selective Load</strong>
+          4 cols only: NPIis<br>INDEXNM · SPEC<br>AGE RESTRICTION
+        </div>
+
+        <div class="step-box s-cyan node"
+          data-title="STEP 03 — CMS Category Filter Logic"
+          data-body="Each (cms_label, sheet_list, filter_fn) entry in CATEGORY_PLAN is applied. Nine category filters:\n\na. PCP Adult: SPEC not containing '(PEDS)' and not in [PEDIATRICS, GENERAL PRACTICE (PEDS)]\nb. PCP Pediatric: inverse of above\nc. OB/GYN: SPEC.strip() == 'OBSTETRICS & GYNECOLOGY'\nd. MH Adult: not (CHILD|ADOLESCENT in SPEC) and not (BHT + child age restriction)\ne. MH Pediatric: CHILD|ADOLESCENT in SPEC, or BHT + age UP TO/TO 18/TO 17/TO 6\nf. Specialists: all rows in PROVDIR_SPE (OBG included — dual category confirmed)\ng. Hospital: all rows in HOS + HOSGAH + HOSADD + HOSMH\nh. Pharmacy: all rows in PHARM\nj. LTSS: all rows in SNF + RCF + CBAS"
+          data-tags="CATEGORY_PLAN|filter_fn|Adult Pediatric split|OBG dual category|SPEC contains|AGE RESTRICTION regex">
+          <span class="step-num">Step 03</span><strong>Category Filters</strong>
+          SPEC + AGE logic<br>9 lambdas applied<br>OBG → c AND f
+        </div>
+
+        <div class="step-box s-green node"
+          data-title="STEP 04 — Provider Name &amp; NPI Extraction"
+          data-body="After filtering, two columns are extracted per row:\n\n• INDEXNM — the formatted provider/facility name used consistently across all sheet types. For individual providers this is 'LASTNAME, FIRSTNAME, MD'. For facilities it is the facility name (e.g., 'SHARP CORONADO HOSPITAL'). INDEXNM is the single canonical name field that works for both individuals and facilities.\n\n• NPIis — the 10-digit NPI number as a string.\n\nRows where either INDEXNM or NPIis is blank after .strip() are dropped. Records are appended to all_records as (year, cms_label, name, npi) tuples."
+          data-tags="INDEXNM|NPIis|Individual Provider|Facility Name|Blank drop|Tuple append">
+          <span class="step-num">Step 04</span><strong>Name + NPI Extract</strong>
+          INDEXNM (all types)<br>NPIis (10-digit)<br>blank rows dropped
+        </div>
+
+        <div class="step-box s-gold node"
+          data-title="STEP 05 — Deduplication"
+          data-body="The same NPI can appear multiple times per sheet — once for each Participating Network (CL1, CSNP, MCR). Deduplication is applied on the composite key (year, cms_label, npi). First occurrence is retained; subsequent rows for the same year + category + NPI are discarded. Result: 62,280 raw rows → 17,501 unique records.\n\nNote: OB/GYN providers intentionally appear in BOTH category c and category f, so an OBG provider will have two records (one per category) in the deduplicated output — this is correct per confirmed guidance."
+          data-tags="Deduplication|key=(year,category,npi)|First occurrence|62280→17501|OBG appears twice">
+          <span class="step-num">Step 05</span><strong>Deduplication</strong>
+          key: year+cat+NPI<br>62,280 → 17,501<br>OBG dual-kept
+        </div>
+
+        <div class="step-box s-pink node"
+          data-title="STEP 06 — Excel Output Assembly"
+          data-body="Deduplicated records are sorted (Year → CMS Category → Provider Name alphabetically) then written via openpyxl to CMS_Audit_Provider_Directory_2023_2024_2025.xlsx with two sheets:\n\n1. Provider Directory — 17,501 data rows with header: Year, CMS Category, Provider or Facility Name, NPI. Dark blue header (#1F4E79), white bold text, frozen row 1.\n\n2. Summary — provider counts by Year × CMS Category (post-dedup). Column widths set; all header cells centered.\n\nScript also echoes a console summary table of counts."
+          data-tags="openpyxl|Provider Directory|Summary|17501 rows|Column widths|Freeze row 1|Sort">
+          <span class="step-num">Step 06</span><strong>Excel Output</strong>
+          2 sheets: Directory<br>+ Summary counts<br>sorted · styled
+        </div>
+
+      </div>
+
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW C: DERIVED DATA ELEMENTS -->
+      <div class="section-label">Key Data Elements &amp; Output Metrics</div>
+      <div class="data-elements-row">
+        <div class="data-element node"
+          data-title="Year Column — Federal Fiscal Year"
+          data-body="Integer year value (2023, 2024, or 2025) derived from the source file. Represents the January 1 snapshot date of the applicable Federal Fiscal Year as requested in the CMS audit (CFR § 438.68). Each record carries its year so the auditor can identify which directory snapshot the provider appeared in."
+          data-tags="Year|FFY|2023|2024|2025|January 1">
+          <strong>Year</strong>FFY 2023 · 2024 · 2025<br>January 1 snapshot<br>per source file
+        </div>
+        <div class="data-element node"
+          data-title="CMS Category Column — CFR § 438.68 Designations"
+          data-body="One of 9 active CMS category labels (a through j, i omitted). Values exactly as specified in the CMS Audit Request: 'a. Primary Care – Adult', 'b. Primary Care – Pediatric', 'c. OB/GYN', 'd. Mental Health – Adult', 'e. Mental Health – Pediatric', 'f. Specialists', 'g. Hospital', 'h. Pharmacy', 'j. Long-Term Services and Supports'. OBG providers appear under both c and f."
+          data-tags="CMS Category|CFR 438.68|a through j|i Omitted|OBG dual">
+          <strong>CMS Category</strong>9 active labels<br>a–j (i omitted)<br>OBG → c + f
+        </div>
+        <div class="data-element node"
+          data-title="Provider or Facility Name — INDEXNM Column"
+          data-body="Sourced from the INDEXNM column present in every sheet. For individual providers (PCP, SPE, MH, AHP, NPMP) this field is formatted as 'LASTNAME, FIRSTNAME, MD' (e.g., 'MOLES, JEREMIAH, MD'). For facilities (HOS, SNF, RCF, CBAS, PHARM, etc.) INDEXNM holds the facility name (e.g., 'SHARP CORONADO HOSPITAL', 'THE SHORES POST-ACUTE', 'GOLDEN LIFE ADHC CENTER'). INDEXNM was chosen because it is the single consistent name field across all 28+ sheet types."
+          data-tags="INDEXNM|Provider Name|Facility Name|LASTNAME FIRSTNAME MD|Consistent across sheets">
+          <strong>Provider / Facility Name</strong>INDEXNM field<br>individuals + facilities<br>consistent across all sheets
+        </div>
+        <div class="data-element node"
+          data-title="NPI Column — NPIis Field"
+          data-body="The 10-digit National Provider Identifier from the NPIis column. Present in all sheets. Retained as string (dtype=str) to preserve leading zeros if any. The NPI is the primary deduplication key alongside Year and CMS Category. CMS audit request specifically requires NPIs to be listed on the directories."
+          data-tags="NPI|NPIis|10-digit|String type|Dedup key|CMS required">
+          <strong>NPI</strong>NPIis column<br>10-digit string<br>CMS required field
+        </div>
+        <div class="data-element node"
+          data-title="Deduplication Statistics"
+          data-body="Each provider appears 2–3 times per sheet (once per Participating Network: CL1, CSNP, MCR). Deduplication reduces 62,280 raw rows to 17,501 unique (Year, CMS Category, NPI) combinations. The largest category is f. Specialists: 7,449 unique records across 3 years. The smallest is g. Hospital: 72 records (24 per year, consistent across all three snapshots). LTSS: 236 total (77+80+79)."
+          data-tags="Dedup|62280 raw|17501 final|CL1 CSNP MCR|Specialists largest|Hospital smallest">
+          <strong>Dedup Stats</strong>62,280 raw → 17,501<br>CL1+CSNP+MCR collapsed<br>per year/cat/NPI
+        </div>
+      </div>
+
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW D: QUALITY CHECKPOINTS -->
+      <div class="section-label">Governance Checkpoints — Confirmed Per Email Chain</div>
+      <div class="filter-row">
+        <div class="filter-box node"
+          data-title="Checkpoint — LTSS Scope (Dr. Conrad + Cecy Villa)"
+          data-body="LTSS category j includes ONLY: Skilled Nursing Facilities (PROVDIR_SNF), Nursing Facilities - Residential Care (PROVDIR_RCF), and Community Based Adult Services (PROVDIR_CBAS). Confirmed by Dr. Alan Conrad (CMO) on 6/15/2026 and Cecy Villa. Home Health Care, Hospice, LTACH, Intermediate Care Facility, Inpatient Rehabilitation, and Mental Health Hospitals are all explicitly EXCLUDED from j. LTSS for this CMS deliverable."
+          data-tags="LTSS|Dr. Conrad|Cecy Villa|SNF YES|RCF YES|CBAS YES|HHC NO|HOSLTACH NO">
+          <strong>LTSS Scope?</strong>SNF + RCF + CBAS<br>Dr. Conrad 6/15/26<br>HHC + LTACH = NO
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — OB/GYN Dual Category"
+          data-body="OB/GYN providers (SPEC = 'OBSTETRICS & GYNECOLOGY' in PROVDIR_SPE) are intentionally included in BOTH category c. OB/GYN and category f. Specialists. This was confirmed by Walter Carr in consultation with Johanna Tellechea. These providers will appear twice in the output with different CMS Category labels. The deduplication key includes the category, so this dual-appearance is preserved by design."
+          data-tags="OB/GYN|Dual Category|c AND f|Confirmed|PROVDIR_SPE|OBSTETRICS GYNECOLOGY">
+          <strong>OBG Dual-Cat?</strong>c. OB/GYN + f. Specialists<br>confirmed dual-include<br>appears twice in output
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — Pediatric Dental (Category i) Omitted"
+          data-body="CMS category i. Pediatric Dental is intentionally absent from the output. Johanna Tellechea (Credentialing Services Manager) confirmed that CHGSD has no contracted Pediatric Dental providers. No dental specialty codes or sheets were found in any of the three source files. Category i should be explicitly noted as N/A or not applicable in the CMS submission response."
+          data-tags="Pediatric Dental|Category i|Omitted|No contracted providers|Johanna confirmed|N/A">
+          <strong>Pediatric Dental?</strong>i. OMITTED<br>no contracted providers<br>Johanna confirmed
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — HOSLTACH Excluded from LTSS"
+          data-body="PROVDIR_HOSLTACH (Long-Term Acute Care Hospital) worksheets were added to all three source files by Walter Carr. However Dr. Conrad explicitly ruled LTACH = NO for the LTSS category (j) in his 6/15/2026 email. Walter confirmed Option B (exclude from LTSS). The HOSLTACH sheets exist in the source files but are not referenced in CATEGORY_PLAN and contribute zero rows to the output."
+          data-tags="HOSLTACH|LTACH NO|Dr. Conrad ruling|Excluded|Option B|Zero rows">
+          <strong>HOSLTACH in j?</strong>EXCLUDED — Dr. Conrad<br>LTACH = NO (6/15/26)<br>sheets in files, not used
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — Mental Health Category Boundary"
+          data-body="Mental Health Hospitals (PROVDIR_HOSMH, 'Mental Health Hospitals' CHAPTER_NAME) are classified under g. Hospital, NOT under d. Mental Health – Adult or e. Mental Health – Pediatric. This follows the email note 'Mental Health Hospital(s) ARE CMC ONLY!!!' which places them in the hospital chapter, not the MH provider chapter. PROVDIR_MH (Mental Health Providers) feeds d and e; PROVDIR_HOSMH feeds g."
+          data-tags="HOSMH|Mental Health Hospitals|CMC only|g. Hospital|not d or e|CHAPTER_NAME boundary">
+          <strong>HOSMH → g?</strong>MH Hospitals → g. Hospital<br>not d/e (CMC only)<br>PROVDIR_MH → d + e
+        </div>
+      </div>
+
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="output-box node"
+        data-title="Final Output — CMS_Audit_Provider_Directory_2023_2024_2025.xlsx"
+        data-body="Saved to C:\\Users\\wcarr\\Desktop\\. Two worksheets:\n\n1. Provider Directory — 17,501 deduplicated rows, 4 columns (Year · CMS Category · Provider or Facility Name · NPI). Sorted Year → CMS Category → Provider Name. Header row frozen. Column widths: Year=8, CMS Category=42, Provider/Facility Name=55, NPI=14. Dark blue header (#1F4E79).\n\n2. Summary — Counts per Year × CMS Category (post-dedup). 27 data rows (3 years × 9 categories). Matches console output printed during script execution.\n\nFor CMS submission, supplement with explicit note that category i. Pediatric Dental = N/A (no contracted providers per Johanna Tellechea)."
+        data-tags="CMS_Audit_Provider_Directory|17501 rows|4 columns|Provider Directory sheet|Summary sheet|Desktop">
+        <span class="sys-label">Final Deliverable — CMS Audit Response</span>
+        <div class="out-modules">
+          <div class="out-module">Provider Directory Sheet<span>17,501 rows · Year · CMS Category · Provider or Facility Name · NPI · sorted · header frozen</span></div>
+          <div class="out-module">Summary Sheet<span>Counts by Year × CMS Category (post-dedup) · 2023 / 2024 / 2025 × 9 categories</span></div>
+          <div class="out-module">Category a+b — Primary Care<span>Adult: 531/484/518 · Pediatric: 723/646/651 per year</span></div>
+          <div class="out-module">Category c+f — OB/GYN &amp; Specialists<span>OBG: 146/156/145 · Specialists: 2,336/2,603/2,510 per year</span></div>
+          <div class="out-module">Category d+e — Mental Health<span>Adult: 861/834/893 · Pediatric: 716/706/668 per year</span></div>
+          <div class="out-module">Category g+h+j — Hospital / Pharmacy / LTSS<span>Hospital: 24/24/24 · Pharmacy: 368/352/346 · LTSS: 77/80/79 per year</span></div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+
+    <!-- DETAIL + LEGEND -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click any node in the diagram above</h3>
+        <p id="detailBody">Details will appear here — source logic, business rules, governance citations, and analyst notes for the selected element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span>
+          <span class="badge gold">CMS CFR § 438.68</span>
+          <span class="badge green">17,501 Records</span>
+          <span class="badge pink">FFY 2023–2025</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>FFY 2023 source file</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>FFY 2024 source file</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>FFY 2025 source file</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>Guidance / authorization sources</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>Column-selective load step</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>Deduplication step</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Governance / scope checkpoint</div>
+        </div>
+        <p class="print-note">Tip: browser print → Save as PDF to export this diagram. Use keyboard ← → arrows to navigate slides.</p>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 0 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — CATEGORY MAPPING
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">CMS Category Map — CFR § 438.68 Designations → eVIP Source Sheets</div>
+    <div class="subtitle" style="margin-bottom:6px">Each CMS category is derived from one or more eVIP Provider Directory worksheets, sometimes with a SPEC or AGE RESTRICTION filter applied. Click any card for details. Yellow pills = source sheets · Cyan pills = filter logic · Strikethrough = omitted.</div>
+
+    <div class="cat-grid">
+
+      <!-- a -->
+      <div class="cat-box node"
+        data-title="a. Primary Care – Adult"
+        data-body="Source: PROVDIR_PCP. Filter: SPEC does NOT contain '(PEDS)' AND SPEC is not in ['PEDIATRICS', 'GENERAL PRACTICE (PEDS)']. Common adult SPEC values include FAMILY PRACTICE, INTERNAL MEDICINE, GENERAL PRACTICE (all for ages 18/21 and over). Dedup counts: 531 (2023), 484 (2024), 518 (2025)."
+        data-tags="Primary Care Adult|PROVDIR_PCP|SPEC not PEDS|Family Practice|Internal Medicine">
+        <div class="cat-header">a. Primary Care – Adult</div>
+        <div class="cat-label cat-blue">PCP Sheet</div>
+        <div class="cat-sub">Individual providers; adults only via SPEC field exclusion of pediatric variants.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_PCP</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">SPEC ≠ (PEDS) · ≠ PEDIATRICS</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 531</span>
+          <span class="yr-badge">2024: 484</span>
+          <span class="yr-badge">2025: 518</span>
+        </div>
+        <div class="cat-note"><b>Note:</b> FAMILY PRACTICE, INTERNAL MEDICINE, GENERAL PRACTICE → Adult.</div>
+      </div>
+
+      <!-- b -->
+      <div class="cat-box node"
+        data-title="b. Primary Care – Pediatric"
+        data-body="Source: PROVDIR_PCP. Filter: SPEC contains '(PEDS)' OR SPEC is in ['PEDIATRICS', 'GENERAL PRACTICE (PEDS)']. Common pediatric SPEC values: FAMILY PRACTICE (PEDS), PEDIATRICS, INTERNAL MEDICINE (PEDS). These providers have AGE RESTRICTION 'UP TO 18' or similar. Dedup counts: 723 (2023), 646 (2024), 651 (2025)."
+        data-tags="Primary Care Pediatric|PROVDIR_PCP|SPEC contains PEDS|PEDIATRICS|UP TO 18">
+        <div class="cat-header">b. Primary Care – Pediatric</div>
+        <div class="cat-label cat-green">PCP Sheet</div>
+        <div class="cat-sub">Individual providers; pediatric flag in SPEC drives classification.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_PCP</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">SPEC contains (PEDS) OR = PEDIATRICS</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 723</span>
+          <span class="yr-badge">2024: 646</span>
+          <span class="yr-badge">2025: 651</span>
+        </div>
+        <div class="cat-note"><b>Note:</b> FAMILY PRACTICE (PEDS), PEDIATRICS, INTERNAL MEDICINE (PEDS) → Pediatric.</div>
+      </div>
+
+      <!-- c -->
+      <div class="cat-box node"
+        data-title="c. OB/GYN"
+        data-body="Source: PROVDIR_SPE. Filter: SPEC.strip().upper() == 'OBSTETRICS & GYNECOLOGY'. These providers ALSO appear under f. Specialists (confirmed by Walter Carr). OB/GYN providers each appear twice in the deduplicated output — once under c, once under f. Dedup counts: 146 (2023), 156 (2024), 145 (2025)."
+        data-tags="OB/GYN|PROVDIR_SPE|OBSTETRICS GYNECOLOGY|Dual category|c AND f">
+        <div class="cat-header">c. OB/GYN</div>
+        <div class="cat-label cat-pink">SPE Sheet · filtered</div>
+        <div class="cat-sub">Subset of SPE where SPEC = OBSTETRICS &amp; GYNECOLOGY. Also appears in f.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_SPE</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">SPEC == 'OBSTETRICS &amp; GYNECOLOGY'</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 146</span>
+          <span class="yr-badge">2024: 156</span>
+          <span class="yr-badge">2025: 145</span>
+        </div>
+        <div class="cat-note"><b>Dual-category:</b> OBG appears in both c and f. Confirmed per guidance.</div>
+      </div>
+
+      <!-- d -->
+      <div class="cat-box node"
+        data-title="d. Mental Health – Adult"
+        data-body="Source: PROVDIR_MH. Filter: NOT (SPEC contains CHILD or ADOLESCENT) AND NOT (SPEC = 'BEHAVIORAL HEALTH THERAPIES' with child age restriction). Adult SPEC values include PSYCHOLOGY, ADULT; PSYCHIATRY; PSYCHIATRY, ADULT; PSYCHIATRY, GERIATRIC; PSYCHOSOMATIC MEDICINE. BEHAVIORAL HEALTH THERAPIES with AGE RESTRICTION 'NONE' or adult ranges → Adult. Dedup counts: 861 (2023), 834 (2024), 893 (2025)."
+        data-tags="Mental Health Adult|PROVDIR_MH|PSYCHOLOGY ADULT|PSYCHIATRY|not CHILD ADOLESCENT|BHT NONE age">
+        <div class="cat-header">d. Mental Health – Adult</div>
+        <div class="cat-label cat-purple">MH Sheet · filtered</div>
+        <div class="cat-sub">Excludes CHILD/ADOLESCENT SPEC and BHT with child age. Both SPEC + AGE RESTRICTION used.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_MH</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">SPEC ≠ CHILD/ADOLESCENT</span>
+          <span class="cat-pill filter">BHT + adult/NONE age</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 861</span>
+          <span class="yr-badge">2024: 834</span>
+          <span class="yr-badge">2025: 893</span>
+        </div>
+        <div class="cat-note"><b>Note:</b> BEHAVIORAL HEALTH THERAPIES with AGE='NONE' → Adult.</div>
+      </div>
+
+      <!-- e -->
+      <div class="cat-box node"
+        data-title="e. Mental Health – Pediatric"
+        data-body="Source: PROVDIR_MH. Filter: SPEC contains CHILD or ADOLESCENT, OR (SPEC = 'BEHAVIORAL HEALTH THERAPIES' AND AGE RESTRICTION matches: 'UP TO', 'TO 18', 'TO 17', or 'TO 6'). Pediatric SPEC values: PSYCHOLOGY, CHILD; PSYCHIATRY, CHILD & ADOLESCENT; BEHAVIORAL HEALTH THERAPIES (with child age). Dedup counts: 716 (2023), 706 (2024), 668 (2025)."
+        data-tags="Mental Health Pediatric|PROVDIR_MH|PSYCHOLOGY CHILD|PSYCHIATRY CHILD ADOLESCENT|BHT UP TO 18">
+        <div class="cat-header">e. Mental Health – Pediatric</div>
+        <div class="cat-label cat-purple">MH Sheet · filtered</div>
+        <div class="cat-sub">CHILD/ADOLESCENT SPEC or BHT + child age restriction (UP TO 18, etc.).</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_MH</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">SPEC contains CHILD/ADOLESCENT</span>
+          <span class="cat-pill filter">BHT + UP TO/TO 18/TO 6</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 716</span>
+          <span class="yr-badge">2024: 706</span>
+          <span class="yr-badge">2025: 668</span>
+        </div>
+        <div class="cat-note"><b>Note:</b> BHT with explicit child age restriction → Pediatric, not Adult.</div>
+      </div>
+
+      <!-- f -->
+      <div class="cat-box node"
+        data-title="f. Specialists"
+        data-body="Source: PROVDIR_SPE. No row filter — ALL rows in the Specialists sheet are included here. This intentionally includes OB/GYN (SPEC = OBSTETRICS & GYNECOLOGY) per confirmed guidance, so OBG providers appear in both c and f. The SPE sheet contains dozens of specialty types including Diagnostic Radiology, Cardiology, Neurology, Orthopedics, Oncology, Dermatology, etc. Largest single category. Dedup counts: 2,336 (2023), 2,603 (2024), 2,510 (2025)."
+        data-tags="Specialists|PROVDIR_SPE|All rows|OBG included|Largest category|Cardiology Neurology Radiology">
+        <div class="cat-header">f. Specialists</div>
+        <div class="cat-label cat-cyan">SPE Sheet · all rows</div>
+        <div class="cat-sub">All rows in PROVDIR_SPE — no filter. OBG included per confirmed dual-category guidance.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_SPE</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">No filter — all SPEC values</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 2,336</span>
+          <span class="yr-badge">2024: 2,603</span>
+          <span class="yr-badge">2025: 2,510</span>
+        </div>
+        <div class="cat-note"><b>Largest category</b> — 7,449 total unique records across 3 years.</div>
+      </div>
+
+      <!-- g -->
+      <div class="cat-box node"
+        data-title="g. Hospital"
+        data-body="Source: PROVDIR_HOS (General Acute Care, all years) + PROVDIR_HOSGAH (General Acute Hospitals, all years) + PROVDIR_HOSADD (Additional Hospitals, all years) + PROVDIR_HOSMH (Mental Health Hospitals, 2024–2025 only — not present in 2023). Mental Health Hospitals are placed in g (not d/e) per the 'CMC ONLY' designation in the email chain. No row filter within any sheet. Dedup counts: 24 per year (consistent across all 3 years)."
+        data-tags="Hospital|PROVDIR_HOS|PROVDIR_HOSGAH|PROVDIR_HOSADD|PROVDIR_HOSMH|MH Hospitals in g|24 per year">
+        <div class="cat-header">g. Hospital</div>
+        <div class="cat-label cat-gold">4 Hospital Sheets</div>
+        <div class="cat-sub">All hospital tab types. HOSMH absent in 2023. MH Hospitals → g, not d/e (CMC only).</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_HOS</span>
+          <span class="cat-pill">PROVDIR_HOSGAH</span>
+          <span class="cat-pill">PROVDIR_HOSADD</span>
+          <span class="cat-pill">PROVDIR_HOSMH</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">No filter — all facility rows</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 24</span>
+          <span class="yr-badge">2024: 24</span>
+          <span class="yr-badge">2025: 24</span>
+        </div>
+        <div class="cat-note"><b>HOSMH</b> first appears in 2024 file; absent in 2023.</div>
+      </div>
+
+      <!-- h -->
+      <div class="cat-box node"
+        data-title="h. Pharmacy"
+        data-body="Source: PROVDIR_PHARM. All rows, no filter. Includes retail, chain, mail order, and specialty pharmacies contracted in the network. Dedup counts: 368 (2023), 352 (2024), 346 (2025). Slight year-over-year decrease reflects network changes."
+        data-tags="Pharmacy|PROVDIR_PHARM|All rows|Retail Chain Mail Order|368 352 346">
+        <div class="cat-header">h. Pharmacy</div>
+        <div class="cat-label cat-orange">PHARM Sheet · all rows</div>
+        <div class="cat-sub">All pharmacy types from PROVDIR_PHARM. No filter applied.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_PHARM</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill filter">No filter — all rows</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 368</span>
+          <span class="yr-badge">2024: 352</span>
+          <span class="yr-badge">2025: 346</span>
+        </div>
+        <div class="cat-note"><b>Note:</b> Slight decrease 2023→2025 reflects network contraction.</div>
+      </div>
+
+      <!-- i -->
+      <div class="cat-box node"
+        data-title="i. Pediatric Dental — OMITTED"
+        data-body="Category i (Pediatric Dental) is intentionally absent from the output. Johanna Tellechea (Credentialing Services Manager) confirmed on 6/17/2026 that CHGSD has no contracted Pediatric Dental providers. A search of all specialty fields across all three source files found zero dental-related SPEC values. For the CMS submission, this category should be explicitly acknowledged as 'Not Applicable — No contracted Pediatric Dental providers in network.'"
+        data-tags="Pediatric Dental|i omitted|No contracted providers|Johanna Tellechea|N/A|CMS note required">
+        <div class="cat-header">i. Pediatric Dental</div>
+        <div class="cat-label cat-red-off">OMITTED</div>
+        <div class="cat-sub">No contracted Pediatric Dental providers. Confirmed by Johanna Tellechea 6/17/2026.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill omit">No source sheet</span>
+          <span class="cat-pill omit">Zero SPEC matches</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge" style="color:#666">2023: 0</span>
+          <span class="yr-badge" style="color:#666">2024: 0</span>
+          <span class="yr-badge" style="color:#666">2025: 0</span>
+        </div>
+        <div class="cat-note"><b>CMS note required:</b> Disclose as N/A in audit response.</div>
+      </div>
+
+      <!-- j -->
+      <div class="cat-box node"
+        data-title="j. Long-Term Services and Supports"
+        data-body="Source: PROVDIR_SNF (Skilled Nursing Facilities) + PROVDIR_RCF (Nursing Facilities – Residential Care) + PROVDIR_CBAS (Community Based Adult Services). Scope confirmed by Dr. Alan Conrad (CMO) and Cecy Villa on 6/15/2026. Excluded: Home Health Care (HHC = NO), Hospice (NO), LTACH via PROVDIR_HOSLTACH (NO), Intermediate Care Facility/ICF (NO), Inpatient Rehabilitation (NO). Dedup counts: 77 (2023), 80 (2024), 79 (2025)."
+        data-tags="LTSS|PROVDIR_SNF|PROVDIR_RCF|PROVDIR_CBAS|Dr. Conrad|Cecy Villa|HHC NO|HOSLTACH NO">
+        <div class="cat-header">j. Long-Term Services and Supports</div>
+        <div class="cat-label cat-blue">3 LTSS Sheets</div>
+        <div class="cat-sub">SNF + RCF + CBAS. Scope per Dr. Conrad (CMO) &amp; Cecy Villa 6/15/26.</div>
+        <div class="cat-pill-row">
+          <span class="cat-pill">PROVDIR_SNF</span>
+          <span class="cat-pill">PROVDIR_RCF</span>
+          <span class="cat-pill">PROVDIR_CBAS</span>
+        </div>
+        <div class="cat-pill-row">
+          <span class="cat-pill omit">HHC excluded</span>
+          <span class="cat-pill omit">HOSLTACH excluded</span>
+        </div>
+        <div class="cat-counts">
+          <span class="yr-badge">2023: 77</span>
+          <span class="yr-badge">2024: 80</span>
+          <span class="yr-badge">2025: 79</span>
+        </div>
+        <div class="cat-note"><b>Per Dr. Conrad 6/15/26:</b> SNF=YES · RCF=YES · CBAS=YES. All others NO.</div>
+      </div>
+
+    </div><!-- /cat-grid -->
+
+    <div class="callout-green callout" style="margin-top:20px">
+      <b>Total deduplicated records by category (all years combined):</b>
+      a. PCA 1,533 · b. PCP 2,020 · c. OBG 447 · d. MHA 2,588 · e. MHP 2,090 · f. SPE 7,449 · g. HOS 72 · h. PHM 1,066 · j. LTSS 236 · <b>Grand Total: 17,501</b>
+    </div>
+
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — SOURCE SHEETS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Source Sheets — All eVIP Worksheets Across FFY 2023 · 2024 · 2025</div>
+    <div class="subtitle" style="margin-bottom:18px">Sheets marked <span style="color:#7de0b2">Included</span> contribute rows to the CMS output. <span style="color:#ff9090">Omitted</span> = present in file, not in scope. <span style="color:#ffb060">Excluded</span> = in scope consideration but ruled out by governance. <span style="color:#c4b8f0">New</span> = first appears in that year.</div>
+
+    <div class="yr-section">
+      <div class="yr-title blue">FFY 2023 — AUDIT_CMS_PROVDIR_eVIP_20230105.xlsx · 27 Worksheets</div>
+      <div class="sheet-grid">
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_PCP</div><span class="sheet-type st-included">Included → a + b</span><div class="sheet-desc">Primary Care Physician. Split Adult/Pediatric by SPEC field. Both categories a and b.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_SPE</div><span class="sheet-type st-included">Included → c + f</span><div class="sheet-desc">Specialists. All rows → f. OBG subset → also c. Largest single sheet.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_MH</div><span class="sheet-type st-included">Included → d + e</span><div class="sheet-desc">Mental Health Providers. SPEC + AGE RESTRICTION split → d (Adult) and e (Pediatric).</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HOS</div><span class="sheet-type st-included">Included → g</span><div class="sheet-desc">General hospital facilities. All rows → g. Hospital.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HOSGAH</div><span class="sheet-type st-included">Included → g</span><div class="sheet-desc">General Acute Hospitals chapter. All rows → g. Hospital.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HOSADD</div><span class="sheet-type st-included">Included → g</span><div class="sheet-desc">Additional Hospitals. 10 rows per year. All → g. Hospital.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_PHARM</div><span class="sheet-type st-included">Included → h</span><div class="sheet-desc">Pharmacy network. All rows → h. Pharmacy.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_SNF</div><span class="sheet-type st-included">Included → j</span><div class="sheet-desc">Skilled Nursing Facilities. Confirmed LTSS YES per Dr. Conrad.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_RCF</div><span class="sheet-type st-included">Included → j</span><div class="sheet-desc">Nursing Facilities – Residential Care. Confirmed LTSS YES per Dr. Conrad.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_CBAS</div><span class="sheet-type st-included">Included → j</span><div class="sheet-desc">Community Based Adult Services. Confirmed LTSS YES per Cecy Villa &amp; Dr. Conrad.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_ECM</div><span class="sheet-type st-omitted">Omitted</span><div class="sheet-desc">Enhanced Care Management &amp; CSP Providers. Not in CMS a–j categories.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_NPMP</div><span class="sheet-type st-omitted">Omitted</span><div class="sheet-desc">Non-Physician Medical Practitioners. Not a CMS audit category.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_AHP</div><span class="sheet-type st-omitted">Omitted</span><div class="sheet-desc">Allied Health Providers. Not a CMS audit category.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_VSP</div><span class="sheet-type st-omitted">Omitted</span><div class="sheet-desc">Vision Service Plan Providers. Not a CMS audit category.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HOSPICE</div><span class="sheet-type st-excluded">Excluded</span><div class="sheet-desc">Hospice. Considered for LTSS j; ruled NO by Dr. Conrad 6/15/26.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HHC</div><span class="sheet-type st-excluded">Excluded</span><div class="sheet-desc">Home Health Care. Considered for LTSS j; ruled NO by Dr. Conrad 6/15/26. Removed from script by Walter Carr.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_IPREHAB</div><span class="sheet-type st-excluded">Excluded</span><div class="sheet-desc">Nursing Facilities – Inpatient Rehabilitation. Considered for LTSS j; ruled NO.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HDM + IHSS + ASC + DXC + LAB + DLC + URC + MIN + PPH + CLINIC + BRC</div><span class="sheet-type st-omitted">Omitted</span><div class="sheet-desc">Home Delivered Meals, IHSS, ASC, Diagnostics, Lab, Dialysis, Urgent Care, MinuteClinic, Pharmacy subsets, Clinics, Birthing Centers. Not a CMS audit category.</div></div>
+      </div>
+    </div>
+
+    <div class="yr-section">
+      <div class="yr-title green">FFY 2024 — AUDIT_CMS_PROVDIR_eVIP_20240104.xlsx · 31 Worksheets (4 new vs 2023)</div>
+      <div class="sheet-grid">
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_CHW</div><span class="sheet-type st-new">New in 2024</span><div class="sheet-desc">Community Health Workers. New chapter added. Not a CMS audit category.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_DOULA</div><span class="sheet-type st-new">New in 2024</span><div class="sheet-desc">Doula providers. New chapter added. Not a CMS audit category.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HOSMH</div><span class="sheet-type st-new">New in 2024 → g</span><div class="sheet-desc">Mental Health Hospitals. New in 2024. Classified under g. Hospital (CMC Only — not d/e).</div></div>
+        <div class="sheet-card"><div class="sheet-name">All 2023 sheets</div><span class="sheet-type st-included">Carried forward</span><div class="sheet-desc">All 2023 sheets present. Same inclusion/exclusion rules apply.</div></div>
+      </div>
+    </div>
+
+    <div class="yr-section">
+      <div class="yr-title gold">FFY 2025 — AUDIT_CMS_PROVDIR_eVIP_20250102.xlsx · 32 Worksheets (2 new vs 2024)</div>
+      <div class="sheet-grid">
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_ICF</div><span class="sheet-type st-excluded">New · Excluded</span><div class="sheet-desc">Intermediate Care Facilities. New in 2025. Considered for LTSS j; Dr. Conrad ruled Intermediate Care Facility = NO for LTSS.</div></div>
+        <div class="sheet-card"><div class="sheet-name">PROVDIR_HOSLTACH</div><span class="sheet-type st-excluded">New · Excluded</span><div class="sheet-desc">Long-Term Acute Care Hospital. Added to all 3 files by Walter Carr. Dr. Conrad ruled LTACH = NO for LTSS j. Script references 'PROVDIR_LTACH' (old name) → silently skips. No rows in output.</div></div>
+        <div class="sheet-card"><div class="sheet-name">All 2024 sheets</div><span class="sheet-type st-included">Carried forward</span><div class="sheet-desc">All 2024 sheets present. Same inclusion/exclusion rules apply.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — RUNBOOK
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Runbook — Re-Running the CMS Provider Directory Script</div>
+    <div class="timeline">
+      <div class="tl"><strong>01 · Verify Source Files on Desktop</strong><p>Confirm all three files exist at C:\Users\wcarr\Desktop\: AUDIT_CMS_PROVDIR_eVIP_20230105.xlsx, AUDIT_CMS_PROVDIR_eVIP_20240104.xlsx, AUDIT_CMS_PROVDIR_eVIP_20250102.xlsx. Each should include the PROVDIR_HOSLTACH worksheet (added per Walter Carr). Close any open Excel instances of these files before running — openpyxl cannot read locked files.</p></div>
+      <div class="tl"><strong>02 · Verify Python 3.11 Dependencies</strong><p>Required packages: python-calamine (for fast xlsx read), pandas, openpyxl. Install if missing via: <code style="background:#1c1c1c;padding:2px 6px;border-radius:4px;color:#ffe08a;font-size:12px">&amp; "C:\Program Files\Python311\python.exe" -m pip install python-calamine pandas openpyxl</code>. python-calamine 0.7.0 confirmed working on Python 3.11 + Windows.</p></div>
+      <div class="tl"><strong>03 · Execute Script</strong><p>From VS Code terminal or PowerShell: <code style="background:#1c1c1c;padding:2px 6px;border-radius:4px;color:#ffe08a;font-size:12px">&amp; "C:\Program Files\Python311\python.exe" c:/Users/wcarr/Desktop/#PYTHON_FRONTLINE_build_cms_directory_20260618.py</code>. Runtime: ~25–35 seconds for all three files. Watch for per-sheet row counts in the console output.</p></div>
+      <div class="tl"><strong>04 · Validate Console Output</strong><p>Expected total: ~62,280 rows before dedup, ~17,501 after. Verify each sheet appears for its year (e.g., HOSMH should NOT appear for 2023). Confirm LTSS sheets (SNF, RCF, CBAS) show counts for all 3 years. Confirm HOSLTACH does NOT appear in the output (silent skip).</p></div>
+      <div class="tl"><strong>05 · Open and Review Output File</strong><p>Open CMS_Audit_Provider_Directory_2023_2024_2025.xlsx from Desktop. Verify: Provider Directory sheet has correct 4 columns (Year, CMS Category, Provider or Facility Name, NPI). Summary sheet shows 27 rows (3 years × 9 categories). Spot-check a known provider (e.g., a hospital NPI) appears under g. Hospital. Confirm no records under i. Pediatric Dental.</p></div>
+      <div class="tl"><strong>06 · CMS Submission Note — Category i</strong><p>Before sending to Johanna / CMS, add explicit notation that category i. Pediatric Dental is N/A — CHGSD has no contracted Pediatric Dental providers (confirmed by Johanna Tellechea, Credentialing Services Manager, June 2026). This disclosure is required for CFR § 438.68 compliance.</p></div>
+    </div>
+    <div class="callout" style="margin-top:18px"><b>Script location:</b> C:\Users\wcarr\Desktop\#PYTHON_FRONTLINE_build_cms_directory_20260618.py · Script is self-contained. BASE_DIR is derived from the script file location — all three source xlsx files must be in the same directory as the script.</div>
+    <div class="callout callout-red" style="margin-top:10px"><b>Important:</b> If source files are updated (e.g., new provider added mid-year), re-run the script to regenerate the output. The script fully overwrites CMS_Audit_Provider_Directory_2023_2024_2025.xlsx each run.</div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — GOVERNANCE
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Governance Trail — Scope Decisions &amp; Authorization Record</div>
+    <table class="mini-table">
+      <tbody>
+      <tr><th>Decision</th><th>Ruling</th><th>Source / Authority</th><th>Date</th></tr>
+      <tr><td>LTSS — Skilled Nursing Facilities (SNF)</td><td style="color:#7de0b2;font-weight:700">YES — Include in j.</td><td>Dr. Alan Conrad (CMO) &amp; Cecy Villa</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Nursing Facilities – Residential Care (RCF)</td><td style="color:#7de0b2;font-weight:700">YES — Include in j.</td><td>Dr. Alan Conrad (CMO) &amp; Cecy Villa</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Community Based Adult Services (CBAS)</td><td style="color:#7de0b2;font-weight:700">YES — Include in j.</td><td>Dr. Alan Conrad (CMO) &amp; Cecy Villa</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Home Health Care (HHC)</td><td style="color:#ff9090;font-weight:700">NO — Exclude from j.</td><td>Dr. Alan Conrad (CMO)</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Hospice</td><td style="color:#ff9090;font-weight:700">NO — Exclude from j.</td><td>Dr. Alan Conrad (CMO)</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Intermediate Care Facility (ICF)</td><td style="color:#ff9090;font-weight:700">NO — Exclude from j.</td><td>Dr. Alan Conrad (CMO)</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Long-Term Acute Care Hospital (HOSLTACH)</td><td style="color:#ff9090;font-weight:700">NO — Exclude from j.</td><td>Dr. Alan Conrad (CMO) · Walter Carr confirmed Option B</td><td>6/15/2026 · 6/17/2026</td></tr>
+      <tr><td>LTSS — Inpatient Rehabilitation (IPREHAB)</td><td style="color:#ff9090;font-weight:700">NO — Exclude from j.</td><td>Dr. Alan Conrad (CMO)</td><td>6/15/2026</td></tr>
+      <tr><td>LTSS — Mental Health Hospitals</td><td style="color:#ff9090;font-weight:700">NO — CMC Only; goes to g. Hospital</td><td>Email chain (Johanna Tellechea)</td><td>6/11/2026</td></tr>
+      <tr><td>OB/GYN — Dual category placement</td><td style="color:#7de0b2;font-weight:700">YES — Appears in BOTH c. OB/GYN AND f. Specialists</td><td>Walter Carr / Johanna Tellechea</td><td>6/17/2026</td></tr>
+      <tr><td>i. Pediatric Dental — contracted providers</td><td style="color:#ff9090;font-weight:700">N/A — No contracted Pediatric Dental providers</td><td>Johanna Tellechea (Credentialing Svcs Mgr)</td><td>6/17/2026</td></tr>
+      <tr><td>Source file scope — line of business</td><td style="color:#7de0b2;font-weight:700">CHG (MC line of business only)</td><td>Heidi Arndt audit request · Johanna Tellechea confirmation</td><td>6/11/2026</td></tr>
+      <tr><td>Output format</td><td style="color:#7de0b2;font-weight:700">Excel (.xlsx) — searchable, non-duplicated per CMS instruction</td><td>CMS Audit Request (Heidi Arndt) · CFR § 438.68</td><td>6/11/2026</td></tr>
+      <tr><td>Federal Fiscal Year scope</td><td style="color:#7de0b2;font-weight:700">2023, 2024, and 2025 — January 1 of each FFY</td><td>Heidi Arndt · Johanna Tellechea</td><td>6/11/2026</td></tr>
+      <tr><td>python-calamine dependency</td><td style="color:#7de0b2;font-weight:700">Installed on Python 3.11 via pip install python-calamine</td><td>Walter Carr (script author)</td><td>6/17/2026</td></tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:18px">
+      <b>Internal Deadline (per Heidi Arndt):</b> 6/20/2026. Output file CMS_Audit_Provider_Directory_2023_2024_2025.xlsx is ready for submission. Recommend Johanna Tellechea and Dr. Conrad review before forwarding to CMS. Include written note on category i. Pediatric Dental = N/A.
+    </div>
+    <div class="callout callout-green" style="margin-top:10px">
+      <b>Script Author &amp; Version:</b> Walter Carr · CHGSD Informatics · #PYTHON_FRONTLINE_build_cms_directory_20260618.py · python-calamine 0.7.0 · Python 3.11 · openpyxl 3.x · pandas 2.x · Produced 06/17/2026.
+    </div>
+  </div>
+</div><!-- /Slide 4 -->
+
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft')  buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+
+</body>
+</html>

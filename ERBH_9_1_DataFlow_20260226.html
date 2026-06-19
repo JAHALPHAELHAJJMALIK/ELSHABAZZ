@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERBH 9.1 Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  .diagram {
+    position: relative;
+    width: 1540px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 780px;
+  }
+
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 380px;
+  }
+
+  .system-box.enrollment {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 300px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 118px;
+    color: #f0f0f0;
+  }
+
+  /* ===== STEP BOXES ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 28px 0 6px;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 180px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 28px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 185px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== EXCLUSION FILTERS ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 165px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== VALUE SET ROW ===== */
+  .valueset-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .valueset-box {
+    background: rgba(255, 160, 60, 0.10);
+    border: 1px dashed rgba(255, 160, 60, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffd0a0;
+    min-width: 155px;
+    max-width: 230px;
+  }
+
+  .valueset-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ffb070;
+    margin-bottom: 2px;
+  }
+
+  /* ===== OUTPUT CONTAINERS ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1380px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #e8e0ff;
+  }
+
+  /* ===== RACE/ETH STRATIFICATION OUTPUT ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1380px;
+    margin: 0 auto;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 110px;
+    color: #d0ffe0;
+  }
+
+  .universe-module.eth {
+    background: rgba(100, 180, 220, 0.25);
+    border-color: rgba(100, 180, 220, 0.45);
+    color: #d0f0ff;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== CHANGE LOG ===== */
+  .changelog {
+    margin-top: 28px;
+    width: 1380px;
+    background: rgba(40,40,40,0.8);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 11px;
+    color: #aaa;
+    line-height: 1.7;
+  }
+
+  .changelog strong {
+    color: #ccc;
+    font-size: 11.5px;
+  }
+
+  .changelog .tag {
+    display: inline-block;
+    background: rgba(100,180,255,0.15);
+    border: 1px solid rgba(100,180,255,0.3);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 10px;
+    color: #88ccff;
+    margin-right: 4px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-qnxt    { background: rgba(255,140,140,0.35); }
+  .swatch-inf     { background: rgba(140,200,255,0.35); }
+  .swatch-enroll  { background: rgba(255,200,100,0.35); }
+  .swatch-excl    { background: rgba(255,90,90,0.25); border-style: dashed; }
+  .swatch-valset  { background: rgba(255,160,60,0.25); border-style: dashed; }
+  .swatch-summary { background: rgba(160,140,220,0.35); }
+  .swatch-strat   { background: rgba(100,220,160,0.35); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>CMS Core 9.1 — Emergency Department BH Visits &nbsp;&#8212;&nbsp; Data Flow Diagram</h2>
+    <div class="subtitle">LOB: D-SNP &nbsp;|&nbsp; Owner: Jan Muyot &nbsp;|&nbsp; Stored Procedure: INFORMATICS2.dbo.sp_ERBH &nbsp;|&nbsp; Reporting Period: Standard Calendar Year (Annually) &nbsp;|&nbsp; Generated: 02/26/2026</div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+
+      <!-- QNXT -->
+      <div class="system-box qnxt">
+        <span class="sys-label">QNXT System (HMOPROD_PlanData)</span>
+        <div class="module-row">
+          <div class="module">Claims (HDR)<br><span style="font-size:10px;color:#aaa;">dbo.claim<br>startdate, okpaydate</span></div>
+          <div class="module">Claims (DTL)<br><span style="font-size:10px;color:#aaa;">dbo.claimdetail<br>servcode, revcode</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">dbo.member<br>memid, dob, fullname</span></div>
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.provider<br>dbo.affiliation</span></div>
+          <div class="module">Contracts<br><span style="font-size:10px;color:#aaa;">dbo.contractinfo<br>dbo.svccode</span></div>
+        </div>
+      </div>
+
+      <!-- INFORMATICS -->
+      <div class="system-box informatics">
+        <span class="sys-label">INFORMATICS Reference (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">LOB View<br><span style="font-size:10px;color:#aaa;">uvw_LINE_OF_<br>BUSINESS</span></div>
+          <div class="module">Paid Claims<br><span style="font-size:10px;color:#aaa;">uvw_CLAIMS_<br>PAID</span></div>
+          <div class="module">Value Sets<br><span style="font-size:10px;color:#aaa;">CAValueSets<br>(ValidAsOf)</span></div>
+        </div>
+      </div>
+
+      <!-- EnrollmentManager -->
+      <div class="system-box enrollment">
+        <span class="sys-label">EnrollmentManager (Race / Eth)</span>
+        <div class="module-row">
+          <div class="module">Member<br><span style="font-size:10px;color:#aaa;">ClientIndexNumber<br>(CIN)</span></div>
+          <div class="module">EthnicityIndustry<br><span style="font-size:10px;color:#aaa;">EIC Code<br>OMB Crosswalk</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ARROWS -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+    <div class="section-label">&#9660; Execution Sequence</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>CA Value Set Deploy</strong>
+        #CAValSet from<br>[INFORMATICS].[dbo].<br>CAValueSets<br>(MAX ValidAsOf)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>Paid + Denied Claims</strong>
+        #PaidDeniedClaims<br>uvw_CLAIMS_PAID<br>UNION dbo.claim<br>(status = 'DENIED')
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 03</span>
+        <strong>Shell Claim List</strong>
+        #SHELLclaimlist_ERBH<br>LOB = CMC/DSNP<br>By DOS (@RangeStart<br>– @RangeEnd)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 04</span>
+        <strong>Shell Union00 Build</strong>
+        INFORMATICS2.dbo.<br>SHELLunion00_ERBH<br>Full claim-line detail<br>+ member demographics
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 05</span>
+        <strong>QUPD Enrichment</strong>
+        HealthPlanID / CIN,<br>Proc Descr, Dx codes,<br>Prov Name, PCP,<br>contractedVerification
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 06</span>
+        <strong>ERBH Event Build</strong>
+        #ERBH — EventID<br>= memid + DOS<br>Inpatient/OBS<br>value set match
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 07</span>
+        <strong>ERBH Output Tables</strong>
+        ERBHelement<br>ERBHreview<br>ERBHreviewDISTINCT<br>(INFORMATICS.dbo)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 08</span>
+        <strong>Race/Eth Strat</strong>
+        #baselinememiso<br>#MemberEnrollment<br>EthnicityRace<br>ERBH_EthRace
+      </div>
+    </div>
+
+    <!-- ARROWS -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 3: DERIVED DATA ELEMENTS ===== -->
+    <div class="section-label">&#9660; Derived Data Elements</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Member Demographics</strong>
+        HealthPlanID, CIN,<br>DOB, Age (Chronological),<br>Fullname, MEMNM
+      </div>
+      <div class="data-element">
+        <strong>Event Identifier</strong>
+        EventID = memid +<br>DOS (Primary / Thru)<br>Unique person-visit key
+      </div>
+      <div class="data-element">
+        <strong>Claim Categorization</strong>
+        PaidClaims, DeniedClaims,<br>Adjudicated Final Status,<br>Orig/Reverse/Append ID
+      </div>
+      <div class="data-element">
+        <strong>Encounter Type</strong>
+        CLM TYPE, formtype,<br>BILL_TYPE (BillClass+<br>FreqCode), POS
+      </div>
+      <div class="data-element">
+        <strong>Procedure / DX</strong>
+        PROCEDURE_CODE (CPT),<br>REVCDE, DIAGNOSIS 1–9,<br>prindiag, DRG
+      </div>
+      <div class="data-element">
+        <strong>Contract / PAR Status</strong>
+        contractedVerification,<br>PROVIDER_PAR_STAT,<br>capitation flag
+      </div>
+      <div class="data-element">
+        <strong>Date Dimensions</strong>
+        DOS, DOSTHRU,<br>Received, Post, Adjud,<br>CheckDate (YEAR/MO/MTH)
+      </div>
+      <div class="data-element">
+        <strong>LOB Assignment</strong>
+        LINE_OF_BUSINESS<br>CMC → DSNP (C001)<br>programid (0850/0851)
+      </div>
+    </div>
+
+    <!-- ARROWS -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: CA VALUE SETS APPLIED ===== -->
+    <div class="section-label">&#9660; CA Value Sets Applied (CAValueSets — @MaxValidAsOf)</div>
+
+    <div class="valueset-row">
+      <div class="valueset-box">
+        <strong>ED Value Set</strong>
+        Emergency Dept visits<br>via facility claims<br>(REV + CPT codes)
+      </div>
+      <div class="valueset-box">
+        <strong>Mental Health Diagnosis</strong>
+        BH Principal Dx<br>per Mental Health<br>Diagnosis value set
+      </div>
+      <div class="valueset-box">
+        <strong>Inpatient Stay</strong>
+        Acute + Nonacute IP stays<br>Inpatient Stay + Except<br>Psychiatric Residential
+      </div>
+      <div class="valueset-box">
+        <strong>Nonacute Inpatient Stay</strong>
+        Nonacute IP Stay Other<br>Than BH Accommodations<br>(REV + CPT)
+      </div>
+      <div class="valueset-box">
+        <strong>Observation Stay</strong>
+        Observation value set<br>(REV + CPT codes)<br>for IP exclusion logic
+      </div>
+    </div>
+
+    <!-- ARROWS -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 5: EXCLUSION FILTERS ===== -->
+    <div class="section-label">&#9660; Exclusion Filters Applied (CMS Core 9.1 Spec)</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>Pending Claims</strong>
+        Non-adjudicated claims<br>excluded — Final status<br>only (Paid + Denied)
+      </div>
+      <div class="filter-box">
+        <strong>IP Admission Same DOS</strong>
+        ED visit → Inpatient<br>admission same date<br>excluded per spec
+      </div>
+      <div class="filter-box">
+        <strong>Same Claim as IP Stay</strong>
+        ED billed on same<br>claim as IP stay<br>= excluded
+      </div>
+      <div class="filter-box">
+        <strong>Void Claims</strong>
+        Header/Detail status<br>LIKE '%VOID%'
+      </div>
+      <div class="filter-box">
+        <strong>Adjusted Claims</strong>
+        claimid LIKE '%A%'
+      </div>
+      <div class="filter-box">
+        <strong>Reversals</strong>
+        claimid LIKE '%R%'<br>or status REVERS*
+      </div>
+      <div class="filter-box">
+        <strong>Encounters / Cap</strong>
+        isencounter, manual-<br>encounter, capitated<br>flag excluded
+      </div>
+      <div class="filter-box">
+        <strong>Out-of-Range DOS</strong>
+        CAST(startdate) NOT<br>BETWEEN @RangeStart<br>AND @RangeEnd
+      </div>
+    </div>
+
+    <!-- ARROWS -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: OUTPUT TABLES ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">ERBH Output Tables &nbsp;&#8594;&nbsp; INFORMATICS.dbo — ERBHelement / ERBHreview / ERBHreviewDISTINCT</span>
+        <div class="report-modules">
+          <div class="report-module">ERBHelement<br><span style="font-size:10px;opacity:0.7;">Full event grain<br>from #ERBH</span></div>
+          <div class="report-module">ERBHreview<br><span style="font-size:10px;opacity:0.7;">Review-level<br>output</span></div>
+          <div class="report-module">ERBHreview<br>DISTINCT<br><span style="font-size:10px;opacity:0.7;">Deduped<br>event view</span></div>
+          <div class="report-module">Rate Calc<br><span style="font-size:10px;opacity:0.7;">A / Total Member<br>Months × 10,000</span></div>
+          <div class="report-module">Data Element A<br><span style="font-size:10px;opacity:0.7;">ED BH visits<br>count (qualified)</span></div>
+          <div class="report-module">Member Months<br><span style="font-size:10px;opacity:0.7;">LOB: D-SNP<br>Denominator</span></div>
+          <div class="report-module">HPMS<br>Submission<br><span style="font-size:10px;opacity:0.7;">Health Plan<br>Mgmt System</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARROWS -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 7: RACE/ETH STRATIFICATION ===== -->
+    <div class="output-section">
+      <div class="universe-box">
+        <span class="sys-label">Race / Ethnicity Stratification &nbsp;&#8594;&nbsp; INFORMATICS.dbo.ERBH_EthRace &nbsp;|&nbsp; C002 Added: 02/26/2026 per ERBH 9.1 Core 9.1 Narrative — 2026.docx</span>
+        <div class="universe-modules">
+          <div class="universe-module">Race – White<br><span style="font-size:10px;opacity:0.7;">OMBdesc = 'White'<br>Numberrace = 1</span></div>
+          <div class="universe-module">Race – Black /<br>African American<br><span style="font-size:10px;opacity:0.7;">OMBdesc match<br>Numberrace = 1</span></div>
+          <div class="universe-module">Race – AI/<br>Alaska Native<br><span style="font-size:10px;opacity:0.7;">OMBdesc match<br>Numberrace = 1</span></div>
+          <div class="universe-module">Race – Asian<br><span style="font-size:10px;opacity:0.7;">OMBdesc match<br>Numberrace = 1</span></div>
+          <div class="universe-module">Race – NH /<br>Pacific Islander<br><span style="font-size:10px;opacity:0.7;">OMBdesc match<br>Numberrace = 1</span></div>
+          <div class="universe-module">Race – Some<br>Other Race<br><span style="font-size:10px;opacity:0.7;">OMBdesc = 'Other'<br>Numberrace = 1</span></div>
+          <div class="universe-module">Race – Two or<br>More Races<br><span style="font-size:10px;opacity:0.7;">Numberrace ≥ 2<br>#multiplerace</span></div>
+          <div class="universe-module">Race – Asked<br>No Answer (H)<br><span style="font-size:10px;opacity:0.7;">Hispanic Eth<br>+ No Race flag</span></div>
+          <div class="universe-module">Race – Asked<br>No Answer (NH)<br><span style="font-size:10px;opacity:0.7;">Catch-all<br>default flag</span></div>
+        </div>
+        <div class="universe-modules" style="margin-top:10px;">
+          <div class="universe-module eth">Ethnicity –<br>Hispanic / Latino<br><span style="font-size:10px;opacity:0.7;">OMBdesc = 'Hispanic<br>or Latino'</span></div>
+          <div class="universe-module eth">Ethnicity –<br>Not Hispanic<br><span style="font-size:10px;opacity:0.7;">Eth_Hispanic = 0<br>+ non-Hisp OMB</span></div>
+          <div class="universe-module eth">Ethnicity –<br>Asked No Answer<br><span style="font-size:10px;opacity:0.7;">Asked flag<br>(staged)</span></div>
+          <div class="universe-module eth">Ethnicity –<br>Unknown<br><span style="font-size:10px;opacity:0.7;">Catch-all<br>H=0, NH=0</span></div>
+          <div class="universe-module eth">Member Count<br><span style="font-size:10px;opacity:0.7;">COUNT DISTINCT<br>memid</span></div>
+          <div class="universe-module eth">Event Count<br><span style="font-size:10px;opacity:0.7;">COUNT DISTINCT<br>EventID</span></div>
+          <div class="universe-module eth">H4377 / D-SNP<br>Reporting Period<br><span style="font-size:10px;opacity:0.7;">@RangeStart –<br>@RangeEnd</span></div>
+          <div class="universe-module eth">ERBH.xlsx<br>Deliverable<br><span style="font-size:10px;opacity:0.7;">\\fileserver01\<br>...\WCarr\REGULATORY</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CHANGE LOG ===== -->
+    <div class="changelog">
+      <strong>Change Log — sp_ERBH</strong><br>
+      <span class="tag">C001</span> Reset CMC → DSNP: LOB relabeled from 'CMC' to 'DSNP' effective 01/01/2023. D-SNP Medi-Cal programid = QMXHPQ0851; Medicare programid = QMXHPQ0850.<br>
+      <span class="tag">C002</span> <strong>20260226:</strong> Race / Ethnicity stratification added to output per <em>ERBH 9.1 Core 9.1 Narrative — 2026.docx</em>. New tables: #baselinememiso, #MemberEnrollmentEthnicityRace, #multiplerace → final output to <strong>INFORMATICS.dbo.ERBH_EthRace</strong>. Source: EnrollmentManager.dbo (Member, healthcoverage, healthcoverageoverlay, EthnicityIndustryCode) joined via INFORMATICS.dbo.Ethnicity_EICandOMBDesc_XWalk.
+    </div>
+
+  </div><!-- end .diagram -->
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>QNXT System (HMOPROD_PlanData)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-inf"></div>INFORMATICS Reference Views (SQLPROD02)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-enroll"></div>EnrollmentManager (Race / Ethnicity)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-valset"></div>CA Value Sets Applied</div>
+    <div class="legend-item"><div class="legend-swatch swatch-excl"></div>Exclusion Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-summary"></div>ERBH Output Tables</div>
+    <div class="legend-item"><div class="legend-swatch swatch-strat"></div>Race / Ethnicity Stratification (ERBH_EthRace)</div>
+  </div>
+
+</body>
+</html>

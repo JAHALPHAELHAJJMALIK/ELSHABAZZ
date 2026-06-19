@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contracting Case Branch Reference | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1400px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:19px;letter-spacing:.3px;color:#fff;font-weight:700}
+  .brand div{font-size:12px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+  .nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}
+  .nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}
+  .slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden;margin-bottom:18px}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .card-title{font-size:22px;line-height:1.1;margin:8px 0 10px;color:#fff}
+  .subtitle{color:#bdbdbd;font-size:14px;line-height:1.55}
+
+  /* SECTION LABEL */
+  .section-label{text-align:center;font-size:11px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:20px 0 10px}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:60px;margin:12px 0 6px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:20px;background:#ccc}
+  .head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* REFERENCE TABLE */
+  .ref-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:0}
+  .ref-table th{background:#1e1e1e;padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .ref-table th.th-scenario{width:220px}
+  .ref-table th.th-trigger{width:260px}
+  .ref-table th.th-code{width:auto}
+  .ref-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.5}
+  .ref-table tr:hover td{background:rgba(255,255,255,.03)}
+  .ref-table td.scenario{font-weight:700;color:#eee;font-size:12.5px}
+  .ref-table td.trigger{font-family:'Courier New',monospace;font-size:11.5px;color:#8ee8f0}
+  .ref-table td.code-cell{font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;word-break:break-word}
+  .ref-table td.code-cell .cmt{color:#666;font-style:italic;font-size:11px}
+  .ref-table td.code-cell .kw{color:#c4b8f0}
+  .ref-table td.code-cell .fn{color:#7de0b2}
+  .ref-table td.code-cell .num{color:#ffb060}
+
+  /* GROUP HEADER ROWS */
+  .group-row td{background:#1a1a1a;padding:8px 14px;font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.10)}
+  .group-blue td{color:#9dd6ff;border-left:3px solid rgba(100,180,255,.55)}
+  .group-green td{color:#7de0b2;border-left:3px solid rgba(100,220,160,.55)}
+  .group-gold td{color:#ffe08a;border-left:3px solid rgba(255,200,100,.55)}
+  .group-purple td{color:#c4b8f0;border-left:3px solid rgba(160,140,220,.55)}
+  .group-cyan td{color:#8ee8f0;border-left:3px solid rgba(120,230,240,.55)}
+  .group-orange td{color:#ffb060;border-left:3px solid rgba(255,170,80,.55)}
+  .group-red td{color:#ff9090;border-left:3px solid rgba(255,100,100,.55)}
+  .group-pink td{color:#ffacd8;border-left:3px solid rgba(255,140,200,.55)}
+
+  /* BADGES */
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:2px 9px;font-size:10.5px;color:#9dd6ff;display:inline-block;margin:2px 3px 2px 0;font-family:'Book Antiqua',Palatino,Georgia,serif}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.purple{background:rgba(160,140,220,.12);border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .badge.cyan{background:rgba(120,230,240,.12);border-color:rgba(120,230,240,.35);color:#8ee8f0}
+  .badge.orange{background:rgba(255,170,80,.12);border-color:rgba(255,170,80,.35);color:#ffb060}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+
+  /* BADGE ROW */
+  .badge-row{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 4px}
+
+  /* CALLOUT */
+  .callout{margin-top:16px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .callout.gold{background:rgba(255,200,100,.06);border-left-color:rgba(255,200,100,.45)}
+  .callout.gold b{color:#ffe08a}
+  .callout.red{background:rgba(255,100,100,.06);border-left-color:rgba(255,100,100,.45)}
+  .callout.red b{color:#ff9090}
+  .callout.green{background:rgba(100,220,160,.06);border-left-color:rgba(100,220,160,.45)}
+  .callout.green b{color:#7de0b2}
+
+  /* PARAMS / METRIC GRID */
+  .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:17px;color:#fff;font-family:'Courier New',monospace}
+  .metric span{font-size:11.5px;color:#aaa;line-height:1.4;display:block;margin-top:4px}
+
+  /* PROVIDER GRID */
+  .provider-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
+  .provider-card{background:#232323;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:16px}
+  .provider-card .p-name{font-size:13.5px;font-weight:700;color:#fff;margin-bottom:4px}
+  .provider-card .p-ids{font-family:'Courier New',monospace;font-size:11px;color:#aaa;margin-bottom:8px}
+  .provider-card .p-archetype{font-size:11px;margin-bottom:8px}
+  .provider-card .p-else{font-size:11px;color:#888;margin-top:8px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .p-border-blue{border-top:2px solid rgba(100,180,255,.50)}
+  .p-border-green{border-top:2px solid rgba(100,220,160,.50)}
+  .p-border-gold{border-top:2px solid rgba(255,200,100,.50)}
+  .p-border-purple{border-top:2px solid rgba(160,140,220,.50)}
+  .p-border-cyan{border-top:2px solid rgba(120,230,240,.50)}
+  .p-border-pink{border-top:2px solid rgba(255,140,200,.50)}
+
+  /* LEGEND ROW */
+  .legend-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa}
+  .swatch{width:20px;height:12px;border-radius:3px;border:1.5px solid}
+
+  /* MINI TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px}
+  .mini-table th{background:#252525;padding:9px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+
+  @media print{.topbar .nav{display:none}.slide{display:block!important}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <h1>Contracting Proposal — Case Branch Reference Card</h1>
+    <div>CHGSD · INFORMATICS · SQLPROD02 · DUB C 2.0 · Generated 05/13/2026 · WCARR · Six-provider corpus: Select Specialty, UCSD Medical, UCSD Specialty, Rady, Allstar PT, Girard Ortho</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Pattern Library</button>
+    <button onclick="showSlide(1,this)">② Provider Registry</button>
+    <button onclick="showSlide(2,this)">③ Prompt Template</button>
+    <button onclick="showSlide(3,this)">④ QA Checklist</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — PATTERN LIBRARY
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="card">
+    <div class="kicker">Universal Constants — apply to every contracting script without exception</div>
+    <div class="metric-grid">
+      <div class="metric">
+        <strong>EQUIV × 1.05</strong>
+        <span>Counter_Offer_Payment — hybrid ISNULL fallback to (PNA + TRI) × 1.05. Zero exceptions across all six providers.</span>
+      </div>
+      <div class="metric">
+        <strong>'C01350904'</strong>
+        <span>@SETfeesched — TRI Medi-Cal hospital fee schedule. Default for all hospital-type providers.</span>
+      </div>
+      <div class="metric">
+        <strong>@currentmultiplier = 1</strong>
+        <span>Prevailing services providers. DECLARE at top. @CurrentAnesthesiaRate = 44.00 for anesthesia scripts.</span>
+      </div>
+      <div class="metric">
+        <strong>ELSE rule</strong>
+        <span>Hospital / LTAC → return PAID_NET_AMT. Professional / specialty → return 0. Stated explicitly in every prompt.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Pattern A — Per Diem (Rev Code basis) · trigger field: [HCT LOGIC DAY(S)]</div>
+    <div class="badge-row">
+      <span class="badge green">Per Diem</span>
+      <span class="badge cyan">Rev Code</span>
+      <span class="badge">Hospital / LTAC</span>
+      <span class="badge gold">HCT LOGIC DAY(S)</span>
+    </div>
+
+    <table class="ref-table" style="margin-top:12px">
+      <thead>
+        <tr>
+          <th class="th-scenario">Scenario</th>
+          <th class="th-trigger">Rev Code Trigger</th>
+          <th class="th-code">Proposed_Rate_Payment Expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group-blue"><td colspan="3">Psychiatric / Behavioral Health (UCSD Medical Center pattern)</td></tr>
+        <tr>
+          <td class="scenario">IP Psych — Mild / Moderate</td>
+          <td class="trigger">revcode IN ('0114','0124','0134','0144','0154','0204')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">1400</span> <span class="cmt">-- $1,400/day</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">ECT</td>
+          <td class="trigger">revcode = '0901'</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">900</span> <span class="cmt">-- $900/day</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">OP Psych — Mild / Moderate</td>
+          <td class="trigger">revcode = '0904'</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">475</span> <span class="cmt">-- $475/day</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Eating Disorder — Half Day</td>
+          <td class="trigger">revcode = '0912'</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">900</span> <span class="cmt">-- $900/day</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Eating Disorder — Full Day</td>
+          <td class="trigger">revcode = '0913'</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">1350</span> <span class="cmt">-- $1,350/day</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Admin Day</td>
+          <td class="trigger">revcode IN ('0169')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">880</span> <span class="cmt">-- UCSD $880/day · Select Specialty $740/day</span></td>
+        </tr>
+
+        <tr class="group-cyan"><td colspan="3">LTAC — Long-Term Acute Care (Select Specialty Hospital pattern)</td></tr>
+        <tr>
+          <td class="scenario">Med / Surg</td>
+          <td class="trigger">revcode IN ('0120')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">2191</span> <span class="cmt">-- $2,191/day (current $2,087)</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">ICU / CCU</td>
+          <td class="trigger">revcode IN ('0206')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">2401</span> <span class="cmt">-- $2,401/day (current $2,287)</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Intermediate Care</td>
+          <td class="trigger">revcode IN ('0200')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">2611</span> <span class="cmt">-- $2,611/day (current $2,487)</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Step Down</td>
+          <td class="trigger">revcode IN ('0169')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>([HCT LOGIC DAY(S)],<span class="num">0</span>),<span class="num">0</span>) * <span class="num">740</span> <span class="cmt">-- $740/day (current $705)</span></td>
+        </tr>
+
+        <tr class="group-gold"><td colspan="3">Home Infusion — Unlisted Therapies (Rady Children's pattern · 4.56% uplift applied to base)</td></tr>
+        <tr>
+          <td class="scenario">Unlisted Therapies</td>
+          <td class="trigger">CPT LIKE 'S9%' — exclusion list applies</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>([HCT LOGIC DAY(S)],<span class="num">0</span>) * (<span class="num">163</span> * <span class="num">1.0456</span>) <span class="cmt">-- $170.43/day</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Antibiotics</td>
+          <td class="trigger">CPT IN ('S9494','S9497','S9500'–'S9504')</td>
+          <td class="code-cell"><span class="fn">NULLIF</span>([HCT LOGIC DAY(S)],<span class="num">0</span>) * (<span class="num">188</span> * <span class="num">1.0456</span>) <span class="cmt">-- $196.57/day</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout gold" style="margin-top:14px">
+      <b>QA — HCT LOGIC DAY(S) NULL check (run before delivery):</b><br>
+      SELECT revcode, COUNT(*) AS Claim_Lines, SUM(CASE WHEN [HCT LOGIC DAY(S)] IS NULL THEN 1 ELSE 0 END) AS NULL_Day_Count FROM [TABLE] WHERE revcode IN ('0120','0169','0200','0206') AND [ClaimCategory] IN ('Paid') GROUP BY revcode
+      — Expected: NULL_Day_Count = 0 for all LTAC codes.
+    </div>
+  </div>
+
+
+  <div class="card">
+    <div class="kicker">Pattern B — Reverse-Engineer "Do the Math Fx" · % of base via multiplier decomposition</div>
+    <div class="badge-row">
+      <span class="badge purple">DRG + SOI</span>
+      <span class="badge orange">Bill Type</span>
+      <span class="badge red">Implants / Billed</span>
+      <span class="badge">Formula: PNA ÷ current × proposed</span>
+    </div>
+
+    <table class="ref-table" style="margin-top:12px">
+      <thead>
+        <tr>
+          <th class="th-scenario">Scenario</th>
+          <th class="th-trigger">Trigger Condition</th>
+          <th class="th-code">Proposed_Rate_Payment Expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group-purple"><td colspan="3">DRG-Based — reverse engineer from current APR DRG multiplier</td></tr>
+        <tr>
+          <td class="scenario">Car-T Cell Therapy</td>
+          <td class="trigger">[finalDRG+SOI] LIKE '008%[1-4]'</td>
+          <td class="code-cell">((PNA + TRI) / <span class="num">1.29</span>) * <span class="num">1.30</span> <span class="cmt">-- 129% → 130% APR DRG</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Kidney Transplant</td>
+          <td class="trigger">[finalDRG+SOI] LIKE '440%[1-4]' OR IN ('650','651','652')</td>
+          <td class="code-cell">((PNA + TRI) / <span class="num">1.97</span>) * <span class="num">2.00</span> <span class="cmt">-- 197% → 200% APR DRG</span></td>
+        </tr>
+        <tr class="group-orange"><td colspan="3">Bill Type — inpatient / outpatient catch-all (UCSD Medical Center)</td></tr>
+        <tr>
+          <td class="scenario">All Other Inpatient</td>
+          <td class="trigger">QNXTbilltype LIKE '1[1-2]%'</td>
+          <td class="code-cell">(PNA / <span class="num">1.15</span>) * <span class="num">1.25</span> <span class="cmt">-- 115% → 125% Medi-Cal APR DRG</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">All Other Outpatient</td>
+          <td class="trigger">QNXTbilltype LIKE '1[3-4]%'</td>
+          <td class="code-cell">(PNA / <span class="num">1.29</span>) * <span class="num">1.30</span> <span class="cmt">-- 129% → 130% Medi-Cal FS</span></td>
+        </tr>
+        <tr class="group-red"><td colspan="3">Flat Uplift — Rady Children's (4.56% YR1 · applies uniformly to every branch including ELSE)</td></tr>
+        <tr>
+          <td class="scenario">All Service Lines — YR1</td>
+          <td class="trigger">All branches including ELSE</td>
+          <td class="code-cell">(PNA + TRI) * <span class="num">1.0456</span> <span class="cmt">-- YR2: replace 1.0456 with 1.0936 (compound)</span></td>
+        </tr>
+        <tr class="group-pink"><td colspan="3">Implants — billed charges basis</td></tr>
+        <tr>
+          <td class="scenario">Implants</td>
+          <td class="trigger">revcode IN ('0274','0275','0276','0278','0624')</td>
+          <td class="code-cell">(<span class="fn">NULLIF</span>(<span class="fn">ISNULL</span>(BILLED_AMT,<span class="num">0</span>),<span class="num">0</span>) + TRI) * <span class="num">0.45</span> <span class="cmt">-- 45% of billed charges</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <div class="card">
+    <div class="kicker">Pattern C — LOB-Split Hybrid (Prevailing Services) · EQUIV_allow_compare first, PNA fallback</div>
+    <div class="badge-row">
+      <span class="badge purple">LOB</span>
+      <span class="badge pink">Hybrid fallback</span>
+      <span class="badge">Professional / specialty providers</span>
+    </div>
+
+    <table class="ref-table" style="margin-top:12px">
+      <thead>
+        <tr>
+          <th class="th-scenario">Scenario</th>
+          <th class="th-trigger">LOB Trigger</th>
+          <th class="th-code">Proposed_Rate_Payment Expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group-green"><td colspan="3">Prevailing @ 100% — Allstar PT pattern (CAST('Prevailing Services') category)</td></tr>
+        <tr>
+          <td class="scenario">Medi-Cal @ 100%</td>
+          <td class="trigger">LINE_OF_BUSINESS IN ('MEDI-CAL')</td>
+          <td class="code-cell"><span class="fn">ISNULL</span>((<span class="fn">NULLIF</span>(EQUIV,<span class="num">0</span>) * <span class="num">1.00</span>),((PNA + TRI) * <span class="num">1.00</span>))</td>
+        </tr>
+        <tr>
+          <td class="scenario">DSNP / CSNP @ 100%</td>
+          <td class="trigger">LINE_OF_BUSINESS IN ('DSNP','CSNP')</td>
+          <td class="code-cell"><span class="fn">ISNULL</span>((<span class="fn">NULLIF</span>(EQUIV,<span class="num">0</span>) * <span class="num">1.00</span>),((PNA + TRI) * <span class="num">1.00</span>))</td>
+        </tr>
+        <tr class="group-gold"><td colspan="3">Proposed Uplift @ 130% — Girard Ortho pattern (HYBRID: EQUIV first; Medi-Cal denominator = current 110%)</td></tr>
+        <tr>
+          <td class="scenario">Medi-Cal @ 130% — HYBRID</td>
+          <td class="trigger">LINE_OF_BUSINESS IN ('MEDI-CAL')</td>
+          <td class="code-cell"><span class="fn">ISNULL</span>((<span class="fn">NULLIF</span>(EQUIV,<span class="num">0</span>) * <span class="num">1.30</span>),(((PNA + TRI) / <span class="num">1.10</span>) * <span class="num">1.30</span>)) <span class="cmt">-- divide out current 110% first</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">DSNP / CSNP @ 130%</td>
+          <td class="trigger">LINE_OF_BUSINESS IN ('DSNP','CSNP')</td>
+          <td class="code-cell"><span class="fn">ISNULL</span>((<span class="fn">NULLIF</span>(EQUIV,<span class="num">0</span>) * <span class="num">1.30</span>),((PNA + TRI) * <span class="num">1.30</span>))</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <div class="card">
+    <div class="kicker">Pattern D — Anesthesia (Nested LOB sub-branch) · @CurrentAnesthesiaRate = 44.00</div>
+    <div class="badge-row">
+      <span class="badge gold">CPT / HCPCS</span>
+      <span class="badge purple">LOB nested</span>
+      <span class="badge red">ISNUMERIC guard required</span>
+    </div>
+
+    <table class="ref-table" style="margin-top:12px">
+      <thead>
+        <tr>
+          <th class="th-scenario">Scenario</th>
+          <th class="th-trigger">Trigger / Guard</th>
+          <th class="th-code">Proposed_Rate_Payment Expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group-gold"><td colspan="3">CPT String-Safe Guard — prevents Msg 245 CAST failure on alphanumeric CPT codes (e.g. '0042T')</td></tr>
+        <tr>
+          <td class="scenario">Anesthesia guard</td>
+          <td class="trigger">ISNUMERIC(SUBSTRING(CPT,1,5))=1 AND SUBSTRING(CPT,1,5) BETWEEN '00100' AND '01999'</td>
+          <td class="code-cell"><span class="cmt">-- string comparison only · no CAST · safe · ISNUMERIC alone does NOT protect CAST from execution plan short-circuit</span></td>
+        </tr>
+        <tr class="group-blue"><td colspan="3">Nested LOB sub-CASE — only pattern in corpus requiring an inner CASE within the outer CASE</td></tr>
+        <tr>
+          <td class="scenario">Medi-Cal · $44 → $50/ASA unit</td>
+          <td class="trigger">LINE_OF_BUSINESS IN ('MEDI-CAL') [inner branch]</td>
+          <td class="code-cell"><span class="fn">TRY_CONVERT</span>(decimal(9,4), PNA / @CurrentAnesthesiaRate) * <span class="num">50.00</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">DSNP · $44 → $55/ASA unit</td>
+          <td class="trigger">LINE_OF_BUSINESS IN ('DSNP') [inner branch]</td>
+          <td class="code-cell"><span class="fn">TRY_CONVERT</span>(decimal(9,4), PNA / @CurrentAnesthesiaRate) * <span class="num">55.00</span></td>
+        </tr>
+        <tr class="group-cyan"><td colspan="3">UCSD Specialty carve-out CPTs — differentiated rate vs. general specialty</td></tr>
+        <tr>
+          <td class="scenario">Carve-out CPT list (140%)</td>
+          <td class="trigger">CPT IN ('38999','38745','38500','38792','38740','19361','19364','19366','19367','49203','49204','49205','49999') OR prindiag IN ('F64.0','F64.9')</td>
+          <td class="code-cell">(PNA / <span class="num">1.33</span>) * <span class="num">1.40</span> <span class="cmt">-- 133% → 140% Medi-Cal FS</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">General specialty (120%)</td>
+          <td class="trigger">ELSE — all other professional CPTs</td>
+          <td class="code-cell">(PNA / <span class="num">1.10</span>) * <span class="num">1.20</span> <span class="cmt">-- 110% → 120% applicable FS (Medi-Cal or Medicare)</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout red" style="margin-top:14px">
+      <b>Do not flatten the nested CASE:</b> The anesthesia branch is the only pattern in the six-provider corpus that embeds a LOB sub-CASE inside the outer CASE block. Analysts new to the template will mistake this for a standard branch and flatten it — losing LOB differentiation between Medi-Cal and DSNP ASA unit rates.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Universal — Counter Offer + ELSE defaults</div>
+    <table class="ref-table" style="margin-top:8px">
+      <thead>
+        <tr>
+          <th class="th-scenario">Field / Scenario</th>
+          <th class="th-trigger">Context</th>
+          <th class="th-code">Expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="group-green"><td colspan="3">Counter_Offer_Payment — identical across all six providers</td></tr>
+        <tr>
+          <td class="scenario">Standard counter offer</td>
+          <td class="trigger">All providers · all LOBs</td>
+          <td class="code-cell"><span class="fn">ISNULL</span>((<span class="fn">NULLIF</span>(EQUIV_allow_compare,<span class="num">0</span>) * <span class="num">1.05</span>),((PNA + TRI) * <span class="num">1.05</span>)) <span class="kw">AS</span> 'Counter_Offer_Payment'</td>
+        </tr>
+        <tr class="group-blue"><td colspan="3">ELSE defaults — provider-type dependent · must be declared in every contracting prompt</td></tr>
+        <tr>
+          <td class="scenario">Hospital / LTAC</td>
+          <td class="trigger">Uncategorized lines represent real payment obligation</td>
+          <td class="code-cell">PNA <span class="cmt">-- return current paid as-is (Select Specialty, Rady pattern)</span></td>
+        </tr>
+        <tr>
+          <td class="scenario">Professional / specialty</td>
+          <td class="trigger">Uncategorized lines likely data anomaly</td>
+          <td class="code-cell"><span class="num">0</span> <span class="cmt">-- hard stop (Allstar PT, Girard, UCSD Specialty pattern)</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /Slide 0 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — PROVIDER REGISTRY
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Six-Provider Corpus — finalized scripts, key parameters, archetype classification</div>
+    <div class="provider-grid">
+
+      <div class="provider-card p-border-cyan">
+        <div class="p-name">Select Specialty Hospital — San Diego</div>
+        <div class="p-ids">TIN: 261466122 · NPI: 1629172133</div>
+        <div class="p-archetype"><span class="badge cyan">LTAC</span> <span class="badge green">Per Diem</span> <span class="badge">Medi-Cal only</span></div>
+        <div style="font-size:12px;color:#aaa;line-height:1.6">
+          DOS: 1/01/2025–12/31/2025<br>
+          Rev code CASE only — no Accom codes (per Daphyne Watson instruction)<br>
+          0120 → $2,191/day · 0206 → $2,401/day<br>
+          0200 → $2,611/day · 0169 → $740/day
+        </div>
+        <div class="p-else">ELSE → PAID_NET_AMT · QA: zero NULL HCT on all four codes ✓</div>
+      </div>
+
+      <div class="provider-card p-border-blue">
+        <div class="p-name">UCSD Medical Center</div>
+        <div class="p-ids">TIN: 330599494 · NPI: 237064656</div>
+        <div class="p-archetype"><span class="badge">Hospital</span> <span class="badge purple">Multi-LOB</span> <span class="badge orange">Rev Code + DRG</span></div>
+        <div style="font-size:12px;color:#aaa;line-height:1.6">
+          Pharma → PAID_NET_AMT · IP Psych → HCT×1400<br>
+          ECT → HCT×900 · OP Psych → HCT×475<br>
+          Car-T → (PNA/1.29)×1.30 · Implants → BILLED×0.45<br>
+          Kidney → (PNA/1.97)×2.00 · Admin Day → HCT×880<br>
+          IP → (PNA/1.15)×1.25 · OP → (PNA/1.29)×1.30
+        </div>
+        <div class="p-else">ELSE → 0</div>
+      </div>
+
+      <div class="provider-card p-border-purple">
+        <div class="p-name">UCSD Specialty (8 TINs)</div>
+        <div class="p-ids">TINs: 237064656 · 260622624 · 274440873 + 5 more</div>
+        <div class="p-archetype"><span class="badge purple">Multi-LOB</span> <span class="badge gold">Anesthesia nested</span> <span class="badge cyan">CPT carve-out</span></div>
+        <div style="font-size:12px;color:#aaa;line-height:1.6">
+          @CurrentAnesthesiaRate = 44.00<br>
+          Anesthesia: Medi-Cal (PNA/@44)×50 · DSNP (PNA/@44)×55<br>
+          Carve-out CPTs: (PNA/1.33)×1.40 — 140% Medi-Cal FS<br>
+          General specialty: (PNA/1.10)×1.20 — 120% applicable FS
+        </div>
+        <div class="p-else">ELSE → 0</div>
+      </div>
+
+      <div class="provider-card p-border-green">
+        <div class="p-name">Rady Children's Hospital — San Diego</div>
+        <div class="p-ids">TIN: 951691313 · NPI: 1053674564</div>
+        <div class="p-archetype"><span class="badge green">Flat uplift</span> <span class="badge">Multi-LOB</span> <span class="badge gold">4.56% YR1</span></div>
+        <div style="font-size:12px;color:#aaa;line-height:1.6">
+          Architecturally unique: ALL branches including ELSE use ×1.0456<br>
+          Home infusion S9 CPTs: HCT×(base×1.0456)<br>
+          YR2 note: replace 1.0456 with 1.0936 (compound 4.56%)
+        </div>
+        <div class="p-else">ELSE → (PNA+TRI)×1.0456 (no hard stop)</div>
+      </div>
+
+      <div class="provider-card p-border-gold">
+        <div class="p-name">All Star Physical Therapy</div>
+        <div class="p-ids">TIN: 261911128 · NPI: 1750559431</div>
+        <div class="p-archetype"><span class="badge gold">Prevailing services</span> <span class="badge purple">LOB-split</span> <span class="badge pink">EQUIV hybrid</span></div>
+        <div style="font-size:12px;color:#aaa;line-height:1.6">
+          @currentmultiplier = 1 · CAST('Prevailing Services') category<br>
+          Medi-Cal: ISNULL(EQUIV×1.00, (PNA+TRI)×1.00)<br>
+          DSNP/CSNP: ISNULL(EQUIV×1.00, (PNA+TRI)×1.00)
+        </div>
+        <div class="p-else">ELSE → 0</div>
+      </div>
+
+      <div class="provider-card p-border-pink">
+        <div class="p-name">Girard Orthopedic Surgeon Med Group</div>
+        <div class="p-ids">TIN: 953396896 · NPI: 1740674456</div>
+        <div class="p-archetype"><span class="badge pink">Prevailing services</span> <span class="badge purple">LOB-split</span> <span class="badge gold">130% uplift</span></div>
+        <div style="font-size:12px;color:#aaa;line-height:1.6">
+          @currentmultiplier = 1 · CAST('Prevailing Services') category<br>
+          Medi-Cal HYBRID: ISNULL(EQUIV×1.30, ((PNA+TRI)/1.10)×1.30)<br>
+          DSNP/CSNP: ISNULL(EQUIV×1.30, (PNA+TRI)×1.30)<br>
+          Current multiplier = 1.10 for Medi-Cal (divide out before applying 1.30)
+        </div>
+        <div class="p-else">ELSE → 0</div>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — PROMPT TEMPLATE
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Reusable Contracting Proposal Prompt — fill in bracketed fields only</div>
+    <div class="subtitle" style="margin:8px 0 16px">All structural instructions are pre-encoded. Do not remove DUB C 2.0, server, or ELSE behavior lines. Only the bracketed fields change per engagement.</div>
+
+    <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:20px 22px;font-family:'Courier New',monospace;font-size:12.5px;color:#ddd;line-height:1.8">
+      <div style="color:#9dd6ff;font-weight:700;margin-bottom:10px">CONTRACTING PROPOSAL — [PROVIDER NAME] — [DATE YYYYMMDD]</div>
+      <div style="color:#888">Server: SQLPROD02 &nbsp;|&nbsp; DB: INFORMATICS &nbsp;|&nbsp; Standard: DUB C 2.0 &nbsp;|&nbsp; Base script: CONTRACTING_[PROVIDER]_[DATE].sql (attached)</div>
+      <br>
+      <div style="color:#ffe08a">SCOPE:</div>
+      <div style="padding-left:18px;color:#ccc">
+        Provider TIN: [TIN] &nbsp;&nbsp; NPI: [NPI]<br>
+        Specialty: [e.g. Hospital LTAC / Physical Therapy / Orthopedic Surgery]<br>
+        LOB: [Medi-Cal only / DSNP / CSNP / Multi-LOB combined]<br>
+        DOS: [MM/DD/YYYY – MM/DD/YYYY]<br>
+        Classification basis: [Rev Code only / Rev Code + Accom Code / CPT / LOB-split]
+      </div>
+      <br>
+      <div style="color:#ffe08a">RATE TABLE:</div>
+      <div style="padding-left:18px;color:#ccc">
+        [Rev Code or CPT] &nbsp;|&nbsp; [Category Label] &nbsp;|&nbsp; Current $/day or multiplier &nbsp;|&nbsp; Proposed $/day or multiplier<br>
+        [repeat for each service line]
+      </div>
+      <br>
+      <div style="color:#ffe08a">COLUMNS TO REPLACE:</div>
+      <div style="padding-left:18px;color:#ccc">
+        Contracting_Proposal_Category — CASE on [revcode / CPT / LOB / DRG]<br>
+        Proposed_Rate_Payment — pattern: [Per Diem: NULLIF(ISNULL([HCT LOGIC DAY(S)],0),0) × rate / Do the Math Fx / Prevailing hybrid]<br>
+        Counter_Offer_Payment — [standard 1.05 hybrid / state if different]
+      </div>
+      <br>
+      <div style="color:#ffe08a">ELSE BEHAVIOR:</div>
+      <div style="padding-left:18px;color:#ccc">
+        [Hospital / LTAC → return PAID_NET_AMT] &nbsp;<span style="color:#888">or</span>&nbsp; [Professional / specialty → return 0]
+      </div>
+      <br>
+      <div style="color:#ffe08a">ADDITIONAL CONSTRAINTS:</div>
+      <div style="padding-left:18px;color:#888">[e.g. Rev Code only — do not use Accom codes / DSNP excluded from scope / @currentmultiplier = 1.10 for Medi-Cal]</div>
+    </div>
+
+    <div class="callout" style="margin-top:16px">
+      <b>Why this structure eliminates back-and-forth:</b> LOB scope, classification basis, and ELSE behavior are the three fields that historically required clarification after the initial prompt. Pre-stating all three removes the most common revision cycles. Rate table as plain text (not image / screenshot) eliminates OCR transcription as an error source.
+    </div>
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — QA CHECKLIST
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Pre-Delivery QA Checklist — run before every contracting script submission</div>
+    <table class="mini-table">
+      <tbody>
+        <tr><th>Check</th><th>Method</th><th>Failure Symptom</th></tr>
+        <tr>
+          <td><strong>Rev code zero-padding</strong></td>
+          <td>SELECT DISTINCT revcode FROM [TABLE] WHERE revcode IN ('0120','0169','0200','0206') — confirm leading zero present</td>
+          <td>WHEN branches never fire — all lines fall to ELSE. Proposed_Rate_Payment = 0 or PAID_NET_AMT uniformly.</td>
+        </tr>
+        <tr>
+          <td><strong>HCT LOGIC DAY(S) NULLs</strong></td>
+          <td>GROUP BY revcode · SUM(CASE WHEN [HCT LOGIC DAY(S)] IS NULL THEN 1 ELSE 0 END) AS NULL_Day_Count — expected 0 for all Per Diem rev codes</td>
+          <td>NULL output on Per Diem branches — proposed total understated. Analytics template shows NULL cells.</td>
+        </tr>
+        <tr>
+          <td><strong>NULLIF PAID_NET_AMT check</strong></td>
+          <td>SELECT revcode, PAID_NET_AMT, NULLIF(ISNULL(PAID_NET_AMT,0),0) AS NULLIF_Check — confirm 0.00 lines collapse to NULL (expected behavior)</td>
+          <td>Zero-dollar lines (e.g. rev 0942 Educ/Training) show $0.00 proposed — correct, not a bug when PAID_NET_AMT = 0.00.</td>
+        </tr>
+        <tr>
+          <td><strong>LOB bleed-through</strong></td>
+          <td>SELECT DISTINCT LINE_OF_BUSINESS FROM #ContractAnalysis — confirm only expected LOBs present</td>
+          <td>DSNP lines present in Medi-Cal-only script — ELSE branch applies flat PAID_NET_AMT, suppressing proposed uplift for those members.</td>
+        </tr>
+        <tr>
+          <td><strong>@currentmultiplier DECLARE</strong></td>
+          <td>Confirm DECLARE @currentmultiplier AS decimal(9,2) and SET at top of script before CASE block</td>
+          <td>Msg 137: must declare scalar variable. Script fails at runtime — no output produced.</td>
+        </tr>
+        <tr>
+          <td><strong>CASE branch precedence</strong></td>
+          <td>Confirm Per Diem / DRG branches appear BEFORE LOB catch-all branches. SQL CASE evaluates top-to-bottom and stops at first match.</td>
+          <td>Specific service lines (LTAC, Psych, Car-T) fall into LOB-level catch-all — rate calculation incorrect.</td>
+        </tr>
+        <tr>
+          <td><strong>Counter_Offer_Payment</strong></td>
+          <td>SELECT MIN(Counter_Offer_Payment), MAX(Counter_Offer_Payment) — confirm no NULLs and values are ~5% above Current_Rate_Payment</td>
+          <td>NULL Counter values signal EQUIV_allow_compare and PAID_NET_AMT both null on those lines — upstream data gap.</td>
+        </tr>
+        <tr>
+          <td><strong>Analytics template reconciliation</strong></td>
+          <td>Compare Proposed_Rate_Total in script output vs. Provider Rate Increase Request Analytics Template (Excel). Variance &gt; 0.5% warrants investigation.</td>
+          <td>Multiplier error in CASE expression, DOS date boundary mismatch, or claims lag offset not matching Contracting's date range.</td>
+        </tr>
+        <tr>
+          <td><strong>DUB C 2.0 compliance</strong></td>
+          <td>Visual scan: one space between all tokens, left-aligned commas, no bare string group expressions, explicit AS on all aliases, uppercase keywords</td>
+          <td>Cosmetic only — but non-compliant code submitted to Sir Phil or Sir Salim will be returned for revision.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout green" style="margin-top:16px">
+      <b>Senior Analyst Note (WCARR):</b> The two highest-frequency failure modes in the six-provider corpus are (1) rev code zero-padding mismatches causing ELSE fallthrough, and (2) HCT LOGIC DAY(S) NULL values on Per Diem lines producing silent zero output. Both checks take under two minutes and eliminate the most common resubmission cycles. Run them before every delivery without exception.
+    </div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft')  buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body>
+</html>

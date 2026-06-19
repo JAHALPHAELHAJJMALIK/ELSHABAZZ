@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHCS Audit – OON ER Claims — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  .title-bar {
+    text-align: center;
+    margin-bottom: 26px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #a0d8f0;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  .diagram {
+    position: relative;
+    width: 1540px;
+    min-height: 700px;
+  }
+
+  /* ===== SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: nowrap;
+  }
+
+  .source-row + .source-row { margin-top: 16px; }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 20px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.qnxt-claims {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 580px;
+  }
+
+  .system-box.qnxt-ref {
+    background: rgba(255, 200, 140, 0.12);
+    border-color: rgba(255, 200, 140, 0.35);
+    width: 540px;
+  }
+
+  .system-box.oon-filter {
+    background: rgba(100, 200, 240, 0.12);
+    border-color: rgba(100, 200, 240, 0.35);
+    width: 440px;
+  }
+
+  .system-box.enrollment-mgr {
+    background: rgba(160, 230, 160, 0.12);
+    border-color: rgba(160, 230, 160, 0.35);
+    width: 260px;
+  }
+
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 320px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 110px;
+    color: #f0f0f0;
+    line-height: 1.35;
+  }
+
+  .module .tbl {
+    font-size: 10px;
+    color: #aaa;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* ===== DUAL-PATH INTAKE ===== */
+  .intake-section {
+    margin: 20px 0 4px;
+    text-align: center;
+  }
+
+  .intake-label {
+    font-size: 11px;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .intake-row {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .intake-path {
+    background: rgba(100, 200, 240, 0.10);
+    border: 1.5px solid rgba(100, 200, 240, 0.35);
+    border-radius: 8px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 280px;
+  }
+
+  .intake-path .path-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #a0d8f0;
+    margin-bottom: 6px;
+  }
+
+  .intake-path .path-detail {
+    font-size: 11px;
+    color: #bbb;
+    line-height: 1.5;
+  }
+
+  .intake-path .path-detail code {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 10.5px;
+    color: #e0e0e0;
+  }
+
+  .intake-merge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: rgba(100, 200, 240, 0.5);
+    font-size: 13px;
+    padding: 0 4px;
+  }
+
+  .intake-merge .merge-text {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #777;
+    margin-bottom: 2px;
+  }
+
+  /* ===== PROCESSING PIPELINE ===== */
+  .pipeline-section {
+    margin: 16px 0 6px;
+    text-align: center;
+  }
+
+  .pipeline-label {
+    font-size: 11px;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .pipeline-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+  }
+
+  .pipeline-step {
+    background: rgba(100, 200, 240, 0.12);
+    border: 1.5px solid rgba(100, 200, 240, 0.35);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    color: #a0d8f0;
+    min-width: 150px;
+    line-height: 1.4;
+  }
+
+  .pipeline-step .step-sub {
+    font-size: 10px;
+    color: #7eb8d0;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .pipeline-step.critical {
+    background: rgba(255, 120, 100, 0.12);
+    border-color: rgba(255, 120, 100, 0.45);
+  }
+
+  .pipeline-step.critical,
+  .pipeline-step.critical .step-sub {
+    color: #ffb0a0;
+  }
+
+  .pipeline-step.critical .step-sub {
+    color: #d09080;
+  }
+
+  .pipeline-arrow {
+    color: rgba(100, 200, 240, 0.4);
+    font-size: 22px;
+    padding: 0 6px;
+    user-select: none;
+  }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 18px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 13px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 128px;
+    max-width: 170px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 10px 0 8px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft { width: 2px; height: 16px; background: #ccc; }
+  .flow-arrow .head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ccc; }
+
+  /* ===== OUTPUT ===== */
+  .output-section { margin-top: 12px; }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1300px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 15px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 115px;
+    color: #e8e0ff;
+    line-height: 1.35;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-qnxt-claims { background: rgba(255, 140, 140, 0.35); }
+  .swatch-qnxt-ref { background: rgba(255, 200, 140, 0.35); }
+  .swatch-oon { background: rgba(100, 200, 240, 0.35); }
+  .swatch-enrollment { background: rgba(160, 230, 160, 0.35); }
+  .swatch-informatics { background: rgba(140, 200, 255, 0.35); }
+  .swatch-critical { background: rgba(255, 120, 100, 0.35); }
+  .swatch-output { background: rgba(160, 140, 220, 0.35); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>DHCS Audit – OON ER Claims — Data Flow Diagram</h2>
+    <div class="subtitle">Out-of-Network Emergency Room Claims &nbsp;|&nbsp; Audit Period: April 1, 2025 – December 31, 2025 &nbsp;|&nbsp; Medi-Cal LOB &nbsp;|&nbsp; Owner: Elizabeth Valdez &nbsp;|&nbsp; Due: Feb 19, 2026</div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+      <div class="system-box qnxt-claims">
+        <span class="sys-label">QNXT Claims (HMOPROD_PlanData)</span>
+        <div class="module-row">
+          <div class="module">Claim Header<span class="tbl">dbo.claim</span></div>
+          <div class="module">Claim Detail<span class="tbl">dbo.claimdetail</span></div>
+          <div class="module">Claim DRG<span class="tbl">dbo.claimdrg</span></div>
+          <div class="module">Claim Edits<span class="tbl">dbo.claimedit</span></div>
+        </div>
+      </div>
+
+      <div class="system-box qnxt-ref">
+        <span class="sys-label">QNXT Reference Data (HMOPROD_PlanData)</span>
+        <div class="module-row">
+          <div class="module">Member<span class="tbl">dbo.member</span></div>
+          <div class="module">Provider<span class="tbl">dbo.provider</span></div>
+          <div class="module">Affiliation<span class="tbl">dbo.affiliation</span></div>
+          <div class="module">Contract Info<span class="tbl">dbo.contractinfo</span></div>
+        </div>
+        <div class="module-row" style="margin-top:8px;">
+          <div class="module">DiagCode<span class="tbl">dbo.DiagCode</span></div>
+          <div class="module">Language<span class="tbl">dbo.language</span></div>
+          <div class="module">Service Codes<span class="tbl">dbo.svccode</span></div>
+          <div class="module">Rev Codes<span class="tbl">dbo.revcode</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="source-row">
+      <div class="system-box oon-filter">
+        <span class="sys-label">OON Contracted Status Verification</span>
+        <div class="module-row">
+          <div class="module">Contract Network<span class="tbl">clm.contractnetworkid<br>+ contractinfo</span></div>
+          <div class="module">Provider PAR<span class="tbl">uvw_ProviderRepository<br>274_PAR</span></div>
+        </div>
+      </div>
+
+      <div class="system-box enrollment-mgr">
+        <span class="sys-label">Enrollment Manager</span>
+        <div class="module-row">
+          <div class="module">SPD Flag / Aid Code<span class="tbl">udf_MediCalwSPDFlag</span></div>
+        </div>
+      </div>
+
+      <div class="system-box informatics">
+        <span class="sys-label">INFORMATICS Views</span>
+        <div class="module-row">
+          <div class="module">Line of Business<span class="tbl">uvw_LINE_OF_BUSINESS</span></div>
+          <div class="module">Baseline Membership<span class="tbl">uvw_BASELINE_MEMBERSHIP</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ROW 2: DUAL-PATH ER INTAKE ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="intake-section">
+      <div class="intake-label">Dual-Path ER Claims Intake &nbsp;→&nbsp; #CxCOS (Category of Service Isolation)</div>
+      <div class="intake-row">
+        <div class="intake-path">
+          <div class="path-title">Path 1: Facility Claims (UB04)</div>
+          <div class="path-detail">
+            Revenue Codes:<br>
+            <code>0450</code> <code>0451</code> <code>0452</code> <code>0456</code> <code>0459</code> <code>0981</code>
+          </div>
+        </div>
+        <div class="intake-merge">
+          <div class="merge-text">union</div>
+          ⟷
+        </div>
+        <div class="intake-path">
+          <div class="path-title">Path 2: Professional Claims</div>
+          <div class="path-detail">
+            Place of Service:<br>
+            <code>23</code> Emergency Room &nbsp;&nbsp; <code>41</code> Ambulance – Land
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ROW 3: PROCESSING PIPELINE ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="pipeline-section">
+      <div class="pipeline-label">Processing Pipeline</div>
+      <div class="pipeline-row">
+        <div class="pipeline-step">
+          #SETclaimrange
+          <span class="step-sub">LOB + Date Range<br>Paid Date Filter<br>Active Records Only</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          DETAIL Table
+          <span class="step-sub">AUDIT_DHCS_CLAIMS<br>_ERM_DETAIL<br>Full Join + Shell Fields</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          UPDATE Enrichment
+          <span class="step-sub">Claim Category<br>Primary/Secondary<br>Diagnosis • TRI</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step critical">
+          OON Filter
+          <span class="step-sub">contractedVerification<br>= 'N'<br>Non-Contracted Only</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          finalclaim CTE
+          <span class="step-sub">Last Claim in<br>Adjustment Sequence<br>(A1 → A2 → Final)</span>
+        </div>
+        <div class="pipeline-arrow">→</div>
+        <div class="pipeline-step">
+          Final OUTPUT
+          <span class="step-sub">AUDIT_DHCS_CLAIMS<br>_ERM<br>Paid + Denied</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ROW 4: DATA ELEMENT LABELS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Member Demographics</strong>
+        Name, CIN, DOB,<br>Preferred Language
+      </div>
+      <div class="data-element">
+        <strong>Claim Identification</strong>
+        Claim Number,<br>Date of Service,<br>Receipt &amp; Payment Dates
+      </div>
+      <div class="data-element">
+        <strong>Financial Data</strong>
+        Amount Billed,<br>Amount Paid,<br>Interest Paid,<br>TRI Payment
+      </div>
+      <div class="data-element">
+        <strong>Service Codes</strong>
+        Code Billed / Paid,<br>Description of Service,<br>Rev Code / POS
+      </div>
+      <div class="data-element">
+        <strong>Clinical Data</strong>
+        Diagnosis Code +<br>Description,<br>Medi-Cal Aid Code,<br>NONSPD / SPD Flag
+      </div>
+      <div class="data-element">
+        <strong>Adjudication</strong>
+        Approval/Denial Date,<br>Decision Maker<br>(okpayby),<br>Denial Reason
+      </div>
+      <div class="data-element">
+        <strong>Provider / Network</strong>
+        Rendering Provider,<br>Pay-To Provider,<br>Contract Status = <em>N</em><br>(OON Verified)
+      </div>
+    </div>
+
+    <!-- ===== ROW 5: OUTPUT ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">OON ER Claims Report &nbsp;→&nbsp; INFORMATICS.dbo.AUDIT_DHCS_CLAIMS_ERM</span>
+        <div class="report-modules">
+          <div class="report-module">Member<br>Demographics</div>
+          <div class="report-module">Claim<br>Number</div>
+          <div class="report-module">Medi-Cal<br>Aid Code</div>
+          <div class="report-module">Service &amp;<br>Payment Dates</div>
+          <div class="report-module">Billed / Paid<br>/ Interest</div>
+          <div class="report-module">Code Billed<br>&amp; Paid</div>
+          <div class="report-module">Diagnosis Code<br>&amp; Description</div>
+          <div class="report-module">Decision Maker<br>&amp; Denial Reason</div>
+          <div class="report-module">Provider<br>Names</div>
+          <div class="report-module">NONSPD /<br>SPD Flag</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt-claims"></div>QNXT Claims Tables</div>
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt-ref"></div>QNXT Reference Data</div>
+    <div class="legend-item"><div class="legend-swatch swatch-oon"></div>ER Intake &amp; OON Verification</div>
+    <div class="legend-item"><div class="legend-swatch swatch-enrollment"></div>Enrollment Manager (SPD)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS Views</div>
+    <div class="legend-item"><div class="legend-swatch swatch-critical"></div>OON Filter (Critical Gate)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-output"></div>OON ER Report Output</div>
+  </div>
+
+</body>
+</html>

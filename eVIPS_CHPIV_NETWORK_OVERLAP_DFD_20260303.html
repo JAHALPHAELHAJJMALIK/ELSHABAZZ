@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CHPIV Network Overlap — Data Flow Diagram | CHGSD MSO | 20260303</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg-primary:    #0a0c10;
+    --bg-panel:      #0f1318;
+    --bg-card:       #141920;
+    --bg-card-alt:   #111620;
+    --border:        #1e2a38;
+    --border-glow:   #1d3a5f;
+    --gold:          #c9a84c;
+    --gold-dim:      #8a6e30;
+    --gold-light:    #e8c86a;
+    --teal:          #2dd4bf;
+    --teal-dim:      #0d7a6e;
+    --red:           #e05252;
+    --red-dim:       #7a2020;
+    --blue:          #3b82f6;
+    --blue-dim:      #1e3a6e;
+    --green:         #34d399;
+    --green-dim:     #0d5c40;
+    --orange:        #fb923c;
+    --purple:        #a78bfa;
+    --text-primary:  #e2e8f0;
+    --text-secondary:#94a3b8;
+    --text-muted:    #475569;
+    --text-mono:     #7dd3fc;
+    --connector:     #1d3a5f;
+    --arrow:         #2d6a9f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+    padding: 28px 32px 60px;
+    background-image:
+      radial-gradient(ellipse at 15% 10%, rgba(45,100,160,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 90%, rgba(45,212,191,0.04) 0%, transparent 50%),
+      linear-gradient(180deg, rgba(10,12,16,0) 0%, rgba(10,12,16,1) 100%);
+  }
+
+  /* ── MASTHEAD ── */
+  .masthead {
+    border-left: 4px solid var(--gold);
+    padding: 10px 0 10px 18px;
+    margin-bottom: 6px;
+  }
+  .masthead-org {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+  }
+  .masthead-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 1px;
+    line-height: 1.15;
+    text-shadow: 0 0 30px rgba(201,168,76,0.25);
+  }
+  .masthead-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    letter-spacing: 0.3px;
+  }
+
+  .meta-bar {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 26px;
+  }
+  .meta-item { display: flex; gap: 6px; align-items: center; }
+  .meta-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+  .meta-val { font-family: 'Share Tech Mono', monospace; font-size: 11px; color: var(--teal); }
+  .meta-sep { color: var(--border); font-size: 16px; }
+
+  /* ── SECTION HEADING ── */
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 30px 0 14px;
+  }
+  .section-heading .sh-num {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 2px 8px;
+    border-radius: 2px;
+  }
+  .section-heading .sh-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .card.gold::before  { background: linear-gradient(90deg, var(--gold), transparent); }
+  .card.teal::before  { background: linear-gradient(90deg, var(--teal), transparent); }
+  .card.red::before   { background: linear-gradient(90deg, var(--red), transparent); }
+  .card.blue::before  { background: linear-gradient(90deg, var(--blue), transparent); }
+  .card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
+  .card.purple::before{ background: linear-gradient(90deg, var(--purple), transparent); }
+
+  .card-label {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .card-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── GRID LAYOUTS ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+
+  /* ── KPI TILES ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .kpi {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 12px 10px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .kpi.k-gold::before  { background: var(--gold); }
+  .kpi.k-teal::before  { background: var(--teal); }
+  .kpi.k-red::before   { background: var(--red); }
+  .kpi.k-blue::before  { background: var(--blue); }
+  .kpi.k-green::before { background: var(--green); }
+  .kpi.k-orange::before{ background: var(--orange); }
+  .kpi.k-purple::before{ background: var(--purple); }
+  .kpi-val {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .kpi.k-gold   .kpi-val { color: var(--gold); }
+  .kpi.k-teal   .kpi-val { color: var(--teal); }
+  .kpi.k-red    .kpi-val { color: var(--red); }
+  .kpi.k-blue   .kpi-val { color: var(--blue); }
+  .kpi.k-green  .kpi-val { color: var(--green); }
+  .kpi.k-orange .kpi-val { color: var(--orange); }
+  .kpi.k-purple .kpi-val { color: var(--purple); }
+  .kpi-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  /* ── FLOW DIAGRAM CORE ── */
+  .dfd-canvas {
+    position: relative;
+    width: 100%;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 4px;
+    position: relative;
+  }
+
+  /* NODE BOXES */
+  .node {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+    min-height: 72px;
+  }
+  .node::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .node.n-gold::before   { background: linear-gradient(90deg, var(--gold), var(--gold-dim)); }
+  .node.n-teal::before   { background: linear-gradient(90deg, var(--teal), var(--teal-dim)); }
+  .node.n-red::before    { background: linear-gradient(90deg, var(--red),  var(--red-dim));  }
+  .node.n-blue::before   { background: linear-gradient(90deg, var(--blue), var(--blue-dim)); }
+  .node.n-green::before  { background: linear-gradient(90deg, var(--green), var(--green-dim)); }
+  .node.n-purple::before { background: linear-gradient(90deg, var(--purple), #5b3fa8); }
+  .node.n-orange::before { background: linear-gradient(90deg, var(--orange), #7a3b10); }
+
+  .node-badge {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .node.n-gold   .node-badge { background: rgba(201,168,76,0.12); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+  .node.n-teal   .node-badge { background: rgba(45,212,191,0.1);  color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+  .node.n-red    .node-badge { background: rgba(224,82,82,0.1);   color: var(--red);  border: 1px solid rgba(224,82,82,0.2); }
+  .node.n-blue   .node-badge { background: rgba(59,130,246,0.1);  color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+  .node.n-green  .node-badge { background: rgba(52,211,153,0.1);  color: var(--green);border: 1px solid rgba(52,211,153,0.2); }
+  .node.n-purple .node-badge { background: rgba(167,139,250,0.1); color: var(--purple);border:1px solid rgba(167,139,250,0.2); }
+  .node.n-orange .node-badge { background: rgba(251,146,60,0.1);  color: var(--orange);border:1px solid rgba(251,146,60,0.2); }
+
+  .node-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+    line-height: 1.25;
+  }
+  .node-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+  .node-detail {
+    font-size: 10.5px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+    line-height: 1.45;
+  }
+
+  /* CONNECTORS */
+  .connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .connector::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--connector), var(--arrow));
+  }
+  .connector .arrow-head {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left: 8px solid var(--arrow);
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+  .connector .conn-label {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    background: var(--bg-primary);
+    padding: 0 4px;
+  }
+
+  .connector.down {
+    flex-direction: column;
+    width: auto;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+  }
+  .connector.down::before {
+    width: 2px;
+    height: 100%;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, var(--connector), var(--arrow));
+  }
+  .connector.down .arrow-head {
+    right: auto;
+    bottom: 4px;
+    top: auto;
+    transform: translateX(-50%);
+    left: 50%;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 8px solid var(--arrow);
+    border-bottom: none;
+  }
+
+  /* ── PROCESS BLOCKS ── */
+  .proc {
+    background: var(--bg-card-alt);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 7px 18px;
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+  .proc.p-teal  { color: var(--teal);   border-color: var(--teal-dim);  background: rgba(45,212,191,0.07); }
+  .proc.p-gold  { color: var(--gold);   border-color: var(--gold-dim);  background: rgba(201,168,76,0.07); }
+  .proc.p-red   { color: var(--red);    border-color: var(--red-dim);   background: rgba(224,82,82,0.07); }
+  .proc.p-blue  { color: var(--blue);   border-color: var(--blue-dim);  background: rgba(59,130,246,0.07); }
+  .proc.p-green { color: var(--green);  border-color: var(--green-dim); background: rgba(52,211,153,0.07); }
+
+  /* ── DATA STORE BOXES (parallel lines) ── */
+  .data-store {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    background: var(--bg-card-alt);
+    min-height: 54px;
+  }
+  .ds-stripe {
+    width: 6px;
+    flex-shrink: 0;
+  }
+  .ds-inner {
+    flex: 1;
+    padding: 8px 12px;
+  }
+  .ds-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+  .ds-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .ds-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9.5px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: rgba(201,168,76,0.08); }
+  thead th {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  tbody tr { border-bottom: 1px solid rgba(30,42,56,0.7); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(45,100,160,0.06); }
+  tbody td {
+    padding: 7px 12px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    vertical-align: middle;
+  }
+  tbody td:first-child { color: var(--text-primary); font-weight: 500; }
+  .td-mono { font-family: 'Share Tech Mono', monospace; font-size: 10.5px; color: var(--text-mono); }
+  .td-num  { font-family: 'Rajdhani', monospace; font-size: 14px; font-weight: 600; }
+  .td-gold { color: var(--gold); }
+  .td-teal { color: var(--teal); }
+  .td-red  { color: var(--red); }
+  .td-green{ color: var(--green); }
+  .td-blue { color: var(--blue); }
+  .pct-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .pct-bar { height: 5px; border-radius: 3px; flex-shrink: 0; transition: width 0.5s; }
+
+  /* ── GAP BADGE ── */
+  .gap-badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+  .g-critical { background: rgba(224,82,82,0.15);  color: var(--red);    border:1px solid rgba(224,82,82,0.3); }
+  .g-high     { background: rgba(251,146,60,0.12); color: var(--orange); border:1px solid rgba(251,146,60,0.3); }
+  .g-medium   { background: rgba(167,139,250,0.1); color: var(--purple); border:1px solid rgba(167,139,250,0.25); }
+  .g-overlap  { background: rgba(52,211,153,0.1);  color: var(--green);  border:1px solid rgba(52,211,153,0.25); }
+  .g-none     { background: rgba(71,85,105,0.15);  color: var(--text-muted); border:1px solid rgba(71,85,105,0.3); }
+
+  /* ── LEGEND ── */
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+  .leg-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); }
+  .leg-dot  { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 40px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-l { font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px; line-height: 1.7; }
+  .footer-r {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.7;
+  }
+
+  .divider { height: 1px; background: var(--border); margin: 22px 0; opacity: 0.5; }
+
+  /* down-arrow spacer rows */
+  .arrow-spacer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 30px;
+  }
+  .arrow-down-svg { opacity: 0.45; }
+
+  /* annotation pill */
+  .annot {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(30,42,56,0.6);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .annot-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════ MASTHEAD ════════════════════════════ -->
+<div class="masthead">
+  <div class="masthead-org">CHGSD (MSO) — ANALYTICS & CONTRACTING DIVISION — Sir Salim French, Director of Contracting</div>
+  <div class="masthead-title">CHPIV Direct &amp; External IPA vs. Static Health Net PDF<br/>Imperial County — Network Overlap Data Flow Diagram</div>
+  <div class="masthead-sub">eVIPS CHPIV Network Overlap Analysis &nbsp;·&nbsp; CHGSD MSO Arrangement &nbsp;·&nbsp; D-SNP Transition Effective January 1, 2026</div>
+</div>
+
+<div class="meta-bar">
+  <div class="meta-item"><span class="meta-label">Analysis Date</span><span class="meta-val">March 03, 2026</span></div>
+  <span class="meta-sep">|</span>
+  <div class="meta-item"><span class="meta-label">Transition Effective</span><span class="meta-val">January 1, 2026</span></div>
+  <span class="meta-sep">|</span>
+  <div class="meta-item"><span class="meta-label">Script</span><span class="meta-val">eVIPS_CHPIV_NETWORK_OVERLAP_20260303.sql</span></div>
+  <span class="meta-sep">|</span>
+  <div class="meta-item"><span class="meta-label">Target DB</span><span class="meta-val">SQLPRODAPP01.INFORMATICS.dbo</span></div>
+  <span class="meta-sep">|</span>
+  <div class="meta-item"><span class="meta-label">Analyst</span><span class="meta-val">El Hajj Malik Jahwaca — Co-CEO / Sr. Data Analyst</span></div>
+</div>
+
+<!-- ════════════════════════════ SECTION 1: KPI SUMMARY ════════════════════════════ -->
+<div class="section-heading">
+  <span class="sh-num">01</span>
+  <span class="sh-title">Executive Summary — Network Metrics</span>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi k-gold">
+    <div class="kpi-val">922</div>
+    <div class="kpi-label">CHGSD eVIPS<br/>Total Providers (Unique NPI)</div>
+  </div>
+  <div class="kpi k-blue">
+    <div class="kpi-val">176</div>
+    <div class="kpi-label">Health Net CHPIV<br/>Total Providers (Unique NPI)</div>
+  </div>
+  <div class="kpi k-green">
+    <div class="kpi-val">84</div>
+    <div class="kpi-label">Network Overlap<br/>(In Both Networks)</div>
+  </div>
+  <div class="kpi k-teal">
+    <div class="kpi-val">47.7%</div>
+    <div class="kpi-label">Overlap Pct<br/>of CHPIV Network</div>
+  </div>
+  <div class="kpi k-red">
+    <div class="kpi-val">92</div>
+    <div class="kpi-label">CHPIV Gap — Not in CHGSD<br/><em style="font-size:8px;font-style:normal;color:#e05252;">⚠ REQUIRES ACTION</em></div>
+  </div>
+  <div class="kpi k-orange">
+    <div class="kpi-val">52.3%</div>
+    <div class="kpi-label">Gap Coverage Risk<br/>Pct of CHPIV</div>
+  </div>
+  <div class="kpi k-purple">
+    <div class="kpi-val">838</div>
+    <div class="kpi-label">CHGSD Expansion<br/>Enhancement Opportunity</div>
+  </div>
+</div>
+
+<!-- GAP PRIORITY BREAKDOWN -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px;">
+  <div class="card red" style="text-align:center;padding:12px;">
+    <div class="card-label">⚠ CRITICAL Priority Gaps</div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;color:var(--red);">62</div>
+    <div style="font-size:10px;color:var(--text-muted);">PCP · Urgent Care · BH Professional</div>
+  </div>
+  <div class="card" style="border-color:rgba(251,146,60,0.35);text-align:center;padding:12px;">
+    <div class="card-label">HIGH Priority Gaps</div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;color:var(--orange);">26</div>
+    <div style="font-size:10px;color:var(--text-muted);">Specialist · DME · SNF</div>
+  </div>
+  <div class="card purple" style="text-align:center;padding:12px;">
+    <div class="card-label">MEDIUM Priority Gaps</div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;color:var(--purple);">4</div>
+    <div style="font-size:10px;color:var(--text-muted);">All Other Categories</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ SECTION 2: DATA FLOW DIAGRAM ════════════════════════════ -->
+<div class="section-heading">
+  <span class="sh-num">02</span>
+  <span class="sh-title">Data Flow Diagram — Source → Process → Output</span>
+</div>
+
+<div class="dfd-canvas">
+
+  <!-- ROW A: SOURCE SYSTEMS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;">
+
+    <!-- SOURCE 1: eVIPS / CHGSD -->
+    <div class="card gold">
+      <div class="card-label">🗄 Source System A — CHGSD MSO (eVIPS)</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px;">
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-01</div><div class="ds-name">PROVDIR_PCP</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-02</div><div class="ds-name">PROVDIR_SPE</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-03</div><div class="ds-name">PROVDIR_SNF</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-04</div><div class="ds-name">PROVDIR_CLINIC</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-05</div><div class="ds-name">PROVDIR_URC</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-06</div><div class="ds-name">TimelyAccessFAC</div><div class="ds-sub">DME Filter</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-07</div><div class="ds-name">PROVDIR_MH</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-08</div><div class="ds-name">PROVDIR_VSP</div><div class="ds-sub">CHPIV DSNP</div></div></div>
+        <div class="data-store" style="grid-column:span 2;"><div class="ds-stripe" style="background:var(--gold);"></div><div class="ds-inner"><div class="ds-label">DS-09</div><div class="ds-name">CHPIV_NETWORK_DATA</div><div class="ds-sub">SECTION_NO → Category Map (PCP·Specialist·DME·Urgent Care)</div></div></div>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="annot"><div class="annot-dot" style="background:var(--gold);"></div>Filter: [Participating Network] LIKE '%CHPIV%DSNP%'</div>
+        <div class="annot" style="margin-left:8px;"><div class="annot-dot" style="background:var(--gold-dim);"></div>LTRIM/RTRIM/ISNULL(NPIis,'') → CLEANProviderID</div>
+      </div>
+    </div>
+
+    <!-- SOURCE 2: Static Health Net -->
+    <div class="card blue">
+      <div class="card-label">🗄 Source System B — Static Health Net PDF (External / Historical MSO)</div>
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr;gap:7px;">
+        <div class="data-store"><div class="ds-stripe" style="background:var(--blue);"></div><div class="ds-inner"><div class="ds-label">XLSX Source</div><div class="ds-name">STATIC_EXTERNAL_HEALTHNET_PROVIDERS_20260303.xlsx</div><div class="ds-sub">Source: CHPIV_533_274_20260202_00001_extracted.xlsx · "CHPIV 274 Provider File.msg" 20260204</div></div></div>
+        <div class="data-store" style="margin-top:6px;"><div class="ds-stripe" style="background:var(--blue);"></div><div class="ds-inner"><div class="ds-label">Python Upload Script</div><div class="ds-name">PYTHON_EXCEL_TO_SQL_CHPIV_OVERLAP_20260303.py</div><div class="ds-sub">openpyxl · pyodbc · Dynamic DDL · Batch=1000 · SQLPRODAPP01</div></div></div>
+        <div class="data-store" style="margin-top:6px;"><div class="ds-stripe" style="background:var(--blue);"></div><div class="ds-inner"><div class="ds-label">DS-10 — SQL Landing Table</div><div class="ds-name">STATIC_EXTERNAL_274_HEALTHNET_PROVIDERS</div><div class="ds-sub">INFORMATICS.dbo · ImportedAt DATETIME2 · ImportedBy SYSTEM_USER</div></div></div>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="annot"><div class="annot-dot" style="background:var(--blue);"></div>Supersedes: STATIC_EXTERNAL_HEALTHNET_PROVIDERS (20260109 vintage)</div>
+        <div class="annot" style="margin-left:8px;"><div class="annot-dot" style="background:var(--blue-dim);"></div>NPI + NAME + PROVIDER_CATEGORY → Deduped via MAX() GROUP BY NPI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOWN ARROWS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="arrow-spacer">
+      <svg class="arrow-down-svg" width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#2d6a9f" stroke-width="2"/><polygon points="6,20 18,20 12,30" fill="#2d6a9f"/></svg>
+    </div>
+    <div class="arrow-spacer">
+      <svg class="arrow-down-svg" width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#2d6a9f" stroke-width="2"/><polygon points="6,20 18,20 12,30" fill="#2d6a9f"/></svg>
+    </div>
+  </div>
+
+  <!-- ROW B: PROCESS / TEMP TABLES -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:4px;">
+    <div class="node n-gold">
+      <div class="node-badge">PROCESS P-01</div>
+      <div class="node-title">UNION ALL Consolidation → Permanent Table</div>
+      <div class="node-sub">INTO INFORMATICS.dbo.eVIPS_CHPIV_OVERLAP_NETWORK</div>
+      <div class="node-detail">9-way UNION ALL across DS-01–DS-09 · DROP TABLE IF EXISTS guard · GROUP BY NPI, Name, Provider_Category</div>
+    </div>
+    <div class="node n-blue">
+      <div class="node-badge">PROCESS P-02</div>
+      <div class="node-title">CTE Deduplication → Temp Tables</div>
+      <div class="node-sub">#HealthnetCHPIV · #CHGSDCHPIV</div>
+      <div class="node-detail">WITH CHGSDCHPIV AS (MAX(NAME), MAX(PROVIDER_CATEGORY), GROUP BY NPI)<br/>WITH HEALTHNETCHPIV AS (same pattern from STATIC_EXTERNAL_274_HEALTHNET_PROVIDERS)</div>
+    </div>
+  </div>
+
+  <!-- DOWN ARROWS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="arrow-spacer">
+      <svg class="arrow-down-svg" width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#2d6a9f" stroke-width="2"/><polygon points="6,20 18,20 12,30" fill="#2d6a9f"/></svg>
+    </div>
+    <div class="arrow-spacer">
+      <svg class="arrow-down-svg" width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#2d6a9f" stroke-width="2"/><polygon points="6,20 18,20 12,30" fill="#2d6a9f"/></svg>
+    </div>
+  </div>
+
+  <!-- ROW C: OVERLAP ENGINE -->
+  <div style="margin-bottom:4px;">
+    <div class="node n-teal" style="padding:16px 18px;">
+      <div class="node-badge">PROCESS P-03 — CORE OVERLAP ENGINE</div>
+      <div class="node-title" style="font-size:15px;">Network Comparison: #HealthnetCHPIV ⟷ #CHGSDCHPIV (FULL OUTER JOIN on NPI)</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px;">
+        <div style="background:rgba(45,212,191,0.06);border:1px solid rgba(45,212,191,0.15);border-radius:4px;padding:9px 10px;">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--teal);margin-bottom:4px;">SET @CHGSDCHPIV</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">COUNT(DISTINCT NPI)<br/>FROM #CHGSDCHPIV</div>
+        </div>
+        <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:4px;padding:9px 10px;">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:4px;">SET @HealthnetCHPIV_Count</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">COUNT(DISTINCT NPI)<br/>FROM #HealthnetCHPIV</div>
+        </div>
+        <div style="background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);border-radius:4px;padding:9px 10px;">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:4px;">SET @OVERLAP_COUNT</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">INNER JOIN<br/>E.NPI = I.NPI</div>
+        </div>
+        <div style="background:rgba(224,82,82,0.06);border:1px solid rgba(224,82,82,0.15);border-radius:4px;padding:9px 10px;">
+          <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-bottom:4px;">SET @GAP_COUNT</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">@HealthnetCHPIV_Count<br/>- @OVERLAP_COUNT</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;">
+        <div style="background:rgba(45,212,191,0.04);border:1px solid rgba(45,212,191,0.1);border-radius:4px;padding:8px 10px;">
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;">@OVERLAP_PERCENTAGE</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">ROUND(CAST(@OVERLAP_COUNT AS FLOAT) / @HealthnetCHPIV_Count * 100, 1)</div>
+        </div>
+        <div style="background:rgba(224,82,82,0.04);border:1px solid rgba(224,82,82,0.1);border-radius:4px;padding:8px 10px;">
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;">@CRITICAL_GAPS</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">LEFT JOIN WHERE I.NPI IS NULL<br/>AND Category IN (PCP, Clinic Urgent Care, BH Prof)</div>
+        </div>
+        <div style="background:rgba(251,146,60,0.04);border:1px solid rgba(251,146,60,0.1);border-radius:4px;padding:8px 10px;">
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;">@HIGH / @MEDIUM GAPS</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-secondary);">HIGH: Specialist · DME · SNF<br/>MEDIUM: All Other Categories</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOWN ARROW -->
+  <div class="arrow-spacer">
+    <svg class="arrow-down-svg" width="24" height="30" viewBox="0 0 24 30"><line x1="12" y1="0" x2="12" y2="22" stroke="#2d6a9f" stroke-width="2"/><polygon points="6,20 18,20 12,30" fill="#2d6a9f"/></svg>
+  </div>
+
+  <!-- ROW D: OUTPUTS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:4px;">
+    <div class="node n-gold">
+      <div class="node-badge">OUTPUT O-01</div>
+      <div class="node-title">EXECUTIVE_SUMMARY</div>
+      <div class="node-detail">7 KPI metrics · Gap Priority Breakdown · Category Breakdown table (FULL OUTER JOIN)</div>
+    </div>
+    <div class="node n-red">
+      <div class="node-badge">OUTPUT O-02</div>
+      <div class="node-title">CHPIV_ONLY</div>
+      <div class="node-detail">92 providers · LEFT JOIN WHERE I.NPI IS NULL · Action: "Contract or Establish Referral Process"</div>
+    </div>
+    <div class="node n-green">
+      <div class="node-badge">OUTPUT O-03</div>
+      <div class="node-title">CHGSD_ONLY</div>
+      <div class="node-detail">838 providers · LEFT JOIN WHERE E.NPI IS NULL · Action: "Network Enhancement Opportunity"</div>
+    </div>
+    <div class="node n-teal">
+      <div class="node-badge">OUTPUT O-04</div>
+      <div class="node-title">OVERLAP_IN_BOTH</div>
+      <div class="node-detail">84 providers · INNER JOIN on NPI · Status: "IN BOTH NETWORKS"</div>
+    </div>
+  </div>
+
+  <!-- QA NOTE -->
+  <div style="margin-top:8px;" class="card" style="padding:10px 14px;">
+    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">QA SAMPLE VALIDATION — Hx QA SAMPLE: NPI spot-checks</div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;">
+      <div class="annot"><div class="annot-dot" style="background:var(--blue);"></div>NPI 1457652463 → CHPIV ONLY</div>
+      <div class="annot"><div class="annot-dot" style="background:var(--gold);"></div>NPI 1790751956 → CHGSD ONLY</div>
+      <div class="annot"><div class="annot-dot" style="background:var(--green);"></div>NPI 1083771489 → IN BOTH NETWORKS</div>
+      <div class="annot"><div class="annot-dot" style="background:var(--text-muted);"></div>INFORMATION_SCHEMA.COLUMNS table design validation on all 3 permanent tables</div>
+    </div>
+  </div>
+
+</div><!-- /dfd-canvas -->
+
+<!-- ════════════════════════════ SECTION 3: CATEGORY BREAKDOWN TABLE ════════════════════════════ -->
+<div class="section-heading">
+  <span class="sh-num">03</span>
+  <span class="sh-title">Provider Category Breakdown — Network Overlap Matrix</span>
+</div>
+
+<div class="card gold" style="padding:0;overflow:hidden;">
+  <table>
+    <thead>
+      <tr>
+        <th>Provider Category</th>
+        <th style="text-align:right;">CHGSD CHPIV</th>
+        <th style="text-align:right;">HealthNet CHPIV</th>
+        <th style="text-align:right;">Overlap Count</th>
+        <th style="text-align:right;">Gap Count</th>
+        <th>Gap %</th>
+        <th>Priority</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>BH Professional</td>
+        <td class="td-mono" style="text-align:right;">3</td>
+        <td class="td-mono td-blue" style="text-align:right;">26</td>
+        <td class="td-mono td-green" style="text-align:right;">3</td>
+        <td class="td-mono td-red" style="text-align:right;">23</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:88px;background:var(--red);"></div><span class="td-red">88.5%</span></div></td>
+        <td><span class="gap-badge g-critical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>Clinic Urgent Care</td>
+        <td class="td-mono" style="text-align:right;">2</td>
+        <td class="td-mono td-blue" style="text-align:right;">26</td>
+        <td class="td-mono td-green" style="text-align:right;">2</td>
+        <td class="td-mono td-red" style="text-align:right;">24</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:92px;background:var(--red);"></div><span class="td-red">92.3%</span></div></td>
+        <td><span class="gap-badge g-critical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>PCP</td>
+        <td class="td-mono" style="text-align:right;">34</td>
+        <td class="td-mono td-blue" style="text-align:right;">28</td>
+        <td class="td-mono td-green" style="text-align:right;">13</td>
+        <td class="td-mono td-red" style="text-align:right;">15</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:54px;background:var(--orange);"></div><span class="td-gold">53.6%</span></div></td>
+        <td><span class="gap-badge g-critical">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td>DME</td>
+        <td class="td-mono" style="text-align:right;">8</td>
+        <td class="td-mono td-blue" style="text-align:right;">6</td>
+        <td class="td-mono td-green" style="text-align:right;">1</td>
+        <td class="td-mono td-red" style="text-align:right;">5</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:83px;background:var(--orange);"></div><span style="color:var(--orange);">83.3%</span></div></td>
+        <td><span class="gap-badge g-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>Specialist</td>
+        <td class="td-mono" style="text-align:right;">395</td>
+        <td class="td-mono td-blue" style="text-align:right;">72</td>
+        <td class="td-mono td-green" style="text-align:right;">53</td>
+        <td class="td-mono td-red" style="text-align:right;">19</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:26px;background:var(--orange);"></div><span style="color:var(--orange);">26.4%</span></div></td>
+        <td><span class="gap-badge g-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>SNF</td>
+        <td class="td-mono" style="text-align:right;">1</td>
+        <td class="td-mono td-blue" style="text-align:right;">3</td>
+        <td class="td-mono td-green" style="text-align:right;">1</td>
+        <td class="td-mono td-red" style="text-align:right;">2</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:67px;background:var(--orange);"></div><span style="color:var(--orange);">66.7%</span></div></td>
+        <td><span class="gap-badge g-high">HIGH</span></td>
+      </tr>
+      <tr>
+        <td>VSP</td>
+        <td class="td-mono" style="text-align:right;">11</td>
+        <td class="td-mono td-blue" style="text-align:right;">15</td>
+        <td class="td-mono td-green" style="text-align:right;">11</td>
+        <td class="td-mono td-red" style="text-align:right;">4</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:27px;background:var(--purple);"></div><span style="color:var(--purple);">26.7%</span></div></td>
+        <td><span class="gap-badge g-medium">MEDIUM</span></td>
+      </tr>
+      <tr>
+        <td>General Acute Hospitals</td>
+        <td class="td-mono" style="text-align:right;">5</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Allied Health Providers</td>
+        <td class="td-mono" style="text-align:right;">34</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Mental Health Providers</td>
+        <td class="td-mono" style="text-align:right;">102</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Non-Physician Medical Practitioners</td>
+        <td class="td-mono" style="text-align:right;">94</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Primary Care Physician</td>
+        <td class="td-mono" style="text-align:right;">18</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Retail and Chain Pharmacies</td>
+        <td class="td-mono" style="text-align:right;">26</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Specialists</td>
+        <td class="td-mono" style="text-align:right;">174</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+      <tr>
+        <td>Mail Order Pharmacies</td>
+        <td class="td-mono" style="text-align:right;">7</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td class="td-mono" style="text-align:right;">—</td>
+        <td><div class="pct-bar-wrap"><div class="pct-bar" style="width:0px;background:var(--text-muted);"></div><span style="color:var(--text-muted);">0.0%</span></div></td>
+        <td><span class="gap-badge g-none">No Gap</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:var(--red);"></div>Critical Gap (PCP · Urgent Care · BH)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--orange);"></div>High Gap (Specialist · DME · SNF)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--purple);"></div>Medium Gap</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--green);"></div>Overlap in Both Networks</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--text-muted);"></div>No Health Net presence (CHGSD-only categories)</div>
+</div>
+
+<!-- ════════════════════════════ SECTION 4: TABLE REGISTRY ════════════════════════════ -->
+<div class="section-heading">
+  <span class="sh-num">04</span>
+  <span class="sh-title">SQL Table Registry — INFORMATICS.dbo</span>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+  <div class="card teal">
+    <div class="card-label">Permanent Table — Source A Output</div>
+    <div class="card-title">eVIPS_CHPIV_OVERLAP_NETWORK</div>
+    <div style="margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;">
+      CLEANProviderID NVARCHAR<br/>
+      Name NVARCHAR<br/>
+      NPI NVARCHAR<br/>
+      Provider_Category NVARCHAR
+    </div>
+    <div style="margin-top:6px;" class="annot"><div class="annot-dot" style="background:var(--teal);"></div>SELECT INTO from 9-way UNION ALL</div>
+  </div>
+  <div class="card blue">
+    <div class="card-label">Permanent Table — Source B Landing</div>
+    <div class="card-title">STATIC_EXTERNAL_274_HEALTHNET_PROVIDERS</div>
+    <div style="margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;">
+      ID INT IDENTITY PK<br/>
+      [Dynamic XLSX columns] NVARCHAR<br/>
+      ImportedAt DATETIME2 DEFAULT GETDATE()<br/>
+      ImportedBy NVARCHAR DEFAULT SYSTEM_USER
+    </div>
+    <div style="margin-top:6px;" class="annot"><div class="annot-dot" style="background:var(--blue);"></div>Python openpyxl → pyodbc · Batch 1000</div>
+  </div>
+  <div class="card gold">
+    <div class="card-label">Temp Tables — Overlap Engine</div>
+    <div class="card-title">#CHGSDCHPIV &amp; #HealthnetCHPIV</div>
+    <div style="margin-top:8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-muted);line-height:1.8;">
+      NPI NVARCHAR<br/>
+      NAME NVARCHAR (MAX aggregate)<br/>
+      PROVIDER_CATEGORY NVARCHAR (MAX aggregate)<br/>
+      DROP TABLE IF EXISTS guard applied
+    </div>
+    <div style="margin-top:6px;" class="annot"><div class="annot-dot" style="background:var(--gold);"></div>Session-scoped · CTE → SELECT INTO</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ FOOTER ════════════════════════════ -->
+<div class="footer">
+  <div class="footer-l">
+    <strong style="color:var(--gold);">CHGSD (MSO)</strong> — Community Health Group of San Diego<br/>
+    Analytics &amp; Contracting Division · CHPIV D-SNP Network Transition Analysis<br/>
+    Prepared for: Sir Salim French, Director of Contracting
+  </div>
+  <div class="footer-r">
+    eVIPS_CHPIV_NETWORK_OVERLAP_DFD_20260303.html<br/>
+    Analysis Date: March 03, 2026 · Transition Effective: January 1, 2026<br/>
+    SQLPRODAPP01.INFORMATICS.dbo · DUB C 2.0 Standards
+  </div>
+</div>
+
+</body>
+</html>

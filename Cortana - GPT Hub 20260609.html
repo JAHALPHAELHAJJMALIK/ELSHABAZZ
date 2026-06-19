@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cortana | Community Health Group GPT Hub</title>
+  <style>
+    :root {
+      --navy-950: #07111f;
+      --navy-900: #0b1728;
+      --navy-800: #10233a;
+      --navy-700: #173757;
+      --blue-600: #1d6fd6;
+      --blue-500: #2f80ed;
+      --blue-100: #dbeafe;
+      --slate-100: #f4f7fb;
+      --slate-300: #cbd5e1;
+      --slate-500: #64748b;
+      --white: #ffffff;
+      --text: #0f172a;
+      --muted: #5b6b80;
+      --panel: rgba(255, 255, 255, 0.88);
+      --panel-soft: rgba(255, 255, 255, 0.72);
+      --stroke: rgba(15, 23, 42, 0.1);
+      --stroke-light: rgba(255, 255, 255, 0.6);
+      --shadow: 0 30px 90px rgba(7, 17, 31, 0.16);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: grid;
+      place-items: center;
+      padding: 32px 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(47, 128, 237, 0.14), transparent 30rem),
+        radial-gradient(circle at 82% 10%, rgba(23, 55, 87, 0.12), transparent 26rem),
+        linear-gradient(135deg, #f7f9fc 0%, #edf2f8 48%, #f9fbfd 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.78), transparent 82%);
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      width: min(1260px, 100%);
+    }
+
+    .executive-frame {
+      overflow: hidden;
+      border: 1px solid var(--stroke-light);
+      border-radius: 44px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.78)),
+        radial-gradient(circle at 18% 0%, rgba(47, 128, 237, 0.12), transparent 36%);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(24px) saturate(150%);
+      -webkit-backdrop-filter: blur(24px) saturate(150%);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 22px 28px;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.52);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: white;
+      font-size: 23px;
+      font-weight: 850;
+      letter-spacing: -0.06em;
+      background: linear-gradient(135deg, var(--navy-800), var(--blue-600));
+      box-shadow: 0 14px 28px rgba(29, 111, 214, 0.22);
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .brand-text strong {
+      display: block;
+      color: var(--navy-950);
+      font-size: 16px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      border: 1px solid rgba(29, 111, 214, 0.16);
+      border-radius: 999px;
+      background: rgba(47, 128, 237, 0.08);
+      color: var(--navy-700);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.14);
+    }
+
+    .hero {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      text-align: center;
+      align-items: center;
+      padding: clamp(34px, 5vw, 64px) clamp(28px, 5vw, 58px) 38px;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -150px;
+      top: -120px;
+      width: 420px;
+      height: 420px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(29,111,214,0.16), transparent 66%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 18px;
+      padding: 9px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255,255,255,0.64);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 18px;
+      height: 2px;
+      border-radius: 99px;
+      background: var(--blue-600);
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--navy-950);
+      font-size: clamp(58px, 9vw, 118px);
+      line-height: 0.88;
+      letter-spacing: -0.085em;
+    }
+
+    .title-accent {
+      display: block;
+      margin-top: 12px;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+      color: var(--navy-700);
+      font-weight: 760;
+    }
+
+    .intro {
+      max-width: 620px;
+      margin: 22px 0 0;
+      color: var(--muted);
+      font-size: clamp(16px, 1.9vw, 19px);
+      line-height: 1.58;
+      font-weight: 500;
+    }
+
+    .button-section {
+      padding: 0 clamp(28px, 5vw, 58px) clamp(28px, 5vw, 56px);
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(172px, 1fr));
+      gap: 14px;
+    }
+
+    @media (min-width: 1180px) {
+      .button-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+    }
+
+    .gpt-button {
+      position: relative;
+      min-height: 154px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 18px 18px 20px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 26px;
+      color: var(--navy-950);
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 16px 38px rgba(7, 17, 31, 0.08);
+      transition:
+        transform 220ms ease,
+        box-shadow 220ms ease,
+        border-color 220ms ease,
+        background 220ms ease;
+    }
+
+    .gpt-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.7), transparent 54%),
+        radial-gradient(circle at 18% 10%, var(--tint), transparent 42%);
+      opacity: 0.82;
+    }
+
+    .gpt-button::after {
+      content: "";
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 0;
+      height: 4px;
+      border-radius: 99px 99px 0 0;
+      background: var(--accent);
+      opacity: 0.86;
+    }
+
+    .gpt-button:hover {
+      transform: translateY(-7px);
+      border-color: rgba(29, 111, 214, 0.2);
+      background: white;
+      box-shadow: 0 26px 58px rgba(7, 17, 31, 0.14);
+    }
+
+    .gpt-button:active {
+      transform: translateY(-2px);
+    }
+
+    .button-top,
+    .button-bottom {
+      position: relative;
+      z-index: 1;
+    }
+
+    .button-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      box-shadow: 0 12px 24px var(--glow);
+    }
+
+    .button-icon svg {
+      width: 23px;
+      height: 23px;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .button-bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 32px;
+      align-items: end;
+      gap: 8px;
+      min-height: 58px;
+    }
+
+    .button-label strong {
+      display: block;
+      color: var(--navy-950);
+      font-size: 16px;
+      line-height: 1.04;
+      letter-spacing: -0.045em;
+      max-width: 100%;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+    }
+
+    .button-label span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .arrow {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      justify-self: end;
+      align-self: end;
+      margin: 0 0 2px 0;
+      border-radius: 99px;
+      color: var(--navy-700);
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(15, 23, 42, 0.075);
+      box-shadow: 0 10px 22px rgba(7, 17, 31, 0.08);
+      transition: 220ms ease;
+    }
+
+    .gpt-button:hover .arrow {
+      color: white;
+      background: var(--accent);
+      border-color: transparent;
+      box-shadow: 0 14px 28px var(--glow);
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .contracting {
+      --accent: #1d6fd6;
+      --accent-dark: #124fa3;
+      --glow: rgba(29, 111, 214, 0.22);
+      --tint: rgba(29, 111, 214, 0.16);
+    }
+
+    .claims {
+      --accent: #15803d;
+      --accent-dark: #166534;
+      --glow: rgba(21, 128, 61, 0.18);
+      --tint: rgba(21, 128, 61, 0.12);
+    }
+
+    .auths {
+      --accent: #c2410c;
+      --accent-dark: #9a3412;
+      --glow: rgba(194, 65, 12, 0.18);
+      --tint: rgba(194, 65, 12, 0.12);
+    }
+
+    .enrollment {
+      --accent: #5b21b6;
+      --accent-dark: #4c1d95;
+      --glow: rgba(91, 33, 182, 0.18);
+      --tint: rgba(91, 33, 182, 0.12);
+    }
+
+
+    .rx {
+      --accent: #0f766e;
+      --accent-dark: #115e59;
+      --glow: rgba(15, 118, 110, 0.18);
+      --tint: rgba(15, 118, 110, 0.12);
+    }
+
+    .report-search {
+      --accent: #334155;
+      --accent-dark: #0f172a;
+      --glow: rgba(51, 65, 85, 0.16);
+      --tint: rgba(51, 65, 85, 0.13);
+    }
+
+
+    .router-section {
+      padding: 0 clamp(28px, 5vw, 58px) clamp(28px, 5vw, 48px);
+      margin-top: -18px;
+    }
+
+    .router-panel {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(29, 111, 214, 0.12);
+      border-radius: 30px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.9), rgba(255,255,255,0.66)),
+        radial-gradient(circle at 18% 0%, rgba(29, 111, 214, 0.12), transparent 34%),
+        radial-gradient(circle at 88% 22%, rgba(91, 33, 182, 0.08), transparent 34%);
+      box-shadow: 0 22px 62px rgba(7, 17, 31, 0.1);
+    }
+
+    .router-header {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 20px 22px 0;
+    }
+
+    .router-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .router-orb {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 16px;
+      color: white;
+      background: linear-gradient(135deg, var(--navy-800), var(--blue-600));
+      box-shadow: 0 14px 28px rgba(29, 111, 214, 0.22);
+    }
+
+    .router-orb svg,
+    .suggestion-card svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .router-title strong {
+      display: block;
+      color: var(--navy-950);
+      font-size: 18px;
+      letter-spacing: -0.04em;
+    }
+
+    .router-title span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .router-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(29, 111, 214, 0.14);
+      background: rgba(47, 128, 237, 0.08);
+      color: var(--navy-700);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .router-body {
+      position: relative;
+      z-index: 1;
+      padding: 18px 22px 22px;
+    }
+
+    .chatbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 24px;
+      background: rgba(248, 250, 252, 0.92);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    .chatbar input {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      outline: 0;
+      padding: 0 14px;
+      color: var(--navy-950);
+      background: transparent;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 560;
+    }
+
+    .chatbar input::placeholder {
+      color: rgba(91, 107, 128, 0.78);
+    }
+
+    .route-button {
+      min-width: 132px;
+      border: 0;
+      border-radius: 18px;
+      cursor: pointer;
+      color: white;
+      background: linear-gradient(135deg, var(--navy-800), var(--blue-600));
+      font-size: 14px;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      box-shadow: 0 14px 28px rgba(29, 111, 214, 0.24);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .route-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 34px rgba(29, 111, 214, 0.3);
+    }
+
+
+    .router-question {
+      display: none;
+      margin-top: 16px;
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid rgba(29, 111, 214, 0.12);
+      background: rgba(255,255,255,0.76);
+      animation: resultIn 220ms ease both;
+    }
+
+    .router-question.show {
+      display: block;
+    }
+
+    .router-question strong {
+      display: block;
+      color: var(--navy-950);
+      font-size: 21px;
+      line-height: 1.1;
+      letter-spacing: -0.045em;
+    }
+
+    .router-question p {
+      margin: 8px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 540;
+    }
+
+    .router-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .router-choice {
+      min-width: 104px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 999px;
+      padding: 11px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 850;
+      transition: 180ms ease;
+    }
+
+
+    #regulatoryActions,
+    #areaActions {
+      display: none;
+    }
+
+    #regulatoryActions.show,
+    #areaActions.show {
+      display: flex;
+    }
+
+    .router-choice.yes-choice {
+      color: white;
+      background: linear-gradient(135deg, var(--navy-800), var(--blue-600));
+      box-shadow: 0 12px 24px rgba(29, 111, 214, 0.2);
+    }
+
+    .router-choice.no-choice {
+      color: var(--navy-700);
+      background: rgba(255,255,255,0.84);
+    }
+
+    .router-choice.area {
+      color: var(--navy-700);
+      background: rgba(255,255,255,0.84);
+    }
+
+    .router-choice.contracting-choice {
+      color: #124fa3;
+      border-color: rgba(29, 111, 214, 0.18);
+    }
+
+    .router-choice.claims-choice {
+      color: #166534;
+      border-color: rgba(21, 128, 61, 0.18);
+    }
+
+    .router-choice.auths-choice {
+      color: #9a3412;
+      border-color: rgba(194, 65, 12, 0.18);
+    }
+
+    .router-choice.enrollment-choice {
+      color: #4c1d95;
+      border-color: rgba(91, 33, 182, 0.18);
+    }
+
+    .router-choice.rx-choice {
+      color: #115e59;
+      border-color: rgba(15, 118, 110, 0.18);
+    }
+
+    .router-choice:hover {
+      transform: translateY(-2px);
+    }
+
+    .router-choice.yes-choice:hover {
+      color: white;
+      background: linear-gradient(135deg, #173757, #1d6fd6);
+      box-shadow: 0 14px 28px rgba(29, 111, 214, 0.26);
+    }
+
+    .router-choice.no-choice:hover,
+    .router-choice.area:hover,
+    .router-choice.clear-choice:hover {
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 10px 22px rgba(7, 17, 31, 0.08);
+    }
+
+    .router-result {
+      display: none;
+      margin-top: 16px;
+      border-radius: 24px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255,255,255,0.76);
+      overflow: hidden;
+    }
+
+    .router-result.show {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      animation: resultIn 220ms ease both;
+    }
+
+    @keyframes resultIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-copy {
+      padding: 20px;
+    }
+
+    .result-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: var(--blue-600);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .result-kicker::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: var(--result-accent, var(--blue-600));
+      box-shadow: 0 0 0 4px var(--result-tint, rgba(29,111,214,0.12));
+    }
+
+    .result-copy h3 {
+      margin: 0;
+      color: var(--navy-950);
+      font-size: 24px;
+      line-height: 1.05;
+      letter-spacing: -0.055em;
+    }
+
+    .result-copy p {
+      margin: 9px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.52;
+      font-weight: 540;
+    }
+
+    .suggestion-card {
+      position: relative;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      color: var(--navy-950);
+      text-decoration: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.8), transparent 58%),
+        radial-gradient(circle at 18% 12%, var(--result-tint, rgba(29,111,214,0.14)), transparent 44%),
+        rgba(255,255,255,0.84);
+      border-left: 1px solid rgba(15, 23, 42, 0.07);
+    }
+
+    .suggestion-card .button-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--result-accent, #1d6fd6), var(--result-dark, #124fa3));
+      box-shadow: 0 12px 24px var(--result-glow, rgba(29,111,214,0.22));
+    }
+
+    .suggestion-bottom {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .suggestion-label strong {
+      display: block;
+      color: var(--navy-950);
+      font-size: 21px;
+      line-height: 1;
+      letter-spacing: -0.055em;
+    }
+
+    .suggestion-label span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .suggestion-open {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      color: white;
+      background: var(--result-accent, var(--blue-600));
+      box-shadow: 0 12px 24px var(--result-glow, rgba(29,111,214,0.22));
+    }
+
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .result-chip {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.72);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .result-chip.confidence {
+      color: var(--navy-700);
+      background: rgba(47, 128, 237, 0.08);
+      border-color: rgba(29, 111, 214, 0.14);
+    }
+
+    .router-choice.clear-choice {
+      color: var(--muted);
+      background: rgba(248, 250, 252, 0.72);
+    }
+
+    .suggestion-card.disabled {
+      cursor: default;
+    }
+
+    .quick-prompts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-prompts button {
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.72);
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .quick-prompts button:hover {
+      color: var(--navy-950);
+      border-color: rgba(29, 111, 214, 0.18);
+      background: white;
+      transform: translateY(-1px);
+    }
+
+    .footer-note {
+      display: flex;
+      justify-content: center;
+      padding: 18px 28px 24px;
+      border-top: 1px solid rgba(15, 23, 42, 0.07);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+      text-align: center;
+      background: rgba(255,255,255,0.38);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      z-index: 20;
+      width: min(560px, calc(100vw - 32px));
+      transform: translateX(-50%) translateY(24px);
+      opacity: 0;
+      padding: 14px 18px;
+      border-radius: 999px;
+      background: rgba(7, 17, 31, 0.88);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 20px 60px rgba(7, 17, 31, 0.25);
+      color: white;
+      text-align: center;
+      font-weight: 720;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: 240ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 980px) {
+      body {
+        display: block;
+      }
+
+      .button-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .report-search {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 620px) {
+      body {
+        padding: 14px 10px;
+      }
+
+      .executive-frame {
+        border-radius: 30px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px;
+      }
+
+      .status-pill {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .hero {
+        padding: 32px 18px 24px;
+      }
+
+      h1 {
+        font-size: 64px;
+      }
+
+      .title-accent {
+        font-size: 22px;
+      }
+
+      .info-panel {
+        padding: 20px;
+        border-radius: 24px;
+      }
+
+      .metric-row {
+        grid-template-columns: 1fr;
+      }
+
+      .button-section {
+        padding: 0 18px 24px;
+      }
+
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gpt-button {
+        min-height: 122px;
+      }
+
+
+      .router-section {
+        padding: 0 18px 24px;
+        margin-top: -10px;
+      }
+
+      .router-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px 18px 0;
+      }
+
+      .router-badge {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .router-body {
+        padding: 16px 18px 18px;
+      }
+
+      .chatbar {
+        grid-template-columns: 1fr;
+      }
+
+      .route-button {
+        min-height: 48px;
+      }
+
+      .router-result.show {
+        grid-template-columns: 1fr;
+      }
+
+      .suggestion-card {
+        min-height: 150px;
+        border-left: 0;
+        border-top: 1px solid rgba(15, 23, 42, 0.07);
+      }
+
+      .footer-note {
+        padding: 16px 18px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="executive-frame" aria-label="Cortana landing page">
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">C</div>
+          <div class="brand-text">
+            <strong>Cortana</strong>
+            <span>Community Health Group GPT Hub</span>
+          </div>
+        </div>
+
+        <div class="status-pill">
+          <span class="dot"></span>
+          Enterprise AI Access
+        </div>
+      </header>
+
+      <section class="hero">
+        <div>
+          <div class="eyebrow">CHG AI Workspace</div>
+          <h1>
+            Cortana
+            <span class="title-accent">Custom GPT Command Center</span>
+          </h1>
+          <p class="intro">
+            A centralized, professional access point that connects Community Health Group teams with specialized AI assistants.
+          </p>
+        </div>
+
+
+      </section>
+
+      <section class="button-section">
+        <div class="button-grid" aria-label="Custom GPT shortcuts">
+          <a
+            class="gpt-button contracting"
+            href="https://chatgpt.com/g/g-67980bd08be88191a8cbae2378cf4b98-contracting-utilization-analyst"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="button-top">
+              <div class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 11l3 3c.9.9 2.1.9 3 0l1-1" />
+                  <path d="M7 12l-3-3 4-4 3 3" />
+                  <path d="M17 12l3-3-4-4-3 3" />
+                  <path d="M9 7h3.5L17 11.5" />
+                  <path d="M6 15l3 3c1.2 1.2 3.2 1.2 4.4 0L18 13.4" />
+                </svg>
+              </div>
+            </div>
+            <div class="button-bottom">
+              <div class="button-label">
+                <strong>Contracting</strong>
+                <span>Utilization Analyst</span>
+              </div>
+              <div class="arrow">↗</div>
+            </div>
+          </a>
+
+          <a
+            class="gpt-button claims"
+            href="https://chatgpt.com/g/g-681a30163fa481919476db565da4487f-qa-cortana-adhi"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="button-top">
+              <div class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-3 2-3-2-3 2-2-1.3V5a2 2 0 0 1 2-2z" />
+                  <path d="M8 8h8" />
+                  <path d="M8 12h5" />
+                  <path d="M15 15l1.4 1.4L20 13" />
+                </svg>
+              </div>
+            </div>
+            <div class="button-bottom">
+              <div class="button-label">
+                <strong>Claims</strong>
+                <span>Custom GPT</span>
+              </div>
+              <div class="arrow">↗</div>
+            </div>
+          </a>
+
+          <a class="gpt-button auths placeholder" href="#" data-name="Auths">
+            <div class="button-top">
+              <div class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3l7 3v5c0 4.6-2.9 8.8-7 10-4.1-1.2-7-5.4-7-10V6l7-3z" />
+                  <path d="M8.5 12.2l2.2 2.2 4.8-5" />
+                </svg>
+              </div>
+            </div>
+            <div class="button-bottom">
+              <div class="button-label">
+                <strong>Auths</strong>
+                <span>Custom GPT</span>
+              </div>
+              <div class="arrow">＋</div>
+            </div>
+          </a>
+
+          <a class="gpt-button enrollment placeholder" href="#" data-name="Enrollment">
+            <div class="button-top">
+              <div class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M15 20a6 6 0 0 0-12 0" />
+                  <circle cx="9" cy="8" r="4" />
+                  <path d="M18 8v8" />
+                  <path d="M14 12h8" />
+                </svg>
+              </div>
+            </div>
+            <div class="button-bottom">
+              <div class="button-label">
+                <strong>Enrollment</strong>
+                <span>Custom GPT</span>
+              </div>
+              <div class="arrow">＋</div>
+            </div>
+          </a>
+
+
+          <a class="gpt-button rx placeholder" href="#" data-name="Rx">
+            <div class="button-top">
+              <div class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 21h8" />
+                  <path d="M10 21V9a4 4 0 0 1 8 0v12" />
+                  <path d="M8 13h12" />
+                  <path d="M9 5h2" />
+                  <path d="M16 5h2" />
+                  <path d="M7 9h2" />
+                  <path d="M19 9h2" />
+                </svg>
+              </div>
+            </div>
+            <div class="button-bottom">
+              <div class="button-label">
+                <strong>Rx</strong>
+                <span>Medications</span>
+              </div>
+              <div class="arrow">＋</div>
+            </div>
+          </a>
+
+          <a
+            class="gpt-button report-search"
+            href="https://chatgpt.com/g/g-69aef283d94c819189232ae19dae61c7-jarvis-2-0-prod"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <div class="button-top">
+              <div class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <circle cx="10.5" cy="10.5" r="5.5" />
+                  <path d="M15 15l5 5" />
+                  <path d="M8 11.5l2-2 2 2 3-4" />
+                </svg>
+              </div>
+            </div>
+            <div class="button-bottom">
+              <div class="button-label">
+                <strong>Report Search</strong>
+                <span>Jarvis 2.0</span>
+              </div>
+              <div class="arrow">↗</div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <section class="router-section" aria-label="Cortana smart routing assistant">
+        <div class="router-panel">
+          <div class="router-header">
+            <div class="router-title">
+              <div class="router-orb" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3c4.4 0 8 3.1 8 7s-3.6 7-8 7c-.8 0-1.6-.1-2.3-.3L5 20l1.2-4.1C4.8 14.6 4 12.4 4 10c0-3.9 3.6-7 8-7z" />
+                  <path d="M9 10h.01" />
+                  <path d="M12 10h.01" />
+                  <path d="M15 10h.01" />
+                </svg>
+              </div>
+              <div>
+                <strong>What would you like to do today?</strong>
+                <span>Describe your request. Cortana will always confirm whether it is a regulatory report before routing.</span>
+              </div>
+            </div>
+            <div class="router-badge">Smart Routing</div>
+          </div>
+
+          <div class="router-body">
+            <form class="chatbar" id="routerForm">
+              <input
+                id="routerInput"
+                type="text"
+                autocomplete="off"
+                placeholder="Describe your request. Cortana will first confirm if it is a regulatory report..."
+                aria-label="Describe what you need help with"
+              />
+              <button class="route-button" type="submit">Route Request</button>
+            </form>
+
+            <div class="quick-prompts" aria-label="Example prompts">
+              <button type="button" data-prompt="I need help reviewing a provider contract amendment.">Contract amendment</button>
+              <button type="button" data-prompt="I have a denied claim that needs review.">Denied claim</button>
+              <button type="button" data-prompt="I need to check a prior authorization request.">Prior auth</button>
+              <button type="button" data-prompt="I need help with member eligibility or enrollment.">Eligibility</button>
+              <button type="button" data-prompt="I need to submit a DHCS regulatory filing.">DHCS filing</button>
+            </div>
+
+
+            <div class="router-question" id="routerQuestion" aria-live="polite">
+              <strong id="questionTitle">Which area do you need help with?</strong>
+              <p id="questionContext">Choose the operational area that best matches what you need.</p>
+
+              <div class="router-actions" id="regulatoryActions">
+                <button class="router-choice yes-choice" type="button" id="regulatoryYes">Yes, this is regulatory</button>
+                <button class="router-choice no-choice" type="button" id="regulatoryNo">No, choose an area</button>
+              </div>
+
+              <div class="router-actions" id="areaActions">
+                <button class="router-choice area contracting-choice" type="button" data-route="contracting">Contracting</button>
+                <button class="router-choice area claims-choice" type="button" data-route="claims">Claims</button>
+                <button class="router-choice area auths-choice" type="button" data-route="auths">Auths</button>
+                <button class="router-choice area enrollment-choice" type="button" data-route="enrollment">Enrollment</button>
+                <button class="router-choice area rx-choice" type="button" data-route="rx">Rx</button>
+                <button class="router-choice clear-choice" type="button" id="clearRouter">Start Over</button>
+              </div>
+            </div>
+
+            <div class="router-result" id="routerResult" aria-live="polite">
+              <div class="result-copy">
+                <div class="result-kicker" id="resultKicker">Recommended GPT</div>
+                <h3 id="resultTitle">Report Search / Jarvis 2.0</h3>
+                <p id="resultDescription">
+                  This looks like a regulatory reporting, compliance filing, agency submission, or formal audit/reporting request. Start with Report Search / Jarvis 2.0.
+                </p>
+                <div class="result-meta" id="resultMeta"></div>
+              </div>
+
+              <a class="suggestion-card" id="suggestionCard" href="#" target="_blank" rel="noopener noreferrer">
+                <div class="button-icon" id="suggestionIcon" aria-hidden="true"></div>
+                <div class="suggestion-bottom">
+                  <div class="suggestion-label">
+                    <strong id="suggestionName">Report Search</strong>
+                    <span id="suggestionSub">Jarvis 2.0</span>
+                  </div>
+                  <div class="suggestion-open" id="suggestionArrow">↗</div>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="footer-note">
+        Cortana centralizes access to internal Custom GPTs supporting operations, analysis, and information retrieval.
+      </footer>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const toast = document.getElementById("toast");
+    const placeholders = document.querySelectorAll(".placeholder");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2400);
+    }
+
+    placeholders.forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        showToast(button.dataset.name + " still needs its Custom GPT URL.");
+      });
+    });
+
+    const routerForm = document.getElementById("routerForm");
+    const routerInput = document.getElementById("routerInput");
+    const routerQuestion = document.getElementById("routerQuestion");
+    const questionTitle = document.getElementById("questionTitle");
+    const questionContext = document.getElementById("questionContext");
+    const regulatoryActions = document.getElementById("regulatoryActions");
+    const areaActions = document.getElementById("areaActions");
+    const regulatoryYes = document.getElementById("regulatoryYes");
+    const regulatoryNo = document.getElementById("regulatoryNo");
+    const areaButtons = document.querySelectorAll(".router-choice.area");
+    const clearRouter = document.getElementById("clearRouter");
+    const routerResult = document.getElementById("routerResult");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultDescription = document.getElementById("resultDescription");
+    const resultMeta = document.getElementById("resultMeta");
+    const suggestionCard = document.getElementById("suggestionCard");
+    const suggestionIcon = document.getElementById("suggestionIcon");
+    const suggestionName = document.getElementById("suggestionName");
+    const suggestionSub = document.getElementById("suggestionSub");
+    const suggestionArrow = document.getElementById("suggestionArrow");
+
+    const iconLibrary = {
+      contracting: `<svg viewBox="0 0 24 24"><path d="M8 11l3 3c.9.9 2.1.9 3 0l1-1" /><path d="M7 12l-3-3 4-4 3 3" /><path d="M17 12l3-3-4-4-3 3" /><path d="M9 7h3.5L17 11.5" /><path d="M6 15l3 3c1.2 1.2 3.2 1.2 4.4 0L18 13.4" /></svg>`,
+      claims: `<svg viewBox="0 0 24 24"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-3 2-3-2-3 2-2-1.3V5a2 2 0 0 1 2-2z" /><path d="M8 8h8" /><path d="M8 12h5" /><path d="M15 15l1.4 1.4L20 13" /></svg>`,
+      auths: `<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.9 8.8-7 10-4.1-1.2-7-5.4-7-10V6l7-3z" /><path d="M8.5 12.2l2.2 2.2 4.8-5" /></svg>`,
+      enrollment: `<svg viewBox="0 0 24 24"><path d="M15 20a6 6 0 0 0-12 0" /><circle cx="9" cy="8" r="4" /><path d="M18 8v8" /><path d="M14 12h8" /></svg>`,
+      rx: `<svg viewBox="0 0 24 24"><path d="M8 21h8" /><path d="M10 21V9a4 4 0 0 1 8 0v12" /><path d="M8 13h12" /><path d="M9 5h2" /><path d="M16 5h2" /><path d="M7 9h2" /><path d="M19 9h2" /></svg>`,
+      report: `<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5" /><path d="M15 15l5 5" /><path d="M8 11.5l2-2 2 2 3-4" /></svg>`
+    };
+
+    const routes = {
+      rx: {
+        key: "rx",
+        title: "Rx",
+        name: "Rx",
+        sub: "Medications",
+        description: "This looks related to pharmacy, medications, prescriptions, formulary, drug coverage, or medication-related questions.",
+        url: "",
+        accent: "#0f766e", dark: "#115e59", tint: "rgba(15, 118, 110, 0.12)", glow: "rgba(15, 118, 110, 0.18)"
+      },
+      report: {
+        key: "report",
+        title: "Report Search / Jarvis 2.0",
+        name: "Report Search",
+        sub: "Jarvis 2.0",
+        description: "This looks like a regulatory reporting, compliance filing, agency submission, or formal audit/reporting request. Start with Report Search / Jarvis 2.0.",
+        url: "https://chatgpt.com/g/g-69aef283d94c819189232ae19dae61c7-jarvis-2-0-prod",
+        accent: "#334155", dark: "#0f172a", tint: "rgba(51, 65, 85, 0.13)", glow: "rgba(51, 65, 85, 0.16)"
+      },
+      contracting: {
+        key: "contracting",
+        title: "Contracting",
+        name: "Contracting",
+        sub: "Utilization Analyst",
+        description: "This looks related to provider contracting, agreements, terms, utilization, negotiation, or contract analysis.",
+        url: "https://chatgpt.com/g/g-67980bd08be88191a8cbae2378cf4b98-contracting-utilization-analyst",
+        accent: "#1d6fd6", dark: "#124fa3", tint: "rgba(29, 111, 214, 0.16)", glow: "rgba(29, 111, 214, 0.22)"
+      },
+      claims: {
+        key: "claims",
+        title: "Claims",
+        name: "Claims",
+        sub: "Custom GPT",
+        description: "This looks related to claim status, payment, denial, adjudication, billing, CPT, EOB, or reimbursement questions.",
+        url: "https://chatgpt.com/g/g-681a30163fa481919476db565da4487f-qa-cortana-adhi",
+        accent: "#15803d", dark: "#166534", tint: "rgba(21, 128, 61, 0.12)", glow: "rgba(21, 128, 61, 0.18)"
+      },
+      auths: {
+        key: "auths",
+        title: "Auths",
+        name: "Auths",
+        sub: "Custom GPT",
+        description: "This looks related to prior authorization, approval, denial, medical necessity, referral, service request, or authorization status.",
+        url: "",
+        accent: "#c2410c", dark: "#9a3412", tint: "rgba(194, 65, 12, 0.12)", glow: "rgba(194, 65, 12, 0.18)"
+      },
+      enrollment: {
+        key: "enrollment",
+        title: "Enrollment",
+        name: "Enrollment",
+        sub: "Custom GPT",
+        description: "This looks related to member eligibility, enrollment, disenrollment, plan changes, roster, or demographic updates.",
+        url: "",
+        accent: "#5b21b6", dark: "#4c1d95", tint: "rgba(91, 33, 182, 0.12)", glow: "rgba(91, 33, 182, 0.18)"
+      }
+    };
+
+    let pendingRequest = "";
+
+    function normalizeText(rawText) {
+      return rawText
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function containsAny(text, terms) {
+      return terms.some((term) => text.includes(term));
+    }
+
+    function countMatches(text, terms) {
+      return terms.reduce((total, term) => total + (text.includes(term) ? 1 : 0), 0);
+    }
+
+    function showQuestion(mode, value, reason) {
+      pendingRequest = value;
+      routerResult.classList.remove("show");
+      routerQuestion.classList.add("show");
+      regulatoryActions.classList.remove("show");
+      areaActions.classList.remove("show");
+
+      if (mode === "regulatory") {
+        questionTitle.textContent = "Is this a regulatory report?";
+        questionContext.textContent = reason + " Request: “" + value + "”";
+        regulatoryActions.classList.add("show");
+        return;
+      }
+
+      questionTitle.textContent = "Which area do you need help with?";
+      questionContext.textContent = reason + " Request: “" + value + "”";
+      areaActions.classList.add("show");
+    }
+
+    function isClearlyRegulatoryReport(rawText) {
+      const text = normalizeText(rawText);
+
+      const explicitRegulatorySignals = [
+        "regulatory report",
+        "regulatory reporting",
+        "regulatory submission",
+        "regulatory filing",
+        "compliance filing",
+        "submit to regulator",
+        "regulator submission",
+        "state filing",
+        "federal filing",
+        "dhcs report",
+        "dmhc report",
+        "cms report",
+        "ncqa report",
+        "hfr report",
+        "timely access report",
+        "encounter data submission",
+        "encounter submission",
+        "agency submission",
+        "statutory report",
+        "mandated report"
+      ];
+
+      const agencySignals = [
+        "dhcs", "dmhc", "cms", "ncqa", "regulator", "regulatory",
+        "department of health care services", "department of managed health care"
+      ];
+
+      const formalSubmissionSignals = [
+        "submission", "filing", "attestation", "audit", "compliance",
+        "required deliverable", "mandated", "statutory", "submit"
+      ];
+
+      if (containsAny(text, explicitRegulatorySignals)) {
+        return true;
+      }
+
+      return containsAny(text, agencySignals) && containsAny(text, formalSubmissionSignals);
+    }
+
+    function isGenericReportRequest(rawText) {
+      const text = normalizeText(rawText);
+
+      // These are intentionally broad. They should trigger a question, not Jarvis.
+      return containsAny(text, [
+        "report", "dashboard", "tableau", "data pull", "extract", "spreadsheet",
+        "list", "new report", "mini map", "map report", "report request", "report for",
+        "build a report", "create a report", "need a report", "want a report"
+      ]);
+    }
+
+    const keywordBank = {
+      contracting: [
+        "contract", "contracting", "provider agreement", "agreement", "amendment",
+        "rate negotiation", "negotiation", "loa", "letter of agreement", "ipa",
+        "facility contract", "professional contract", "provider rate", "capitation",
+        "network", "vendor agreement", "terms", "fee schedule", "utilization analyst",
+        "contrato", "contratacion", "proveedor", "acuerdo", "tarifa"
+      ],
+      claims: [
+        "claim", "claims", "denied claim", "denial", "denied", "payment", "paid",
+        "underpaid", "overpaid", "adjudication", "billing", "bill", "cpt", "hcpcs",
+        "eob", "era", "reimbursement", "invoice", "payer", "remit", "ub04", "cms1500",
+        "reprocess", "adjustment", "cob", "appeal claim", "reclamo", "pago", "factura"
+      ],
+      auths: [
+        "auth", "auths", "authorization", "prior auth", "pre auth", "preauthorization",
+        "approval", "approved", "deny auth", "medical necessity", "referral",
+        "service request", "um", "utilization management", "treatment authorization",
+        "tar", "procedure authorization", "autorizacion", "referido", "aprobacion"
+      ],
+      enrollment: [
+        "enrollment", "enroll", "eligibility", "eligible", "member eligibility",
+        "member", "subscriber", "roster", "disenrollment", "terminate coverage",
+        "coverage", "plan change", "demographic", "address change", "dob", "medi cal",
+        "member id", "effective date", "alta", "elegibilidad", "miembro", "inscripcion"
+      ],
+      rx: [
+        "rx", "pharmacy", "medication", "medications", "prescription", "drug",
+        "formulary", "ndc", "prior authorization medication", "medication coverage",
+        "medicina", "medicamento", "farmacia", "receta"
+      ]
+    };
+
+    function classifyOperationalArea(rawText) {
+      const text = normalizeText(rawText);
+      const scores = Object.fromEntries(
+        Object.entries(keywordBank).map(([key, terms]) => [key, countMatches(text, terms)])
+      );
+
+      const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+      const [bestKey, bestScore] = sorted[0];
+      const secondScore = sorted[1][1];
+
+      if (bestScore === 0) {
+        return {
+          status: "clarify",
+          reason: "I could not confidently identify the business area."
+        };
+      }
+
+      if (bestScore === secondScore && secondScore > 0) {
+        return {
+          status: "clarify",
+          reason: "This request appears to match multiple areas."
+        };
+      }
+
+      const confidence = bestScore >= 3 ? "High confidence" : bestScore === 2 ? "Medium confidence" : "Low confidence";
+
+      return {
+        status: "route",
+        route: routes[bestKey],
+        confidence,
+        matchedSignals: bestScore
+      };
+    }
+
+    function renderRoute(route, meta = {}) {
+      routerQuestion.classList.remove("show");
+      regulatoryActions.classList.remove("show");
+      areaActions.classList.remove("show");
+      routerResult.classList.add("show");
+
+      resultTitle.textContent = route.title;
+      resultDescription.textContent = route.description;
+      suggestionName.textContent = route.name;
+      suggestionSub.textContent = route.sub;
+      suggestionIcon.innerHTML = iconLibrary[route.key] || iconLibrary.report;
+
+      suggestionCard.style.setProperty("--result-accent", route.accent);
+      suggestionCard.style.setProperty("--result-dark", route.dark);
+      suggestionCard.style.setProperty("--result-tint", route.tint);
+      suggestionCard.style.setProperty("--result-glow", route.glow);
+
+      resultMeta.innerHTML = "";
+      const chips = [];
+      if (meta.confidence) chips.push({ text: meta.confidence, className: "confidence" });
+      if (meta.reason) chips.push({ text: meta.reason, className: "" });
+      if (meta.signals) chips.push({ text: meta.signals + " signal" + (meta.signals === 1 ? "" : "s"), className: "" });
+
+      chips.forEach((chip) => {
+        const item = document.createElement("span");
+        item.className = "result-chip " + chip.className;
+        item.textContent = chip.text;
+        resultMeta.appendChild(item);
+      });
+
+      if (route.url) {
+        suggestionCard.href = route.url;
+        suggestionCard.classList.remove("disabled");
+        suggestionCard.setAttribute("target", "_blank");
+        suggestionCard.setAttribute("rel", "noopener noreferrer");
+        suggestionArrow.textContent = "↗";
+      } else {
+        suggestionCard.href = "#";
+        suggestionCard.classList.add("disabled");
+        suggestionCard.removeAttribute("target");
+        suggestionCard.removeAttribute("rel");
+        suggestionArrow.textContent = "＋";
+      }
+    }
+
+    function routeRequest(value) {
+      const cleanValue = value.trim();
+      if (!cleanValue) {
+        showToast("Tell Cortana what you would like to do today.");
+        routerInput.focus();
+        return;
+      }
+
+      // Required behavior:
+      // No matter what the user enters, Cortana must always ask first
+      // whether the request is a regulatory report.
+      showQuestion(
+        "regulatory",
+        cleanValue,
+        "Before routing this request, please confirm:"
+      );
+    }
+
+    routerForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      routeRequest(routerInput.value);
+    });
+
+    regulatoryYes.addEventListener("click", () => {
+      renderRoute(routes.report, {
+        confidence: "User confirmed",
+        reason: "Regulatory report"
+      });
+    });
+
+    regulatoryNo.addEventListener("click", () => {
+      showQuestion(
+        "area",
+        pendingRequest || routerInput.value,
+        "Got it. Since this is not a regulatory report, choose the operational area that should own this request."
+      );
+    });
+
+    areaButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const routeKey = button.dataset.route;
+        renderRoute(routes[routeKey], {
+          confidence: "User selected",
+          reason: "Manual routing"
+        });
+      });
+    });
+
+    clearRouter.addEventListener("click", () => {
+      pendingRequest = "";
+      routerInput.value = "";
+      routerQuestion.classList.remove("show");
+      routerResult.classList.remove("show");
+      regulatoryActions.classList.remove("show");
+      areaActions.classList.remove("show");
+      routerInput.focus();
+    });
+
+    document.querySelectorAll(".quick-prompts button").forEach((button) => {
+      button.addEventListener("click", () => {
+        routerInput.value = button.dataset.prompt;
+        routeRequest(button.dataset.prompt);
+      });
+    });
+
+    suggestionCard.addEventListener("click", (event) => {
+      if (suggestionCard.classList.contains("disabled")) {
+        event.preventDefault();
+        showToast(suggestionName.textContent + " still needs its Custom GPT URL.");
+      }
+    });
+
+  </script>
+</body>
+</html>

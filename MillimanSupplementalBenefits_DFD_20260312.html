@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2027 MA Bid — Milliman Supplemental Benefits Additional Ask — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 56px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .title-bar h1 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #bde0ff;
+    letter-spacing: 0.4px;
+  }
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+  }
+  .title-bar .subtitle {
+    font-size: 11.5px;
+    color: #888;
+    margin-top: 6px;
+    letter-spacing: 0.2px;
+  }
+
+  .diagram {
+    width: 1580px;
+    min-height: 200px;
+  }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: #777;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 10px 0 8px;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.28;
+  }
+  .flow-arrow .shaft { width: 2px; height: 20px; background: #ccc; }
+  .flow-arrow .head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== SYSTEM CONTAINER BOXES ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 16px 18px;
+    position: relative;
+  }
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* QNXT — red tint */
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.09);
+    border-color: rgba(255, 140, 140, 0.35);
+  }
+  /* INFORMATICS — blue tint */
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.09);
+    border-color: rgba(140, 200, 255, 0.35);
+  }
+  /* VSP — purple tint */
+  .system-box.vsp {
+    background: rgba(200, 150, 255, 0.09);
+    border-color: rgba(200, 150, 255, 0.35);
+  }
+  /* CS / ECM — teal tint */
+  .system-box.cs {
+    background: rgba(100, 220, 200, 0.09);
+    border-color: rgba(100, 220, 200, 0.35);
+  }
+
+  .module-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 108px;
+    color: #f0f0f0;
+    line-height: 1.4;
+  }
+  .module span { font-size: 10px; opacity: 0.72; display: block; margin-top: 2px; }
+
+  /* ===== PARAMETER / FILTER ROW ===== */
+  .param-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+  .param-box {
+    background: rgba(255, 230, 100, 0.08);
+    border: 1px solid rgba(255, 230, 100, 0.32);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 11px;
+    color: #ffe8a0;
+    text-align: center;
+    line-height: 1.45;
+    min-width: 145px;
+  }
+  .param-box strong { display: block; font-size: 11.5px; color: #fff3c0; margin-bottom: 3px; }
+
+  /* ===== CATEGORY SWIM LANES ===== */
+  .swim-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 6px 0;
+  }
+
+  .swim-lane {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .lane-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-align: center;
+    padding: 16px 10px;
+    min-width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .lane-content {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px;
+    align-items: flex-start;
+  }
+
+  /* Category color accents */
+  .lane-vision  .lane-label { background: rgba(180, 140, 255, 0.22); color: #d8b8ff; }
+  .lane-vision  { border-color: rgba(180, 140, 255, 0.25); background: rgba(180, 140, 255, 0.04); }
+
+  .lane-hearing .lane-label { background: rgba(100, 200, 255, 0.22); color: #a0d8ff; }
+  .lane-hearing { border-color: rgba(100, 200, 255, 0.25); background: rgba(100, 200, 255, 0.04); }
+
+  .lane-transport .lane-label { background: rgba(255, 180, 60, 0.22); color: #ffd090; }
+  .lane-transport { border-color: rgba(255, 180, 60, 0.25); background: rgba(255, 180, 60, 0.04); }
+
+  .lane-er .lane-label { background: rgba(255, 100, 100, 0.22); color: #ffb0b0; }
+  .lane-er { border-color: rgba(255, 100, 100, 0.25); background: rgba(255, 100, 100, 0.04); }
+
+  .lane-meals .lane-label { background: rgba(80, 220, 160, 0.22); color: #90e8c8; }
+  .lane-meals { border-color: rgba(80, 220, 160, 0.25); background: rgba(80, 220, 160, 0.04); }
+
+  .lane-acupun .lane-label { background: rgba(180, 180, 180, 0.18); color: #cccccc; }
+  .lane-acupun { border-color: rgba(180, 180, 180, 0.20); background: rgba(180, 180, 180, 0.03); }
+
+  /* ===== LOGIC CHIPS ===== */
+  .chip {
+    background: #242424;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 5px;
+    padding: 7px 11px;
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: #d8d8d8;
+    min-width: 130px;
+    max-width: 200px;
+  }
+  .chip strong { display: block; font-size: 11px; color: #ffffff; margin-bottom: 3px; }
+  .chip .tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-bottom: 3px;
+    letter-spacing: 0.4px;
+  }
+
+  /* Source tags */
+  .tag-partc    { background: rgba(100,180,255,0.25); color: #a8d4ff; }
+  .tag-qnxt     { background: rgba(255,140,140,0.25); color: #ffb0b0; }
+  .tag-vsp      { background: rgba(200,150,255,0.25); color: #d8b0ff; }
+  .tag-cs       { background: rgba(80,220,160,0.25);  color: #80e8c0; }
+  .tag-zip      { background: rgba(255,200,80,0.25);  color: #ffe080; }
+  .tag-open     { background: rgba(255,100,60,0.30);  color: #ffaa88; }
+  .tag-fix      { background: rgba(60,220,120,0.25);  color: #80ffb0; }
+
+  .arrow-inline {
+    display: flex;
+    align-items: center;
+    color: rgba(255,255,255,0.25);
+    font-size: 18px;
+    padding: 0 2px;
+    align-self: center;
+  }
+
+  /* ===== TEMP TABLE ROW ===== */
+  .temp-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+  .temp-box {
+    background: rgba(255, 160, 60, 0.11);
+    border: 1px solid rgba(255, 160, 60, 0.38);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 10.5px;
+    color: #ffe0b0;
+    text-align: center;
+    line-height: 1.45;
+    min-width: 155px;
+  }
+  .temp-box strong { display: block; font-size: 11px; color: #ffd090; margin-bottom: 2px; }
+  .temp-box .dual { font-size: 9.5px; opacity: 0.75; margin-top: 2px; }
+
+  /* ===== QA SUMMARY ROW ===== */
+  .qa-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 6px 0;
+  }
+  .qa-box {
+    background: rgba(100, 220, 160, 0.09);
+    border: 1px solid rgba(100, 220, 160, 0.32);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 10.5px;
+    color: #b0e8c8;
+    text-align: center;
+    line-height: 1.5;
+    min-width: 165px;
+  }
+  .qa-box strong { display: block; font-size: 11px; color: #d0f8e0; margin-bottom: 3px; }
+
+  /* ===== OUTPUT BOX ===== */
+  .output-section { display: flex; justify-content: center; margin: 6px 0; }
+  .report-box {
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 10px;
+    padding: 16px 20px 18px;
+    width: 100%;
+    position: relative;
+  }
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+  .report-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .report-module {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 10.5px;
+    text-align: center;
+    min-width: 120px;
+    color: #e0e0e0;
+    line-height: 1.4;
+  }
+  .report-module span { font-size: 9.5px; opacity: 0.70; display: block; margin-top: 2px; }
+
+  .universe-box {
+    background: rgba(80, 180, 255, 0.07);
+    border: 2px solid rgba(80, 180, 255, 0.35);
+    border-radius: 10px;
+    padding: 16px 20px 18px;
+    width: 100%;
+    position: relative;
+  }
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #9ad4ff;
+  }
+  .universe-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .universe-module {
+    background: rgba(80, 180, 255, 0.10);
+    border: 1px solid rgba(80, 180, 255, 0.30);
+    border-radius: 5px;
+    padding: 8px 13px;
+    font-size: 10.5px;
+    text-align: center;
+    min-width: 130px;
+    color: #c8e8ff;
+    line-height: 1.45;
+  }
+  .universe-module span { font-size: 9.5px; opacity: 0.72; display: block; margin-top: 2px; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 28px;
+    justify-content: center;
+    margin-top: 36px;
+    padding: 16px 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 8px;
+    max-width: 1000px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #bbb;
+  }
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .swatch-qnxt       { background: rgba(255,140,140,0.55); border: 1px solid rgba(255,140,140,0.7); }
+  .swatch-informatics{ background: rgba(140,200,255,0.55); border: 1px solid rgba(140,200,255,0.7); }
+  .swatch-vsp        { background: rgba(200,150,255,0.55); border: 1px solid rgba(200,150,255,0.7); }
+  .swatch-cs         { background: rgba(80,220,160,0.55);  border: 1px solid rgba(80,220,160,0.7); }
+  .swatch-zip        { background: rgba(255,200,80,0.55);  border: 1px solid rgba(255,200,80,0.7); }
+  .swatch-temp       { background: rgba(255,160,60,0.55);  border: 1px solid rgba(255,160,60,0.7); }
+  .swatch-qa         { background: rgba(100,220,160,0.45); border: 1px solid rgba(100,220,160,0.6); }
+  .swatch-output     { background: rgba(80,180,255,0.45);  border: 1px solid rgba(80,180,255,0.6); }
+  .swatch-fix        { background: rgba(60,220,120,0.45);  border: 1px solid rgba(60,220,120,0.6); }
+  .swatch-open       { background: rgba(255,100,60,0.45);  border: 1px solid rgba(255,100,60,0.6); }
+</style>
+</head>
+<body>
+
+<!-- =========================================================== -->
+<!-- TITLE                                                        -->
+<!-- =========================================================== -->
+<div class="title-bar">
+  <h1>Community Health Group of San Diego (CHGSD) &mdash; Informatics</h1>
+  <h2>2027 MA Bid &mdash; Milliman Supplemental Benefits Additional Ask &mdash; Data Flow Diagram</h2>
+  <div class="subtitle">
+    DUB C 2.0 &nbsp;|&nbsp; SQLPROD02 &nbsp;|&nbsp; INFORMATICS.dbo.PartCClaims (Primary) &nbsp;|&nbsp; HMOPROD_PLANDATA (Auth Supplement)
+    &nbsp;|&nbsp; CY2025 Measurement &nbsp;|&nbsp; D-SNP + C-SNP Population &nbsp;|&nbsp; 2026-03-12
+    &nbsp;|&nbsp; <span style="color:#90ffb8;">M006: Transport Auths QA &mdash; CTE dedup fix (fan-trap on Glembocki rows)</span>
+    &nbsp;|&nbsp; <span style="color:#90ffb8;">M007: Meals Auths QA &mdash; CTE dedup fix (same root cause)</span>
+  </div>
+</div>
+
+<div class="diagram">
+
+  <!-- =========================================================== -->
+  <!-- ROW 1 — SOURCE SYSTEMS                                       -->
+  <!-- =========================================================== -->
+  <div class="section-label">&#9660; Source Systems</div>
+
+  <div class="source-row">
+
+    <div class="system-box qnxt" style="width:420px;">
+      <span class="sys-label">HMOPROD_PLANDATA &mdash; QNXT</span>
+      <div class="module-row">
+        <div class="module">dbo.member<span>memid · dob · fullname</span></div>
+        <div class="module">dbo.referral<span>servicecode · status · authstatus · UtcReceiptDate</span></div>
+        <div class="module">dbo.authservice<span>codeid · modcode(s) · quantity</span></div>
+        <div class="module">dbo.enrollkeys<span>enrollid &rarr; planid</span></div>
+        <div class="module">dbo.entity<span>lname · fname · memberid (CIN)</span></div>
+      </div>
+    </div>
+
+    <div class="system-box informatics" style="width:520px;">
+      <span class="sys-label">INFORMATICS &mdash; SQLPROD02</span>
+      <div class="module-row">
+        <div class="module">dbo.PartCClaims<span>PRIMARY CLAIMS UNIVERSE<br>2023&ndash;2025 · D/C-SNP</span></div>
+        <div class="module">dbo.[uvw_LINE_OF_BUSINESS]<span>planid &rarr; LOB<br>LOB LIKE '%SNP%'</span></div>
+        <div class="module">dbo.[uvw_AUTHREFCLAIM]<span>referralid &harr; claimid<br>GLEMBOCKI BRIDGE</span></div>
+        <div class="module">dbo.ZIP_CODES<span>City · State · ZIP · County<br>DMHC CA ZIP 2020</span></div>
+      </div>
+    </div>
+
+    <div class="system-box vsp" style="width:220px;">
+      <span class="sys-label">VSP ClaimManager &mdash; External</span>
+      <div class="module-row">
+        <div class="module">vsp.Claim<span>Vision primary source</span></div>
+        <div class="module">vsp.serviceline<span>Exam + hardware lines</span></div>
+      </div>
+    </div>
+
+    <div class="system-box cs" style="width:220px;">
+      <span class="sys-label">CS Auth Framework &mdash; STEP88</span>
+      <div class="module-row">
+        <div class="module">r.servicecode<span>'css' = CS Auth Type</span></div>
+        <div class="module">asr.codeid<span>S5170 · S9470 · S9977</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ARROW -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- ROW 2 — GLOBAL PARAMETERS                                    -->
+  <!-- =========================================================== -->
+  <div class="section-label">&#9660; Global Parameters &amp; Temp Table Initialization</div>
+
+  <div class="param-row">
+    <div class="param-box">
+      <strong>@MeasureStart</strong>
+      DATE = '01/01/2025'<br>CY2025 Clock Start
+    </div>
+    <div class="param-box">
+      <strong>@MeasureStop</strong>
+      DATE = '12/31/2025'<br>CY2025 Clock Stop
+    </div>
+    <div class="param-box">
+      <strong>@RunDate</strong>
+      CAST(GETDATE() AS DATE)<br>Execution Date Stamp
+    </div>
+    <div class="param-box">
+      <strong>DROP TABLE IF EXISTS</strong>
+      7 Temp Tables<br>#MILLIMAN_VISION# &nbsp;&#183;&nbsp; #MILLIMAN_HEARING#<br>#MILLIMAN_TRANSPORT_CLAIMS/AUTHS#<br>#MILLIMAN_WORLDWIDE_ER#<br>#MILLIMAN_MEALS_CLAIMS/AUTHS#
+    </div>
+    <div class="param-box">
+      <strong>Population Filter</strong>
+      pcc.LOB LIKE '%SNP%'<br>bp.[LINE_OF_BUSINESS] LIKE '%SNP%'<br>D-SNP + C-SNP Scope
+    </div>
+    <div class="param-box">
+      <strong>Date Filter Pattern</strong>
+      TRY_CONVERT(DATE, pcc.[Date of Service (DOS)])<br>BETWEEN @MeasureStart AND @MeasureStop<br>PartCClaims Claims Universe
+    </div>
+    <div class="param-box" style="border-color:rgba(60,220,120,0.4); background:rgba(60,220,120,0.06); color:#90ffb8;">
+      <strong style="color:#b0ffd0;">M004 &mdash; Precedence Fix</strong>
+      All OR-chain conditions<br>wrapped in parentheses<br>AND-binding bug resolved
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- ROW 3 — FIVE CATEGORY SWIM LANES                            -->
+  <!-- =========================================================== -->
+  <div class="section-label">&#9660; Extraction Logic &mdash; Five Supplemental Benefit Categories (+ Allan Validation Query)</div>
+
+  <div class="swim-wrapper">
+
+    <!-- ITEM #0 — ACUPUNCTURE / CHIROPRACTIC -->
+    <div class="swim-lane lane-acupun">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #0 &mdash; ACUPUNCT / CHIRO</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Allan's Validation Query</strong>
+          SELECT DISTINCT on [Primary ICD Descr]<br>[CPT Service Descr] · [Service Descr]
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-fix">M004 FIX APPLIED</span>
+          <strong>Corrected OR-Chain</strong>
+          LIKE '%ACUPUN%' · '%CHIRO%'<br>All 6 conditions wrapped<br>in single ( ) block
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Output</strong>
+          Distinct code + description rows<br>ORDER BY [CPT Service Description]<br>Confirms Feb file content
+        </div>
+        <div class="chip" style="border-color:rgba(60,220,120,0.3); background:rgba(60,220,120,0.05); color:#a0e8c0; margin-left:auto;">
+          <span class="tag tag-fix">CONFIRMED LIVE</span>
+          <strong>CHIROPRACT MANJ 1-2 REGIONS</strong>
+          8 distinct rows returned<br>Cervicalgia · Low Back Pain<br>Dorsalgia · Lumbago w/ Sciatica
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEM #1 — VISION -->
+    <div class="swim-lane lane-vision">
+      <div class="lane-label">ITEM #1 &mdash; VISION</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-vsp">VSP ClaimManager</span>
+          <strong>Primary Source</strong>
+          vsp.Claim / vsp.serviceline<br>Execute separately in<br>VSP environment
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Secondary Source</strong>
+          [CPT Service Code] BETWEEN<br>'92002' AND '92014'<br>Eye Exams
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Optical Hardware</strong>
+          Code[0] = 'V' AND Code[1:5]<br>BETWEEN '2100' AND '2999'<br>HCPCS V2100&ndash;V2999
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Specialty + POS Filter</strong>
+          [Provider Specialty] LIKE '%OPTOM%'<br>OR '%OPHTHAL%'<br>[Place of Service Code] = '11'
+        </div>
+        <div class="chip" style="border-color:rgba(60,220,120,0.3); background:rgba(60,220,120,0.05); color:#a0e8c0; margin-left:auto;">
+          <span class="tag tag-fix">LIVE RESULTS</span>
+          <strong>DSNP: 3,066 mbrs · 5,585 lines</strong>
+          Billed $1.36M · Allowed $685K · Paid $453K<br>CSNP: 97 mbrs · 175 lines<br>Billed $40K · Allowed $20K · Paid $20K
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEM #2 — HEARING -->
+    <div class="swim-lane lane-hearing">
+      <div class="lane-label">ITEM #2 &mdash; HEARING</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Hearing Exams</strong>
+          [CPT Service Code] BETWEEN<br>'92550' AND '92700'<br>Audiological Exams
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>Hearing Hardware</strong>
+          Code[0] = 'V' AND Code[1:5]<br>BETWEEN '5000' AND '5299'<br>HCPCS V5000&ndash;V5299
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Specialty Filter</strong>
+          [Provider Specialty]<br>LIKE '%AUDIOL%'<br>No POS restriction applied
+        </div>
+        <div class="chip" style="border-color:rgba(60,220,120,0.3); background:rgba(60,220,120,0.05); color:#a0e8c0; margin-left:auto;">
+          <span class="tag tag-fix">LIVE RESULTS</span>
+          <strong>DSNP: 122 mbrs · 244 lines</strong>
+          Billed $26.5K · Allowed $7.9K · Paid $5.4K<br>CSNP: 9 mbrs · 16 lines<br>Billed $1.6K · Allowed $505 · Paid $495
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEM #3 — TRANSPORTATION (DUAL OUTPUT) -->
+    <div class="swim-lane lane-transport">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #3 &mdash; TRANSPORT (DUAL)</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">Block A &mdash; PartCClaims</span>
+          <strong>Claims-Based Cost</strong>
+          [CPT Service Code] BETWEEN<br>'A0080' AND 'A0210'<br>HCPCS NEMT Transport Codes
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-qnxt">Block B &mdash; QNXT Auth</span>
+          <strong>Auth-Based Utilization</strong>
+          r.servicecode IN<br>('Trans01','Trans03','Trans04')<br>r.status + authstatus = 'approved'
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Auth Date Filter (PST)</strong>
+          CAST(CONVERT(DATETIME2,<br>UtcReceiptDate AT TIME ZONE 'UTC')<br>AT TIME ZONE 'Pacific Standard Time')<br>BETWEEN @MeasureStart AND @MeasureStop
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-partc">Glembocki Bridge</span>
+          <strong>[uvw_AUTHREFCLAIM]</strong>
+          referralid &harr; claimid<br>authorizationid matched<br>Auth/Claim linkage validated
+        </div>
+        <div class="chip" style="border-color:rgba(255,100,60,0.4); background:rgba(255,100,60,0.06); color:#ffb090; margin-left:auto;">
+          <span class="tag tag-open">OPEN ITEM</span>
+          <strong>Pending: Sir Yousaf / Ms. Elizabeth</strong>
+          Claims vs. Auth &mdash; or both?<br>
+          <span style="font-size:9.5px; color:#ffd0b0;">DSNP Trans01: 666 mbrs &middot; 2,077 auths &middot; 1,601 w/ claim &middot; 476 auth-only<br>DSNP Trans03: 1,416 mbrs &middot; 10,014 auths &middot; 8,799 w/ claim &middot; 1,215 auth-only<br>DSNP Trans04: 231 mbrs &middot; 2,254 auths &middot; 1,840 w/ claim &middot; 414 auth-only<br>CSNP Trans01: 16 mbrs &middot; 38 auths &middot; 27 w/ claim &middot; 11 auth-only</span><br>
+          <span style="font-size:9px; color:rgba(80,220,130,0.9);">&#9654; M006: auth_level CTE &mdash; MAX(CASE WHEN Linked IS NOT NULL)<br>collapses Glembocki fan-trap before COUNT(*)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEM #4 — WORLDWIDE ER -->
+    <div class="swim-lane lane-er">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #4 &mdash; WORLDWIDE ER</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">PartCClaims</span>
+          <strong>5-Way OR Gate</strong>
+          POS = '23' &nbsp;&#183;&nbsp; Bill Type LIKE '13%'<br>CPT 99281&ndash;99285<br>HCPCS G0380&ndash;G0384<br>[REV Codes] LIKE '45%'
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-zip">ZIP_CODES JOIN</span>
+          <strong>INFORMATICS.dbo.ZIP_CODES</strong>
+          INNER JOIN on [Rendering Provider Zip]<br>COLLATE DATABASE_DEFAULT matched<br>City · State · ZIP · County<br>DMHC CA ZIP 2020 Reference
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>REV Code Normalization</strong>
+          CASE: Code[0]='0' &rarr; strip leading zero<br>SUBSTRING(code,2,3)<br>ELSE use as-is &rarr; LIKE '45%'<br>Consistent 3-digit rev code
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>ER Geography Flag</strong>
+          NOT IN (50 US States + DC/PR/GU&hellip;)<br>&rarr; 'NON-US RENDERING PROVIDER'<br>NOT IN ('CA','') &rarr; 'OUT-OF-STATE'<br>ELSE &rarr; 'CA-BASED STANDARD ER'
+        </div>
+        <div class="chip" style="border-color:rgba(60,220,120,0.3); background:rgba(60,220,120,0.05); color:#a0e8c0; margin-left:auto; font-size:10px;">
+          <span class="tag tag-fix">NOTE</span>
+          <strong>Low Volume Expected</strong>
+          San Diego D-SNP geography<br>COB international claims may<br>require separate QNXT pull<br>&mdash; confirm with Milliman
+        </div>
+      </div>
+    </div>
+
+    <!-- ITEM #5 — POST-ACUTE MEALS -->
+    <div class="swim-lane lane-meals">
+      <div class="lane-label" style="font-size:9.5px;">ITEM #5 &mdash; POST-ACUTE MEALS</div>
+      <div class="lane-content">
+        <div class="chip">
+          <span class="tag tag-partc">Block A &mdash; PartCClaims</span>
+          <strong>Claims-Based (Received)</strong>
+          [CPT Service Code] IN<br>('S5170','S9470','S9977')<br>Modifier #1 OR #2 = 'U6'<br>CS Medically Tailored Meals
+        </div>
+        <div class="arrow-inline">+</div>
+        <div class="chip">
+          <span class="tag tag-cs">Block B &mdash; CS Auth (STEP88)</span>
+          <strong>Auth-Based (Approved For)</strong>
+          r.servicecode = 'css'<br>r.status + authstatus + asr.status<br>= 'approved' (triple gate)<br>asr.codeid IN S5170/S9470/S9977
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <strong>Modifier Chain (STEP88 Pattern)</strong>
+          asr.modcode OR modcode2<br>OR modcode3 OR modcode4<br>OR modcode5 = 'U6'<br>Any position satisfies
+        </div>
+        <div class="arrow-inline">&#8594;</div>
+        <div class="chip">
+          <span class="tag tag-partc">Glembocki Bridge</span>
+          <strong>[uvw_AUTHREFCLAIM]</strong>
+          Auth &harr; Claim linkage<br>[Linked Claim ID] &rarr; count<br>Auth-only vs. claim-backed<br>reconciliation available
+        </div>
+        <div class="chip" style="border-color:rgba(60,220,120,0.3); background:rgba(60,220,120,0.05); color:#a0e8c0; margin-left:auto;">
+          <span class="tag tag-fix">LIVE RESULTS</span>
+          <strong>DSNP Claims: 646 mbrs · 76,247 lines</strong>
+          Billed $1.35M · Allowed $878K · Paid $623K<br>
+          <span style="font-size:9.5px; color:#80e8c0;">DSNP Auths (S5170): 727 mbrs &middot; 1,323 auths &middot; 1,145 w/ claim &middot; 178 auth-only<br>DSNP Auths (S9470): 724 mbrs &middot; 1,319 auths &middot; 1,142 w/ claim &middot; 177 auth-only<br>DSNP Auths (S9977): 617 mbrs &middot; 781 auths &middot; 653 w/ claim &middot; 128 auth-only<br>CSNP Claims: 10 mbrs &middot; 754 lines &middot; CSNP Auths: 11 mbrs &middot; 12&ndash;13 auths</span><br>
+          <span style="font-size:9px; color:rgba(80,220,130,0.9);">&#9654; M007: auth_level CTE &mdash; same fan-trap fix as M006</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /swim-wrapper -->
+
+  <!-- ARROW -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- ROW 4 — TEMP TABLE STAGING                                  -->
+  <!-- =========================================================== -->
+  <div class="section-label">&#9660; Temp Table Staging (INTO #MILLIMAN_&#8230;#)</div>
+
+  <div class="temp-row">
+    <div class="temp-box">
+      <strong>#MILLIMAN_VISION#</strong>
+      Claims only<br>Eye Exam + Optical Hardware<br>Vision Service Category flag
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_HEARING#</strong>
+      Claims only<br>Hearing Exam + Hearing Aid<br>Hearing Service Category flag
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_TRANSPORT_CLAIMS#</strong>
+      Claims only<br>NEMT HCPCS A0080&ndash;A0210<br>Transport Service Category flag
+      <div class="dual">DUAL OUTPUT &mdash; Block A</div>
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_TRANSPORT_AUTHS#</strong>
+      Auth only<br>Trans01 / Trans03 / Trans04<br>Linked Claim ID via Glembocki
+      <div class="dual">DUAL OUTPUT &mdash; Block B</div>
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_WORLDWIDE_ER#</strong>
+      Claims only<br>5-Way OR gate + ZIP join<br>ER Geography Flag (3-tier)
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_MEALS_CLAIMS#</strong>
+      Claims only<br>S5170/S9470/S9977 + U6<br>Data Source Type = 'CLAIM'
+      <div class="dual">DUAL OUTPUT &mdash; Block A</div>
+    </div>
+    <div class="temp-box">
+      <strong>#MILLIMAN_MEALS_AUTHS#</strong>
+      Auth only &mdash; STEP88 pattern<br>Triple-approved gate<br>Data Source Type = 'AUTH'
+      <div class="dual">DUAL OUTPUT &mdash; Block B</div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- ROW 5 — QA SUMMARY SELECTS                                  -->
+  <!-- =========================================================== -->
+  <div class="section-label">&#9660; Inline QA Summary Selects (Grouped by LOB &amp; Category)</div>
+
+  <div class="qa-row">
+    <div class="qa-box">
+      <strong>Vision QA</strong>
+      GROUP BY LOB · Vision Service Category<br>Unique Members · Claim Lines<br>Total Billed · Allowed · Paid
+    </div>
+    <div class="qa-box">
+      <strong>Hearing QA</strong>
+      GROUP BY LOB · Hearing Service Category<br>Unique Members · Claim Lines<br>Total Billed · Allowed · Paid
+    </div>
+    <div class="qa-box">
+      <strong>Transport Claims QA (3A)</strong>
+      GROUP BY LOB · Transport Category<br>Unique Members · Claim Lines<br>Total Billed · Allowed · Paid
+    </div>
+    <div class="qa-box">
+      <strong>Transport Auths QA (3B) &mdash; M006</strong>
+      <span style="font-size:9px; color:rgba(80,220,130,0.9); display:block; margin-bottom:3px;">&#9654; CTE dedup: auth_level collapses Glembocki rows</span>
+      GROUP BY LOB · NEMT Auth Type<br>COUNT(DISTINCT [Authorization ID])<br>Has_Linked_Claim via MAX() per auth<br>Before fix: fan-trapped on claim rows
+    </div>
+    <div class="qa-box">
+      <strong>Worldwide ER QA</strong>
+      GROUP BY LOB · ER Geography Flag<br>Unique Members · Claim Lines<br>Total Billed · Allowed · Paid
+    </div>
+    <div class="qa-box">
+      <strong>Meals Claims QA</strong>
+      GROUP BY LOB · Meals Category<br>Data Source Type = CLAIM<br>Total Billed · Allowed · Paid
+    </div>
+    <div class="qa-box">
+      <strong>Meals Auths QA &mdash; M007</strong>
+      <span style="font-size:9px; color:rgba(80,220,130,0.9); display:block; margin-bottom:3px;">&#9654; CTE dedup: auth_level collapses Glembocki rows</span>
+      GROUP BY LOB · Meals Category · Data Source Type<br>COUNT(DISTINCT [Authorization ID])<br>Has_Linked_Claim via MAX() per auth<br>Before fix: fan-trapped on claim rows
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- ROW 6 — FINAL CONSOLIDATED OUTPUT                           -->
+  <!-- =========================================================== -->
+  <div class="section-label">&#9660; Final Consolidated Output &mdash; SELECT * FROM Each Temp Table &rarr; Milliman Delivery Package</div>
+
+  <div class="output-section">
+    <div class="report-box" style="background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.20);">
+      <span class="sys-label">Consolidated SELECT OUTPUT &mdash; 7 Result Sets &nbsp;|&nbsp; Ordered for Milliman Delivery</span>
+      <div class="report-modules" style="margin-top:12px;">
+        <div class="report-module">
+          #MILLIMAN_VISION#<br>
+          <span>ORDER BY [Date of Service (DOS)]</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_HEARING#<br>
+          <span>ORDER BY [Date of Service (DOS)]</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_TRANSPORT_CLAIMS#<br>
+          <span>ORDER BY [Date of Service (DOS)]<br>Block A — Claims</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_TRANSPORT_AUTHS#<br>
+          <span>ORDER BY [Auth Receipt Date (PST)]<br>Block B — Auths</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_WORLDWIDE_ER#<br>
+          <span>ORDER BY DOS · [ER Geography Flag]</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_MEALS_CLAIMS#<br>
+          <span>ORDER BY [Date of Service (DOS)]<br>Block A — Claims</span>
+        </div>
+        <div class="report-module">
+          #MILLIMAN_MEALS_AUTHS#<br>
+          <span>ORDER BY [Auth Receipt Date (PST)]<br>Block B — Auths</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARROW -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- =========================================================== -->
+  <!-- ROW 7 — MILLIMAN ACTUARIAL DELIVERABLE                      -->
+  <!-- =========================================================== -->
+  <div class="output-section">
+    <div class="universe-box">
+      <span class="sys-label">
+        Milliman Actuarial Deliverable &nbsp;&#8594;&nbsp; 2027 CHG D-SNP + C-SNP Medicare Advantage Bid
+        &nbsp;|&nbsp; Supplemental Benefits Historical Data &mdash; CY2025
+      </span>
+      <div class="universe-modules">
+        <div class="universe-module">
+          Tab 1 &mdash; Vision<br>
+          <span>Exams + Hardware · VSP + QNXT<br>CPT 92002&ndash;92014 · V2100&ndash;V2999</span>
+        </div>
+        <div class="universe-module">
+          Tab 2 &mdash; Hearing<br>
+          <span>Exams + Hardware<br>CPT 92550&ndash;92700 · V5000&ndash;V5299</span>
+        </div>
+        <div class="universe-module">
+          Tab 3A &mdash; Transport (Claims)<br>
+          <span>NEMT Cost · HCPCS A0080&ndash;A0210<br>Billed · Allowed · Paid</span>
+        </div>
+        <div class="universe-module">
+          Tab 3B &mdash; Transport (Auths)<br>
+          <span>Trans01/03/04 Utilization<br>Auth Units · Linked Claim flag</span>
+        </div>
+        <div class="universe-module">
+          Tab 4 &mdash; Worldwide ER<br>
+          <span>POS 23 · Bill Type 013x<br>99281&ndash;99285 · G0380&ndash;G0384 · 045x Rev</span>
+        </div>
+        <div class="universe-module">
+          Tab 5A &mdash; Meals (Claims)<br>
+          <span>S5170 / S9470 / S9977 + U6<br>CS Medically Tailored Meals</span>
+        </div>
+        <div class="universe-module">
+          Tab 5B &mdash; Meals (Auths)<br>
+          <span>STEP88 CS Auth Framework<br>servicecode = 'css' · Triple-Approved</span>
+        </div>
+        <div class="universe-module">
+          Common Fields &mdash; All Tabs<br>
+          <span>Member ID · Member Name · LOB<br>Claim Control # · DOS<br>CPT Descr · Service Descr · POS</span>
+        </div>
+        <div class="universe-module">
+          Financials &mdash; All Tabs<br>
+          <span>Amount Billed · Allowed Amount<br>Amount Paid · Provider NPI · Name</span>
+        </div>
+        <div class="universe-module">
+          Open Items Footnote<br>
+          <span>Item #3: Claims vs. Auth TBD<br>Item #4: COB intl. confirm w/ Milliman<br>Item #5: CS vs. SNF DRG confirm</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /diagram -->
+
+<!-- ===== LEGEND ===== -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>HMOPROD_PLANDATA / QNXT</div>
+  <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS.dbo.PartCClaims (Primary)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-vsp"></div>VSP ClaimManager (External)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-cs"></div>CS Auth Framework (STEP88 Pattern)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-zip"></div>INFORMATICS.dbo.ZIP_CODES (DMHC CA)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-temp"></div>Temp Table Staging (#MILLIMAN_&#8230;#)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-qa"></div>Inline QA Summary Selects</div>
+  <div class="legend-item"><div class="legend-swatch swatch-output"></div>Milliman Actuarial Deliverable</div>
+  <div class="legend-item"><div class="legend-swatch swatch-fix"></div>M004 Bug Fix Applied (OR-Chain Precedence)</div>
+  <div class="legend-item"><div class="legend-swatch swatch-open"></div>Open Item &mdash; Pending Confirmation</div>
+</div>
+
+</body>
+</html>

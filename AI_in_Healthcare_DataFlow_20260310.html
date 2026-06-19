@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI in Healthcare – Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #ccc;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* Source System Color Themes */
+  .system-box.market-signal {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 460px;
+  }
+  .system-box.payer-ops {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 500px;
+  }
+  .system-box.clinical-ops {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 460px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #f0f0f0;
+  }
+
+  /* ===== STEP SEQUENCE LABELS ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 28px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 200px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENT LABELS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 200px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== EXCLUSION / BARRIER FILTER ROW ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 140px;
+    max-width: 180px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== OUTPUT REPORT CONTAINER ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1460px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #e8e0ff;
+  }
+
+  /* ===== UNIVERSE / STRATEGIC OUTPUT ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1460px;
+    margin: 0 auto;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 130px;
+    color: #d0ffe0;
+  }
+
+  /* ===== VERTICAL FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-market   { background: rgba(255, 140, 140, 0.35); }
+  .swatch-payer    { background: rgba(255, 200, 100, 0.35); }
+  .swatch-clinical { background: rgba(140, 200, 255, 0.35); }
+  .swatch-barrier  { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-payer-out { background: rgba(160, 140, 220, 0.35); }
+  .swatch-strategic { background: rgba(100, 220, 160, 0.35); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>The State of AI in Healthcare &#8212; Data Flow Diagram</h2>
+    <div class="subtitle">
+      Gartner Research Briefing for CHG &nbsp;|&nbsp; Presenter: Mark Gilbert, VP Healthcare Research &nbsp;|&nbsp; Date: 13 January 2026
+      &nbsp;|&nbsp; Source: AI in Healthcare Briefing (Restricted)
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE INPUT LAYERS ===== -->
+    <div class="source-row">
+
+      <!-- Market Signal Layer -->
+      <div class="system-box market-signal">
+        <span class="sys-label">Market Signal Layer (Investment &amp; Infrastructure)</span>
+        <div class="module-row">
+          <div class="module">Mag 7 AI CapEx<br><span style="font-size:10px;color:#aaa;">$12.7B – $125B/yr<br>per company</span></div>
+          <div class="module">Data Center Build<br><span style="font-size:10px;color:#aaa;">2,267 new centers<br>~$7T by 2030</span></div>
+          <div class="module">AI Company Funding<br><span style="font-size:10px;color:#aaa;">6,956 US-funded<br>2013–2024</span></div>
+        </div>
+      </div>
+
+      <!-- Payer Operations Layer -->
+      <div class="system-box payer-ops">
+        <span class="sys-label">Payer Operations Layer (CAPS Vendors &amp; Agentic Use Cases)</span>
+        <div class="module-row">
+          <div class="module">Incumbent CAPS<br><span style="font-size:10px;color:#aaa;">QNXT (Cognizant)<br>HealthEdge / Oracle</span></div>
+          <div class="module">Emergent CAPS<br><span style="font-size:10px;color:#aaa;">nirvanaHealth, VBA<br>CoverGo / Invidasys</span></div>
+          <div class="module">BPaaS / BPO<br><span style="font-size:10px;color:#aaa;">Conduent, NASCO<br>Wipro, UST</span></div>
+          <div class="module">Agentic Use Cases<br><span style="font-size:10px;color:#aaa;">PA, Claims, Compliance<br>Contact Center, VBC</span></div>
+        </div>
+      </div>
+
+      <!-- Clinical / Provider Layer -->
+      <div class="system-box clinical-ops">
+        <span class="sys-label">Clinical &amp; Provider Layer (AI-Enabled Devices &amp; Workflows)</span>
+        <div class="module-row">
+          <div class="module">FDA AI/ML Devices<br><span style="font-size:10px;color:#aaa;">1,245 authorized<br>as of May 2025</span></div>
+          <div class="module">Ambient / EHR AI<br><span style="font-size:10px;color:#aaa;">Abridge, Epic AI<br>Rad AI, Aidoc</span></div>
+          <div class="module">Robotics<br><span style="font-size:10px;color:#aaa;">Surgical, Delivery<br>Companion / Humanoid</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Flow Arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 2: AI ADOPTION HORIZONS ===== -->
+    <div class="section-label">&#9660; AI Adoption Horizons (Gartner Time-Framing)</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">NOW – 2 YRS</span>
+        <strong>Cost &amp; Productivity ROI</strong>
+        PA Automation, Claims AI<br>Contact Center Agents<br>Denial Prevention / NLP
+      </div>
+      <div class="step-box">
+        <span class="step-num">NOW – 2 YRS</span>
+        <strong>GenAI Embedded SaaS</strong>
+        80%+ vendors by EOY 2026<br>30% avg price increase<br>Enterprise app integration
+      </div>
+      <div class="step-box">
+        <span class="step-num">2 – 5 YRS</span>
+        <strong>Agentic AI Maturation</strong>
+        Multi-agent systems (MAS)<br>LAMs replace LLMs<br>Digital / Physical workers
+      </div>
+      <div class="step-box">
+        <span class="step-num">2 – 5 YRS</span>
+        <strong>Workforce Transformation</strong>
+        50% admin tasks automated<br>Digital + human co-workers<br>AI-first operating models
+      </div>
+      <div class="step-box">
+        <span class="step-num">5 – 10 YRS</span>
+        <strong>Quantum + Internet of Agents</strong>
+        Quantum-accelerated ML<br>Cross-platform agent discovery<br>AI as daily collaborator
+      </div>
+      <div class="step-box">
+        <span class="step-num">5 – 10 YRS</span>
+        <strong>AI Native Competition</strong>
+        New markets &amp; revenue models<br>AI-first business capabilities<br>Speed = competitive currency
+      </div>
+    </div>
+
+    <!-- Flow Arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 3: AI CAPABILITY DIMENSIONS ===== -->
+    <div class="section-label">&#9660; AI Capability Dimensions (Derived from Gartner Payer Use Cases)</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Prior Authorization</strong>
+        Basys.ai: 5x cost reduction<br>95% faster TAT<br>93% auto-approvals
+      </div>
+      <div class="data-element">
+        <strong>Claims Adjudication</strong>
+        HealthEdge: $479K saved<br>per 1K inpatient visits<br>19% hit rate on reviews
+      </div>
+      <div class="data-element">
+        <strong>Compliance Automation</strong>
+        Inovaare REGA: CMS updates<br>3–5 days → &lt;4 hours<br>SLA breaches ↓ 90%
+      </div>
+      <div class="data-element">
+        <strong>Contact Center AI</strong>
+        Florida Blue: 3x wait reduction<br>90% containment<br>1,200 ID cards/day
+      </div>
+      <div class="data-element">
+        <strong>Value-Based Care</strong>
+        Edifecs: 267% contract ROI<br>23.5% → 86.4% savings target<br>9x faster to market
+      </div>
+      <div class="data-element">
+        <strong>Care Management</strong>
+        Adobe Pop Health: 75% admin time<br>saved weekly (~$800K/yr)<br>400K+ members served
+      </div>
+      <div class="data-element">
+        <strong>Agentic Perception</strong>
+        Perceive → Decide → Act<br>Multimodal + NLP<br>Continuous feedback loops
+      </div>
+    </div>
+
+    <!-- Flow Arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: ADOPTION BARRIERS / GOVERNANCE FILTERS ===== -->
+    <div class="section-label">&#9660; Adoption Barriers &amp; Governance Filters Applied</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>Model Drift</strong>
+        AI doesn't stay static<br>in production — requires<br>continuous monitoring
+      </div>
+      <div class="filter-box">
+        <strong>Probabilistic Risk</strong>
+        AI is NOT deterministic<br>Exceptions require<br>feedback loop design
+      </div>
+      <div class="filter-box">
+        <strong>Regulatory Uncertainty</strong>
+        Regulators are new to AI<br>42 CFR, EU AI Act,<br>state-level patchwork
+      </div>
+      <div class="filter-box">
+        <strong>Data Readiness Gaps</strong>
+        AI-ready data requires<br>governance, quality, bias<br>mitigation and lineage
+      </div>
+      <div class="filter-box">
+        <strong>Vendor Price Inflation</strong>
+        GenAI SaaS premiums<br>up to 30% uplift<br>on existing contracts
+      </div>
+      <div class="filter-box">
+        <strong>Privacy / HIPAA</strong>
+        PHI in LLM prompts<br>requires PETs and<br>strict access controls
+      </div>
+      <div class="filter-box">
+        <strong>Resource Scarcity</strong>
+        10–100x more oppty<br>than org capacity<br>→ ruthless prioritization
+      </div>
+      <div class="filter-box">
+        <strong>AI Ethics / Trust</strong>
+        Bias, fairness, explainability<br>Quasi-human perception<br>requires values alignment
+      </div>
+    </div>
+
+    <!-- Flow Arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 5: PAYER STRATEGIC OUTPUT ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">Payer AI Prioritization Output &nbsp;&#8594;&nbsp; Short-Term Use Cases (Now – 2 Years) | ROI &lt; 1 Year</span>
+        <div class="report-modules">
+          <div class="report-module">Claims Denial<br>Prevention &amp; Appeals</div>
+          <div class="report-module">Automated Medical<br>Coding (NLP)</div>
+          <div class="report-module">PA Intake &amp;<br>Auto-Adjudication</div>
+          <div class="report-module">Contact Center<br>Voice / Visual IVR</div>
+          <div class="report-module">Eligibility &amp;<br>Benefits Verification</div>
+          <div class="report-module">Compliance<br>Assistant (REGA)</div>
+          <div class="report-module">OR / Scheduling<br>Optimization</div>
+        </div>
+        <div class="report-modules" style="margin-top:10px;">
+          <div class="report-module">Policy Analysis<br>AI Agent</div>
+          <div class="report-module">FWA / Eligibility<br>Review &amp; Audit</div>
+          <div class="report-module">VBC Contract<br>Negotiation Agents</div>
+          <div class="report-module">Care Planning &amp;<br>Coding Workflow</div>
+          <div class="report-module">Member Outreach<br>AI Care Agent</div>
+          <div class="report-module">Real-Time AI<br>Decisioning</div>
+          <div class="report-module">HSA-Eligible<br>Plan Verification</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow Arrows -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: STRATEGIC / GOVERNANCE MATURITY OUTPUT ===== -->
+    <div class="output-section">
+      <div class="universe-box">
+        <span class="sys-label">AI Maturity &amp; Governance Output &nbsp;&#8594;&nbsp; Gartner AI Roadmap Pillars for CHG / CHPIV</span>
+        <div class="universe-modules">
+          <div class="universe-module">AI Strategy<br><span style="font-size:10px;opacity:0.7;">Vision + Roadmap<br>CHG AI CoE</span></div>
+          <div class="universe-module">AI Value<br><span style="font-size:10px;opacity:0.7;">Use Case ROI<br>Pilot → Scale</span></div>
+          <div class="universe-module">AI Engineering<br><span style="font-size:10px;opacity:0.7;">Build vs. Buy<br>MLOps / RAG</span></div>
+          <div class="universe-module">AI Governance<br><span style="font-size:10px;opacity:0.7;">Policies, Ethics<br>Decision Rights</span></div>
+          <div class="universe-module">AI Data<br><span style="font-size:10px;opacity:0.7;">AI-Readiness<br>Quality + Lineage</span></div>
+          <div class="universe-module">AI Organization<br><span style="font-size:10px;opacity:0.7;">AI Leader + CoE<br>Operating Model</span></div>
+          <div class="universe-module">AI People &amp; Culture<br><span style="font-size:10px;opacity:0.7;">Literacy Programs<br>Change Mgmt</span></div>
+          <div class="universe-module">Responsible AI<br><span style="font-size:10px;opacity:0.7;">Privacy, Security<br>Trust + Bias Controls</span></div>
+          <div class="universe-module">Monday Morning<br><span style="font-size:10px;opacity:0.7;">Big Bang Oppty<br>Ruthless Priority</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-market"></div>Market Signal Layer (CapEx / Infrastructure)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-payer"></div>Payer Operations Layer (CAPS Vendors)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-clinical"></div>Clinical &amp; Provider Layer (AI Devices / EHR)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-barrier"></div>Adoption Barriers &amp; Governance Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-payer-out"></div>Payer Use Case Prioritization Output</div>
+    <div class="legend-item"><div class="legend-swatch swatch-strategic"></div>AI Maturity &amp; Governance Roadmap Output</div>
+  </div>
+
+</body>
+</html>

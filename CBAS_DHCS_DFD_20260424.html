@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBAS DHCS Quarterly Performance Measures | Data Flow Diagram</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d0d;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Consolas, monospace;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    border: 1px solid #00bcd4;
+    border-radius: 8px;
+    padding: 20px 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 0 20px rgba(0,188,212,0.15);
+  }
+  .header h1 { color: #00bcd4; font-size: 1.5rem; letter-spacing: 1px; }
+  .header .sub { color: #90caf9; font-size: 0.85rem; margin-top: 6px; }
+  .header .meta { color: #78909c; font-size: 0.75rem; margin-top: 8px; display: flex; gap: 24px; flex-wrap: wrap; }
+  .header .meta span { display: flex; align-items: center; gap: 6px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .badge-cyan { background: #003544; color: #00bcd4; border: 1px solid #00bcd4; }
+  .badge-orange { background: #3e1a00; color: #ff8f00; border: 1px solid #ff8f00; }
+  .badge-green { background: #003300; color: #66bb6a; border: 1px solid #66bb6a; }
+  .badge-red { background: #2a0000; color: #ef5350; border: 1px solid #ef5350; }
+
+  /* LAYOUT */
+  .flow-container { display: flex; flex-direction: column; gap: 16px; }
+  .flow-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .flow-row.center { justify-content: center; }
+
+  /* NODES */
+  .node {
+    border-radius: 6px;
+    padding: 14px 18px;
+    min-width: 200px;
+    max-width: 320px;
+    flex: 1;
+  }
+  .node-source {
+    background: #0d2b45;
+    border: 1px solid #1565c0;
+    border-left: 4px solid #1565c0;
+  }
+  .node-process {
+    background: #1a1a0d;
+    border: 1px solid #f9a825;
+    border-left: 4px solid #f9a825;
+  }
+  .node-filter {
+    background: #1a0d1a;
+    border: 1px solid #ab47bc;
+    border-left: 4px solid #ab47bc;
+  }
+  .node-temp {
+    background: #0d2020;
+    border: 1px solid #00695c;
+    border-left: 4px solid #00695c;
+  }
+  .node-output {
+    background: #0d2b0d;
+    border: 1px solid #2e7d32;
+    border-left: 4px solid #43a047;
+  }
+  .node-qa {
+    background: #2a1a00;
+    border: 1px solid #ff8f00;
+    border-left: 4px solid #ff8f00;
+  }
+  .node-dhcs {
+    background: #1a0000;
+    border: 1px solid #c62828;
+    border-left: 4px solid #ef5350;
+  }
+
+  .node-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+  .node-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .node-detail {
+    font-size: 0.72rem;
+    color: #b0bec5;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .node-code {
+    font-family: Consolas, monospace;
+    font-size: 0.68rem;
+    color: #80cbc4;
+    background: #0a0a0a;
+    border: 1px solid #1c2e2e;
+    border-radius: 3px;
+    padding: 3px 6px;
+    margin-top: 6px;
+    display: inline-block;
+  }
+
+  /* ARROWS */
+  .arrow {
+    color: #546e7a;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .arrow-label {
+    font-size: 0.65rem;
+    color: #546e7a;
+    white-space: nowrap;
+    text-align: center;
+  }
+  .arrow-down { text-align: center; color: #546e7a; font-size: 1.4rem; margin: 2px 0; }
+
+  /* SECTION HEADERS */
+  .section-header {
+    background: #111;
+    border: 1px solid #263238;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 0.7rem;
+    color: #78909c;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+
+  /* COLUMN MAP TABLE */
+  .col-map {
+    background: #0a1a0a;
+    border: 1px solid #1b5e20;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-top: 12px;
+  }
+  .col-map h3 { color: #43a047; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+  .col-map table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .col-map th { color: #78909c; text-align: left; padding: 4px 10px; border-bottom: 1px solid #1b3a1b; font-weight: 600; }
+  .col-map td { padding: 5px 10px; border-bottom: 1px solid #0d1f0d; color: #cfd8dc; }
+  .col-map tr:hover td { background: #0d1a0d; }
+  .col-letter { color: #66bb6a; font-weight: 700; font-family: monospace; }
+  .col-formula { color: #80cbc4; font-family: monospace; font-size: 0.68rem; }
+  .col-src { color: #90caf9; }
+
+  /* LEGEND */
+  .legend {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    margin-top: 20px;
+    padding: 12px 16px;
+    background: #111;
+    border: 1px solid #1c2730;
+    border-radius: 6px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.7rem; color: #78909c; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 24px;
+    padding: 12px 20px;
+    background: #0a0a0a;
+    border: 1px solid #1c2730;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    color: #455a64;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>&#9642; CBAS DHCS QUARTERLY PERFORMANCE MEASURES — DATA FLOW DIAGRAM</h1>
+  <div class="sub">Community Based Adult Services (CBAS) &nbsp;|&nbsp; Medi-Cal Only &nbsp;|&nbsp; Plan Code 029 &nbsp;|&nbsp; COMMUNITY HEALTH GROUP &nbsp;|&nbsp; San Diego County</div>
+  <div class="meta">
+    <span><span class="badge badge-orange">DUE 04/30/2026</span></span>
+    <span><span class="badge badge-cyan">DHCS REGULATORY</span></span>
+    <span><span class="badge badge-green">Q1 2025 – Q1 2026</span></span>
+    <span>Script: CBAS_DHCS_Quarterly_20260424.sql</span>
+    <span>Business Owner: Ms. Barbara Vargas RN</span>
+    <span>Built: 04/24/2026 &nbsp;|&nbsp; Informatics / El Hajj Malik (Walter Carr)</span>
+  </div>
+</div>
+
+<!-- MAIN FLOW -->
+<div class="flow-container">
+
+  <!-- SOURCES -->
+  <div class="section-header">&#9654; SOURCE SYSTEMS</div>
+  <div class="flow-row">
+    <div class="node node-source">
+      <div class="node-title">&#9642; QNXT / HMOPROD_PLANDATA</div>
+      <div class="node-label">referral</div>
+      <div class="node-detail">Auth records for S5102, T1023, H2000<br>UTC receipt date, status, effdate, termdate, seendate</div>
+      <div class="node-code">HMOPROD_PLANDATA.dbo.referral</div>
+    </div>
+    <div class="node node-source">
+      <div class="node-title">&#9642; INFORMATICS</div>
+      <div class="node-label">uvw_LINE_OF_BUSINESS</div>
+      <div class="node-detail">Benefit plan + program crosswalk<br>LOB filter: MEDI-CAL ONLY<br>Brand filter: CHGSD</div>
+      <div class="node-code">INFORMATICS.dbo.uvw_LINE_OF_BUSINESS</div>
+    </div>
+    <div class="node node-source">
+      <div class="node-title">&#9642; INFORMATICS</div>
+      <div class="node-label">uvw_BASELINE_MEMBERSHIP</div>
+      <div class="node-detail">Member demographics<br>CIN, Name, DOB, HealthPlanID</div>
+      <div class="node-code">INFORMATICS.dbo.uvw_BASELINE_MEMBERSHIP</div>
+    </div>
+  </div>
+
+  <div class="arrow-down">&#9660;</div>
+
+  <!-- STEP 1 -->
+  <div class="section-header">&#9654; STEP 1 — BUILD S5102 UNIVERSE (COLUMN G SOURCE)</div>
+  <div class="flow-row">
+    <div class="node node-process">
+      <div class="node-title">&#9642; PROCESS</div>
+      <div class="node-label">#CBAS_S5102_UNIVERSE</div>
+      <div class="node-detail">
+        Extract all S5102 (CBAS) auth requests<br>
+        &#9675; servicecode = 'CBAS'<br>
+        &#9675; Status: APPROVED / DENIED / CLOSED / PEND<br>
+        &#9675; LOB LIKE '%MEDI-CAL%'<br>
+        &#9675; Receipt Date: 01/01/2025 – 03/31/2026<br>
+        &#9675; UTC &#8594; Pacific Standard Time conversion applied
+      </div>
+      <div class="node-code">SELECT INTO #CBAS_S5102_UNIVERSE</div>
+    </div>
+    <div class="arrow">&#8594;<div class="arrow-label">INDEX ON<br>memid, date</div></div>
+    <div class="node node-filter">
+      <div class="node-title">&#9642; FILTER — 6-MONTH DEDUP</div>
+      <div class="node-label">#CBAS_S5102_NEWONLY</div>
+      <div class="node-detail">
+        Apply INITIAL-ONLY rule per Narrative:<br>
+        "If the member has another CBAS authorization within the last 6 months, do not report that member"<br><br>
+        NOT EXISTS: same member + same service code + prior 6 months
+      </div>
+      <div class="node-code">NOT EXISTS (SELECT 1 ... DATEADD(month,-6,...))</div>
+    </div>
+  </div>
+
+  <div class="arrow-down">&#9660;</div>
+
+  <!-- STEP 2 + 3 -->
+  <div class="section-header">&#9654; STEP 2 — T1023 MATCH (COLUMNS I / H)</div>
+  <div class="flow-row">
+    <div class="node node-temp">
+      <div class="node-title">&#9642; JOIN</div>
+      <div class="node-label">#CBAS_T1023_MATCH</div>
+      <div class="node-detail">
+        For each S5102 member from #NEWONLY:<br>
+        &#9675; Find T1023 (Face-to-Face) auth within ±90 days<br>
+        &#9675; Compute: T1023 Receipt &#8594; S5102 Decision Date<br>
+        &#9675; Flag: Within_30_Days_Flag (1 = &#8804;30 days)<br><br>
+        Column I = Count of flags = 1<br>
+        Column J = Total from Column G
+      </div>
+      <div class="node-code">DATEDIFF(day, T1023_Receipt, S5102_Decision) &lt;= 30</div>
+    </div>
+    <div class="node node-temp">
+      <div class="node-title">&#9642; JOIN</div>
+      <div class="node-label">#CBAS_H2000_MATCH</div>
+      <div class="node-detail">
+        For each S5102 member (Approved/Denied only):<br>
+        &#9675; Find T1023 OR H2000 auth within ±90 days<br>
+        &#9675; Presence flag = member had F2F or in-facility assessment<br><br>
+        Column L = Count with assessment present<br>
+        Column M = Total Approved + Denied
+      </div>
+      <div class="node-code">servicecode IN ('T1023','CBAS ASSESS') within ±90 days</div>
+    </div>
+  </div>
+
+  <div class="arrow-down">&#9660;</div>
+
+  <!-- STEP 4 ROLLUP -->
+  <div class="section-header">&#9654; STEP 3 — QUARTERLY ROLLUP OUTPUT</div>
+  <div class="flow-row">
+    <div class="node node-output" style="max-width:100%;flex:none;width:100%">
+      <div class="node-title">&#9642; FINAL AGGREGATE</div>
+      <div class="node-label">#CBAS_OUTPUT &nbsp;&#8594;&nbsp; Final SELECT</div>
+      <div class="node-detail">
+        GROUP BY Reporting_Quarter &nbsp;|&nbsp; Plan Code 029 &nbsp;|&nbsp; COMMUNITY HEALTH GROUP &nbsp;|&nbsp; San Diego<br>
+        Produces one row per quarter (Q1 2025, Q2 2025, Q3 2025, Q4 2025, Q1 2026)<br>
+        Columns E through M calculated with NULL-safe division + percentage formatting
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-down">&#9660;</div>
+
+  <!-- QA -->
+  <div class="section-header">&#9654; STEP 4 — QA CROSS-CHECK</div>
+  <div class="flow-row">
+    <div class="node node-qa">
+      <div class="node-title">&#9642; VALIDATION</div>
+      <div class="node-label">Column Math Verification</div>
+      <div class="node-detail">
+        E_Check: F &#8804; G (numerator &#8804; denominator)<br>
+        H_Check: I &#8804; J<br>
+        K_Check: L &#8804; M<br>
+        DIV/0 guard: CASE WHEN denominator = 0 THEN NULL<br>
+        Returns 'OK' or 'INVESTIGATE' per column pair
+      </div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="node node-dhcs">
+      <div class="node-title">&#9642; DESTINATION</div>
+      <div class="node-label">DHCS eTransfer Submission</div>
+      <div class="node-detail">
+        File: MCPName.CBAS-PM.Qx.2025/2026.xlsx<br>
+        Folder: DHCS-MCQMD-Monitoring<br>
+        <strong>Due: 04/30/2026</strong><br><br>
+        Tab 1: PM – Eligibility (Cols A–M)<br>
+        Tab 2: PM Comments
+      </div>
+    </div>
+  </div>
+
+  <!-- COLUMN MAP -->
+  <div class="col-map">
+    <h3>&#9642; DHCS Template Column Mapping (Tab 1: PM – Eligibility)</h3>
+    <table>
+      <tr><th>Col</th><th>DHCS Label</th><th>Logic / Source</th><th>Formula</th></tr>
+      <tr><td class="col-letter">A</td><td>Plan Code</td><td class="col-src">Hardcoded: 029</td><td class="col-formula">N/A</td></tr>
+      <tr><td class="col-letter">B</td><td>Plan Name</td><td class="col-src">Hardcoded: COMMUNITY HEALTH GROUP</td><td class="col-formula">N/A</td></tr>
+      <tr><td class="col-letter">C</td><td>County</td><td class="col-src">Hardcoded: San Diego</td><td class="col-formula">N/A</td></tr>
+      <tr><td class="col-letter">D</td><td>Reporting Quarter</td><td class="col-src">Derived: Q# YYYY from Receipt Date</td><td class="col-formula">DATENAME(qq/yyyy, RECEIPT_DATE)</td></tr>
+      <tr><td class="col-letter">E</td><td>% Eligibility Determinations</td><td class="col-src">#CBAS_S5102_NEWONLY</td><td class="col-formula">F / G × 100</td></tr>
+      <tr><td class="col-letter">F</td><td># Initial Determinations (Appr+Den)</td><td class="col-src">status IN (APPR, DEN, CLOSED) only — no PEND</td><td class="col-formula">COUNT(DISTINCT referralid) excl. PEND</td></tr>
+      <tr><td class="col-letter">G</td><td>Total Initial Requests (Denominator E)</td><td class="col-src">#CBAS_S5102_NEWONLY — ALL statuses</td><td class="col-formula">COUNT(DISTINCT referralid)</td></tr>
+      <tr><td class="col-letter">H</td><td>% Timely Reviews</td><td class="col-src">#CBAS_T1023_MATCH</td><td class="col-formula">I / J × 100</td></tr>
+      <tr><td class="col-letter">I</td><td># Reviews Within 30 Calendar Days</td><td class="col-src">T1023 Receipt → S5102 Decision ≤ 30 days</td><td class="col-formula">COUNT where Within_30_Days_Flag = 1</td></tr>
+      <tr><td class="col-letter">J</td><td>Total Reviews Conducted (Denominator H)</td><td class="col-src">= Column G (all initial reviews)</td><td class="col-formula">COUNT(DISTINCT referralid) from G</td></tr>
+      <tr><td class="col-letter">K</td><td>% After F2F Review</td><td class="col-src">#CBAS_H2000_MATCH</td><td class="col-formula">L / M × 100</td></tr>
+      <tr><td class="col-letter">L</td><td># Determinations After F2F (Appr+Den)</td><td class="col-src">Has T1023 OR H2000 auth + status Appr/Den</td><td class="col-formula">COUNT where F2F flag present</td></tr>
+      <tr><td class="col-letter">M</td><td>Total Determinations Appr+Den (Denominator K)</td><td class="col-src">= Column F</td><td class="col-formula">COUNT Appr+Den from G</td></tr>
+    </table>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#1565c0;"></div>Source System (QNXT / INFORMATICS)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f9a825;"></div>Process / Transform</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ab47bc;"></div>Filter / Dedup Rule</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00695c;"></div>Temp Table / Intermediate</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#43a047;"></div>Final Output</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff8f00;"></div>QA / Validation</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ef5350;"></div>DHCS Submission Target</div>
+  </div>
+
+  <!-- OPEN ITEMS -->
+  <div class="section-header">&#9654; OPEN ITEMS / CONFIRM WITH SIR PHIL</div>
+  <div class="flow-row">
+    <div class="node node-qa" style="max-width:100%;flex:none;width:100%">
+      <div class="node-title">&#9642; ACTION ITEMS</div>
+      <div class="node-detail" style="line-height:2;">
+        1. &nbsp;<strong>servicecode for S5102:</strong> &nbsp;Confirm QNXT template maps to <code style="color:#80cbc4;background:#0a0a0a;padding:1px 5px;border-radius:2px;">'CBAS'</code> — verify against <code style="color:#80cbc4;background:#0a0a0a;padding:1px 5px;border-radius:2px;">HMOPROD_PLANDATA.dbo.authcode WHERE codeid LIKE '%S5102%' OR description LIKE '%CBAS%'</code><br>
+        2. &nbsp;<strong>servicecode for T1023:</strong> &nbsp;Confirm QNXT template for Face-to-Face Assessment — may be <code style="color:#80cbc4;background:#0a0a0a;padding:1px 5px;border-radius:2px;">'T1023'</code> or similar variant<br>
+        3. &nbsp;<strong>servicecode for H2000:</strong> &nbsp;Confirm QNXT template for CBAS In-Facility Assessment — may map to <code style="color:#80cbc4;background:#0a0a0a;padding:1px 5px;border-radius:2px;">'CBAS ASSESS'</code> or <code style="color:#80cbc4;background:#0a0a0a;padding:1px 5px;border-radius:2px;">'H2000'</code><br>
+        4. &nbsp;<strong>Status vocabulary:</strong> &nbsp;Verify all QNXT status values against <code style="color:#80cbc4;background:#0a0a0a;padding:1px 5px;border-radius:2px;">SELECT DISTINCT status FROM HMOPROD_PLANDATA.dbo.referral WHERE servicecode = 'CBAS'</code><br>
+        5. &nbsp;<strong>CHPIV scope:</strong> &nbsp;Confirm if CHPIV (MSO / Imperial Valley) should be included — current script is CHGSD ONLY per Narrative (Medi-Cal 029, San Diego)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <span>CBAS_DHCS_DFD_20260424.html &nbsp;|&nbsp; Built: 04/24/2026 &nbsp;|&nbsp; CHGSD Informatics &nbsp;|&nbsp; El Hajj Malik (Walter Carr)</span>
+  <span>DUB C 2.0 Standard &nbsp;|&nbsp; DHCS Submission: 04/30/2026 &nbsp;|&nbsp; Business Owner: Ms. Barbara Vargas RN</span>
+</div>
+
+</body>
+</html>

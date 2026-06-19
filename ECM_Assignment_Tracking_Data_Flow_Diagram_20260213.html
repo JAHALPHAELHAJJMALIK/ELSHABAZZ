@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECM Member Assignment Tracking Log — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  .title-bar { text-align: center; margin-bottom: 26px; }
+  .title-bar h2 { font-size: 18px; font-weight: 700; color: #a5d6a7; letter-spacing: 0.3px; }
+  .title-bar .subtitle { font-size: 12px; color: #999; margin-top: 4px; line-height: 1.5; }
+
+  .diagram { position: relative; width: 1460px; }
+
+  /* ===== CONTAINERS ===== */
+  .source-row { display: flex; justify-content: center; gap: 24px; flex-wrap: nowrap; }
+  .source-row + .source-row { margin-top: 14px; }
+
+  .system-box { border: 2px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 18px 20px 20px; position: relative; }
+  .system-box .sys-label { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: #1a1a1a; padding: 0 12px; font-size: 13px; font-weight: 600; white-space: nowrap; color: #ddd; }
+
+  .system-box.portal { background: rgba(130, 220, 130, 0.12); border-color: rgba(130, 220, 130, 0.40); width: 520px; }
+  .system-box.qnxt { background: rgba(255, 140, 140, 0.12); border-color: rgba(255, 140, 140, 0.35); width: 480px; }
+  .system-box.informatics { background: rgba(140, 200, 255, 0.12); border-color: rgba(140, 200, 255, 0.35); width: 380px; }
+
+  .module-row { display: flex; gap: 12px; justify-content: center; margin-top: 6px; flex-wrap: wrap; }
+  .module { background: #2a2a2a; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 10px 16px; font-size: 12px; font-weight: 500; text-align: center; min-width: 120px; color: #f0f0f0; line-height: 1.35; }
+  .module .tbl { font-size: 10px; color: #aaa; display: block; margin-top: 2px; }
+
+  /* ===== PIPELINE ===== */
+  .pipeline-section { margin: 16px 0 6px; text-align: center; }
+  .pipeline-label { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+  .pipeline-row { display: flex; justify-content: center; align-items: center; gap: 0; }
+  .pipeline-step { background: rgba(130, 220, 130, 0.10); border: 1.5px solid rgba(130, 220, 130, 0.35); border-radius: 8px; padding: 10px 16px; font-size: 11.5px; font-weight: 500; text-align: center; color: #a5d6a7; min-width: 155px; line-height: 1.4; }
+  .pipeline-step .step-sub { font-size: 10px; color: #7aad7a; display: block; margin-top: 2px; }
+  .pipeline-step.eligibility { background: rgba(255, 220, 130, 0.10); border-color: rgba(255, 220, 130, 0.40); }
+  .pipeline-step.eligibility, .pipeline-step.eligibility .step-sub { color: #ffe0a0; }
+  .pipeline-step.eligibility .step-sub { color: #c8b070; }
+  .pipeline-step.outreach { background: rgba(130, 180, 255, 0.10); border-color: rgba(130, 180, 255, 0.40); }
+  .pipeline-step.outreach, .pipeline-step.outreach .step-sub { color: #a0c8f0; }
+  .pipeline-step.outreach .step-sub { color: #7098c0; }
+  .pipeline-arrow { color: rgba(130, 220, 130, 0.4); font-size: 22px; padding: 0 6px; user-select: none; }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row { display: flex; justify-content: center; gap: 16px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .data-element { background: rgba(80,80,80,0.7); border-radius: 5px; padding: 10px 14px; font-size: 11px; text-align: center; line-height: 1.45; color: #ddd; min-width: 135px; max-width: 180px; }
+  .data-element strong { display: block; font-size: 11.5px; color: #fff; margin-bottom: 2px; }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows { display: flex; justify-content: center; gap: 80px; margin: 10px 0 8px; }
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; opacity: 0.3; }
+  .flow-arrow .shaft { width: 2px; height: 16px; background: #ccc; }
+  .flow-arrow .head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ccc; }
+
+  /* ===== OUTPUT ===== */
+  .output-section { margin-top: 14px; }
+  .report-box { background: rgba(160,140,220,0.12); border: 2px solid rgba(160,140,220,0.35); border-radius: 10px; padding: 20px 28px 22px; position: relative; width: 1100px; margin: 0 auto; }
+  .report-box .sys-label { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: #1a1a1a; padding: 0 12px; font-size: 13px; font-weight: 600; white-space: nowrap; color: #ddd; }
+  .report-modules { display: flex; gap: 14px; justify-content: center; margin-top: 4px; flex-wrap: wrap; }
+  .report-module { background: rgba(160,140,220,0.25); border: 1px solid rgba(160,140,220,0.45); border-radius: 6px; padding: 10px 18px; font-size: 12px; font-weight: 500; text-align: center; min-width: 120px; color: #e8e0ff; line-height: 1.35; }
+
+  /* ===== LEGEND ===== */
+  .legend { display: flex; gap: 22px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #aaa; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.15); }
+  .sw-portal { background: rgba(130,220,130,0.40); }
+  .sw-qnxt { background: rgba(255,140,140,0.35); }
+  .sw-info { background: rgba(140,200,255,0.35); }
+  .sw-elig { background: rgba(255,220,130,0.35); }
+  .sw-outreach { background: rgba(130,180,255,0.35); }
+  .sw-output { background: rgba(160,140,220,0.35); }
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <h2>ECM Member Assignment Tracking Log — Data Flow Diagram</h2>
+  <div class="subtitle">Member ECM Provider Assignment When Deemed Eligible by CHG &nbsp;|&nbsp; Audit Period: April 1, 2025 – December 31, 2025 &nbsp;|&nbsp; Medi-Cal LOB &nbsp;|&nbsp; Outreach Attempts Post-Assignment</div>
+</div>
+
+<div class="diagram">
+
+  <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+  <div class="source-row">
+
+    <div class="system-box portal">
+      <span class="sys-label">Provider Portal (ECM Dashboard)</span>
+      <div class="module-row">
+        <div class="module">Member Provider<br>Assignment<span class="tbl">[ProviderPortal].[ECM]<br>.[MemberProviderAssigment]</span></div>
+        <div class="module">ECM Member<span class="tbl">[ProviderPortal].[ECM]<br>.[Member]</span></div>
+        <div class="module">Member Outreach<span class="tbl">[ProviderPortal].[ECM]<br>.[MemberOutreach]</span></div>
+      </div>
+    </div>
+
+    <div class="system-box qnxt">
+      <span class="sys-label">QNXT System (HMOPROD_PlanData)</span>
+      <div class="module-row">
+        <div class="module">Member<span class="tbl">dbo.member</span></div>
+        <div class="module">Member Attribute<span class="tbl">dbo.memberattribute<br>(ECM Eligible = 'Y')</span></div>
+        <div class="module">QAttribute<span class="tbl">dbo.qattribute</span></div>
+      </div>
+    </div>
+
+    <div class="system-box informatics">
+      <span class="sys-label">INFORMATICS Views</span>
+      <div class="module-row">
+        <div class="module">Provider ISO<span class="tbl">uvw_PROVISO<br>(ECM Provider Name)</span></div>
+        <div class="module">Baseline Membership<span class="tbl">uvw_BASELINE_MEMBERSHIP<br>(Name, CIN, DOB, LOB)</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== ROW 2: PROCESSING PIPELINE ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="pipeline-section">
+    <div class="pipeline-label">Processing Pipeline</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step">
+        #ECMAssignment
+        <span class="step-sub">MemberProviderAssigment<br>+ PROVISO + Baseline<br>Date Range Filter</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step eligibility">
+        ECM Eligible Attribute
+        <span class="step-sub">#AttributeEligibleRow#<br>memberattribute<br>'ECM Eligible' = 'Y'<br>ROW_NUMBER() Partition</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step eligibility">
+        Span Coalescing
+        <span class="step-sub">#AttributeEligibleRow1#<br>#AttributeEligibleRow2#<br>Overlapping Eff/Term<br>Date Reconciliation</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step eligibility">
+        #ECMEligible#
+        <span class="step-sub">Deduplicated<br>Eligible Population<br>+ ECM.Member (IsECM=1)</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step outreach">
+        Outreach Count
+        <span class="step-sub">LEFT JOIN<br>MemberOutreach<br>COUNT(DISTINCT<br>OutreachDate)</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        Final OUTPUT
+        <span class="step-sub">AUDIT_DHCS_ECM<br>_ASSIGNMENT_UNIVERSE<br>Medi-Cal LOB Only</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROW 3: DATA ELEMENTS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="data-elements-row">
+    <div class="data-element">
+      <strong>Member Demographics</strong>
+      Member Name, CIN,<br>DOB, Age Calculation
+    </div>
+    <div class="data-element">
+      <strong>Assignment Data</strong>
+      Date Assigned<br>(MPA effdate),<br>Active Record Check
+    </div>
+    <div class="data-element">
+      <strong>ECM Eligibility</strong>
+      ECM Eligible Attribute<br>= 'Y', Eff/Term Dates,<br>Overlapping Span Logic
+    </div>
+    <div class="data-element">
+      <strong>Outreach Attempts</strong>
+      COUNT(DISTINCT<br>OutreachDate)<br>Post-Assignment<br>Through Period End
+    </div>
+    <div class="data-element">
+      <strong>ECM Provider</strong>
+      Provider Name<br>(uvw_PROVISO),<br>Grouped by Provider<br>Section
+    </div>
+    <div class="data-element">
+      <strong>Line of Business</strong>
+      Medi-Cal LOB Filter<br>(Final WHERE clause)
+    </div>
+  </div>
+
+  <!-- ===== ROW 4: OUTPUT ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="output-section">
+    <div class="report-box">
+      <span class="sys-label">ECM Assignment Tracking Log &nbsp;→&nbsp; INFORMATICS.dbo.AUDIT_DHCS_ECM_ASSIGNMENT_UNIVERSE</span>
+      <div class="report-modules">
+        <div class="report-module">LOB<br>(Medi-Cal)</div>
+        <div class="report-module">CIN</div>
+        <div class="report-module">Member<br>Name</div>
+        <div class="report-module">DOB</div>
+        <div class="report-module">Date<br>Assigned</div>
+        <div class="report-module">Attempts Completed<br>After Assignment</div>
+        <div class="report-module">ECM<br>Provider</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== LEGEND ===== -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch sw-portal"></div>Provider Portal (ECM Dashboard)</div>
+  <div class="legend-item"><div class="legend-swatch sw-qnxt"></div>QNXT System (Member Attributes)</div>
+  <div class="legend-item"><div class="legend-swatch sw-info"></div>INFORMATICS Views</div>
+  <div class="legend-item"><div class="legend-swatch sw-elig"></div>ECM Eligibility Determination</div>
+  <div class="legend-item"><div class="legend-swatch sw-outreach"></div>Outreach Count (Post-Assignment)</div>
+  <div class="legend-item"><div class="legend-swatch sw-output"></div>Assignment Tracking Output</div>
+</div>
+
+</body>
+</html>

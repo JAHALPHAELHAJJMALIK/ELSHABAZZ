@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Universe Report — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #ccc;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .diagram {
+    position: relative;
+    width: 1480px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 860px;
+  }
+
+  .system-box.claims {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 280px;
+  }
+
+  .system-box.enrollment-mgr {
+    background: rgba(160, 230, 160, 0.12);
+    border-color: rgba(160, 230, 160, 0.35);
+    width: 260px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 6px;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 130px;
+    color: #f0f0f0;
+  }
+
+  /* ===== DATA ELEMENT LABELS (between source and output) ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 28px 0 6px;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 185px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== CONNECTOR LINES ===== */
+  .connectors {
+    position: relative;
+    height: 36px;
+    width: 100%;
+  }
+
+  .connectors svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .connector-line {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 1.5;
+    fill: none;
+  }
+
+  /* Arrow markers */
+  .arrow-down {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0;
+  }
+
+  .arrow-down svg {
+    width: 18px;
+    height: 18px;
+    opacity: 0.35;
+  }
+
+  /* ===== OUTPUT REPORT CONTAINER ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1200px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 130px;
+    color: #e8e0ff;
+  }
+
+  /* ===== VERTICAL FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-qnxt { background: rgba(255, 140, 140, 0.35); }
+  .swatch-claims { background: rgba(140, 200, 255, 0.35); }
+  .swatch-enrollment { background: rgba(160, 230, 160, 0.35); }
+  .swatch-output { background: rgba(160, 140, 220, 0.35); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>CS Universe Report — Data Flow Diagram</h2>
+    <div class="subtitle">Community Supports Member Level Detail &nbsp;|&nbsp; DHCS Audit Period: April 1, 2025 – December 31, 2025 &nbsp;|&nbsp; All Medi-Cal Lines of Business</div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+
+      <!-- QNXT System -->
+      <div class="system-box qnxt">
+        <span class="sys-label">QNXT System (HMOPROD_PlanData)</span>
+        <div class="module-row">
+          <div class="module">Member Profile<br><span style="font-size:10px;color:#aaa;">dbo.member</span></div>
+          <div class="module">Auth Profile<br><span style="font-size:10px;color:#aaa;">dbo.referral</span></div>
+          <div class="module">Auth Services<br><span style="font-size:10px;color:#aaa;">dbo.authservice</span></div>
+          <div class="module">Eligibility Profile<br><span style="font-size:10px;color:#aaa;">dbo.enrollkeys</span></div>
+          <div class="module">Service Codes<br><span style="font-size:10px;color:#aaa;">dbo.svccode</span></div>
+        </div>
+      </div>
+
+      <!-- Claims Validation -->
+      <div class="system-box claims">
+        <span class="sys-label">Claims Validation</span>
+        <div class="module-row">
+          <div class="module">Auth ↔ Claim<br><span style="font-size:10px;color:#aaa;">uvw_AUTHREFCLAIM</span></div>
+        </div>
+      </div>
+
+      <!-- Enrollment Manager -->
+      <div class="system-box enrollment-mgr">
+        <span class="sys-label">Enrollment Manager</span>
+        <div class="module-row">
+          <div class="module">Ethnicity / Race<br><span style="font-size:10px;color:#aaa;">dbo.Member</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== ROW 2: DATA ELEMENTS DERIVED ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Member Demographics</strong>
+        Name, CIN, DOB, Gender,<br>Medi-Cal ID#
+      </div>
+      <div class="data-element">
+        <strong>Auth &amp; Referral Details</strong>
+        codeid, modcode,<br>servicecode, status,<br>Receipt / Seen Dates
+      </div>
+      <div class="data-element">
+        <strong>CS Service Type</strong>
+        Code + Modifier →<br>Service Description<br>(Column H / C007)
+      </div>
+      <div class="data-element">
+        <strong>Approved / Received</strong>
+        15 CS Service Flags<br>(1 = Yes / 0 = No)<br>Claims-Validated
+      </div>
+      <div class="data-element">
+        <strong>Processing Times</strong>
+        TAT, Urgency Level,<br>Threshold, Units,<br>Business Days Calc
+      </div>
+      <div class="data-element">
+        <strong>Plan Enrollment</strong>
+        Enrollment Date,<br>Line of Business,<br>PCP / IPA / Medical Group
+      </div>
+      <div class="data-element">
+        <strong>Provider Details</strong>
+        Referral Source,<br>CS Provider Name<br>(Refer-From / Refer-To)
+      </div>
+    </div>
+
+    <!-- ===== ROW 3: FLOW ARROWS TO OUTPUT ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: OUTPUT REPORT ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">CS Universe Report &nbsp;→&nbsp; INFORMATICS.dbo.AUDIT_DHCS_CS_UNIVERSE</span>
+        <div class="report-modules">
+          <div class="report-module">Member<br>Demographics</div>
+          <div class="report-module">Community Support<br>Service Type</div>
+          <div class="report-module">Referral &amp;<br>Auth Data</div>
+          <div class="report-module">Services Approved<br>(Cols J – X)</div>
+          <div class="report-module">Services Received<br>(Cols Y – AM)</div>
+          <div class="report-module">Turnaround<br>Times</div>
+          <div class="report-module">Enrollment<br>Details</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>QNXT System (HMOPROD_PlanData)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-claims"></div>Claims Validation (INFORMATICS)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-enrollment"></div>Enrollment Manager</div>
+    <div class="legend-item"><div class="legend-swatch swatch-output"></div>CS Universe Report Output</div>
+  </div>
+
+</body>
+</html>

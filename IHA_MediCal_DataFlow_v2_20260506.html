@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IHA Medi-Cal Data Flow v2 | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  /* DFD STRUCTURE */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  /* INTERACTIVE NODES */
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* SOURCE SYSTEM BOXES */
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:420px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:370px;background:var(--purpleFill);border-color:var(--purple)}
+  .provdb{width:310px;background:var(--cyanFill);border-color:var(--cyan)}
+  .qnxtdb{width:440px;background:var(--greenFill);border-color:var(--green)}
+  .chgappdb{width:430px;background:var(--pinkFill);border-color:var(--pink)}
+  .qproddb{width:330px;background:var(--goldFill);border-color:var(--gold)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* STEP BOXES */
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:205px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+
+  /* DATA ELEMENTS */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  /* FILTER/CHECKPOINT BOXES */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  /* OUTPUT BOX */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  /* DETAIL + LEGEND */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  /* CODE SET SLIDE */
+  .codeset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .codeset-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px}
+  .codeset-box .cs-header{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .cs-db{font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .cs-db.qnxt{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cs-db.chdp{background:rgba(255,200,100,.13);border:1px solid rgba(255,200,100,.30);color:#ffe08a}
+  .cs-db.chgapp{background:rgba(255,140,200,.13);border:1px solid rgba(255,140,200,.30);color:#ffacd8}
+  .cs-db.dhcs{background:rgba(120,230,240,.13);border:1px solid rgba(120,230,240,.30);color:#8ee8f0}
+  .codeset-box .cs-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .code-pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .code-pill{background:#1c1c1c;border:1px solid rgba(255,200,100,.35);border-radius:6px;padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;font-weight:700}
+  .code-pill.inactive{border-color:rgba(255,100,100,.30);color:#ff9090;text-decoration:line-through}
+  .code-pill.field{border-color:rgba(120,230,240,.30);color:#8ee8f0;font-family:inherit;font-size:11px}
+  .code-pill.enroll{border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .code-pill.rel{border-color:rgba(255,170,80,.35);color:#ffb060}
+  .cs-note{font-size:11px;color:#777;line-height:1.45;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .cs-note b{color:#aaa}
+
+  /* SOURCE TABLE SLIDE */
+  .db-section{margin-bottom:24px}
+  .db-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .db-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .db-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .db-title.purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .db-title.cyan{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.28);color:#8ee8f0}
+  .db-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .db-title.pink{background:rgba(255,140,200,.10);border:1px solid rgba(255,140,200,.28);color:#ffacd8}
+  .tbl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tbl-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:13px 15px}
+  .tbl-card .tname{font-size:12.5px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:5px}
+  .tbl-card .ttype{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:7px;display:inline-block}
+  .ttype.staging{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .ttype.worktemp{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .ttype.source{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .ttype.view{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .ttype.ref{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.25);color:#8ee8f0}
+  .ttype.linked{background:rgba(255,140,200,.10);border:1px solid rgba(255,140,200,.25);color:#ffacd8}
+  .tbl-card .tdesc{font-size:11.5px;color:#999;line-height:1.45}
+
+  /* TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* CONTROLS TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+
+  /* PARAMS */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11.5px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+  .param-card .pval{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <div class="brand">
+    <h1>IHA — Initial Health Assessment (Medi-Cal) · Data Flow Diagram v2</h1>
+    <div>CHGSD · INFORMATICS · sp_IHA_MEDI_CAL · Updated 05/06/2026 · includes CHGAPP_PROD / APCD / Code Set Breakdown</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Code Sets</button>
+    <button onclick="showSlide(2,this)">③ Source Tables</button>
+    <button onclick="showSlide(3,this)">④ Runbook</button>
+    <button onclick="showSlide(4,this)">⑤ Controls</button>
+    <button onclick="showSlide(5,this)">⑥ Parameters</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — MAIN DFD
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Report Purpose</div>
+      <div class="title">IHA Medi-Cal Completion Tracking</div>
+      <div class="subtitle">Measures the rate at which newly enrolled Medi-Cal members (age ≥ 20, continuous enrollment ≥ 3 months) receive their Initial Health Assessment within each enrollment cohort quarter. IHA credit is sourced from <strong>four independent pathways</strong>: QNXT preventive visit claims, QNXT IHEBA claims, QNXT CHDP module (SQLPROD01), and DHCS Care Coordination files (CHGAPP_PROD / APCD). Distributed monthly by SSRS email.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>51,112</strong><span>Positive IHA Hits (run 5/3/2026)</span></div>
+        <div class="metric"><strong>149,842</strong><span>Total Eligible IHA Population</span></div>
+        <div class="metric"><strong>34.34%</strong><span>Overall Completion Rate</span></div>
+        <div class="metric"><strong>4 Sources</strong><span>QNXT Claims · CHDP · DHCS · APCD</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Distribution List</div>
+      <div class="subtitle" style="margin-bottom:12px">Sent by <strong>ssrsprod@chgsd.com</strong> on scheduled SSRS cadence:</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">Ms. Gabriela Rubalcava<span>Primary recipient — Clinical / Population Health lead</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Mr. Adrian Arce · Mr. Yousaf Farook<span>CC recipients</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Ms. Francisca Chavez, BS, MS, MBA · Mr. Christopher Duenas<span>CC recipients</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Ms. Daphne Cheney · Ms. Noreen Koizumi, PharmD<span>CC recipients</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE DATABASES — two rows to show all 6 -->
+      <div class="section-label">Source Databases / Systems — Row A: Internal</div>
+      <div class="source-row">
+
+        <div class="system-box sql node"
+          data-title="INFORMATICS · dbo — Analytics Warehouse (SQLPRODAPP01)"
+          data-body="The central analytics warehouse. Holds all intermediate work tables and the final IHA_MEDI_CAL production output. Key permanent tables: IHA_MEDI_CAL (final output), IHEBA (IHEBA visit staging), CHDP_IHA (CHDP visit staging), IHAdhcs (DHCS care coordination staging), IHAclaimsPREVENTIVE (preventive visit staging), DaysEnrolled (eligible population working table), MINiha / MINiheba / MINchdp / MINdhcs (first-event work tables), MINmem / MAXmem / DE / DEfinal (enrollment date work tables). Also provides views uvw_LINE_OF_BUSINESS and uvw_PCP."
+          data-tags="INFORMATICS|IHA_MEDI_CAL|IHEBA|DaysEnrolled|Work Tables|SQL Server">
+          <span class="sys-label">INFORMATICS · dbo (SQLPRODAPP01)</span>
+          <div class="module-row">
+            <div class="module">IHA_MEDI_CAL<span>Final output table<br>IHA completion records</span></div>
+            <div class="module">IHEBA / MINiheba<span>IHEBA visit staging<br>CPT 99420 · 96160 · 96156 · 96150</span></div>
+            <div class="module">IHAclaimsPREVENTIVE<span>Preventive visit staging<br>99204–99387 range</span></div>
+            <div class="module">IHAdhcs / MINdhcs<span>DHCS care coord staging<br>12-mo lookback credit</span></div>
+          </div>
+        </div>
+
+        <div class="system-box enrolldb node"
+          data-title="EnrollmentManager · Eligibility (SQLPRODAPP01)"
+          data-body="Provides member eligibility records. The SP filters on HcpCode for CHG (primary) and CHPIV HcpCode '533' (added C001 as of 20260319). Continuous enrollment windows are built by joining EnrollmentManager spans to date_calendarISO with a gap tolerance of @GAPOF=1 and @MAXGAP=1, requiring a minimum of 3 consecutive months. Program ID lock: QMXHPQ0842 (Medi-Cal CL1)."
+          data-tags="EnrollmentManager|HcpCode 533|CHPIV|Eligibility|QMXHPQ0842|C001">
+          <span class="sys-label">EnrollmentManager · Eligibility</span>
+          <div class="module-row">
+            <div class="module">HcpCode Filter<span>CHG + CHPIV '533'<br>C001 added 20260319</span></div>
+            <div class="module">Continuous Enroll<span>≥ 3 months<br>gap ≤ 1 month</span></div>
+            <div class="module code">QMXHPQ0842<span>Medi-Cal program ID<br>(CL1 lock)</span></div>
+          </div>
+        </div>
+
+        <div class="system-box provdb node"
+          data-title="ProviderRepository · PCP Attribution (SQLPRODAPP01)"
+          data-body="Supplies PCP attribution via uvw_PCP view. Internally uses DENSE_RANK() OVER (PARTITION BY memid ORDER BY effdate DESC) to return only the most current PCP record per member (@PCPrecordRANK = 1). Also sources provider specialty codes (FAM, GNP, INM, OBG, GYN, PED) used to restrict which provider types can generate a qualifying IHA visit."
+          data-tags="ProviderRepository|uvw_PCP|DENSE_RANK|PCP|Specialty Codes|FAM GNP OBG PED">
+          <span class="sys-label">ProviderRepository · PCP</span>
+          <div class="module-row">
+            <div class="module">uvw_PCP<span>Most current PCP/rank 1<br>DENSE_RANK DESC</span></div>
+            <div class="module code">FAM · GNP · INM<br>OBG · GYN · PED<span>Valid rendering<br>specialty codes</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-label" style="margin-top:18px">Source Databases / Systems — Row B: QNXT &amp; External</div>
+      <div class="source-row">
+
+        <div class="system-box qnxtdb node"
+          data-title="HMOPROD_PlanData · QNXT Transactional (SQLPROD02)"
+          data-body="The QNXT transactional system. Primary source of claims, enrollment, and member demographics. Key tables: claim + claimdetail (CPT-coded visit claims for both IHEBA and preventive visit pathways), enrollkeys (master enrollment roster — effective/term dates, program ID, carrier member ID), member (demographics: DOB, language ID, head-of-house), enrollstatus (primary/secondary insurance status — used to exclude Medicare-primary members per Ms. Gabriela 20210604), enrollcoverage (rate codes), memberrelation + qrelationship (newborn exclusion via relationship code C00498102), language (language ID → description lookup). All claim queries filter on planid via uvw_LINE_OF_BUSINESS and provid via #PCPSPE specialty filter."
+          data-tags="HMOPROD_PlanData|QNXT|claim|claimdetail|enrollkeys|enrollstatus|memberrelation">
+          <span class="sys-label">HMOPROD_PlanData · QNXT (SQLPROD02)</span>
+          <div class="module-row">
+            <div class="module">claim + claimdetail<span>CPT claims — IHEBA<br>+ Preventive visits</span></div>
+            <div class="module">enrollkeys<span>Enrollment roster<br>effdate / termdate / planid</span></div>
+            <div class="module">member · language<span>Demographics<br>DOB · language ID</span></div>
+            <div class="module">enrollstatus<span>Primary/Secondary status<br>Medicare exclusion</span></div>
+            <div class="module">memberrelation<span>Newborn exclusion<br>rel. code C00498102</span></div>
+          </div>
+        </div>
+
+        <div class="system-box chgappdb node"
+          data-title="CHGAPP_PROD — DHCS Care Coordination &amp; APCD (Linked Server)"
+          data-body="External DHCS-sourced data loaded into CHGAPP_PROD. Two distinct tables are used for IHA credit:\n\n1) CHGAPP_PROD.dbo.tblEDIDHCSCareCoordinationHeader — the OLD format Care Coordination file. Keyed on CIN / MemId. Provides the DateofServiceFrom field for 12-month pre-enrollment IHA lookback credit.\n\n2) [CHGAPP_PROD].[APCD].[Medical] — the NEW format (effective 7/1/22). Keyed on PatientControlNumber + CarrierSpecificUniqueMemberID. Also provides DateofServiceFrom for the same 12-month lookback. DHCS sends CHG 12 months of data monthly. Per Ms. Gabriela email 20220623: members who had a qualifying preventive visit up to 12 months before enrolling with CHG can receive IHA credit. This is the MINdhcs pathway into DaysEnrolled."
+          data-tags="CHGAPP_PROD|DHCS|Care Coordination|APCD|Medical|tblEDIDHCSCareCoordinationHeader|12-month lookback">
+          <span class="sys-label">CHGAPP_PROD · DHCS / APCD (Linked Server)</span>
+          <div class="module-row">
+            <div class="module">tblEDIDHCSCareCoordinationHeader<span>OLD format (pre-7/1/22)<br>CIN / MemId key</span></div>
+            <div class="module">[APCD].[Medical]<span>NEW format (eff. 7/1/22)<br>PatientControlNumber key</span></div>
+            <div class="module code">IHAdhcs staging<br>→ MINdhcs<span>12-mo lookback<br>pre-enrollment credit</span></div>
+          </div>
+        </div>
+
+        <div class="system-box qproddb node"
+          data-title="SQLPROD01.QPROD · CHDP Module (Linked Server)"
+          data-body="A separate QNXT production instance accessed via linked server. Contains CHDP_CLAIM_HEADER — the source of Child Health and Disability Prevention encounter records. These are exclusively Medi-Cal (CL1) encounters. A CHDP record qualifies as IHA credit if: HISTORY_PHYS_EXAM is not blank AND does not contain 'B', OR DEVELOPMENTAL_ASSESS is not blank AND does not contain 'B', AND PARTIAL_SCREEN = '0' (complete screen only, per Ms. Gabriela 20170107). PROCCDE is set to 'CHDP' as a literal identifier for this pathway."
+          data-tags="SQLPROD01|QPROD|CHDP|CHDP_CLAIM_HEADER|HISTORY_PHYS_EXAM|DEVELOPMENTAL_ASSESS|PARTIAL_SCREEN">
+          <span class="sys-label">SQLPROD01.QPROD · CHDP (Linked Server)</span>
+          <div class="module-row">
+            <div class="module">CHDP_CLAIM_HEADER<span>Medi-Cal well-child<br>encounters (CL1 only)</span></div>
+            <div class="module code">PARTIAL_SCREEN = '0'<span>Complete screen only<br>per Gabi 20170107</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW B: SP PROCESSING STEPS -->
+      <div class="section-label">Stored Procedure Processing — sp_IHA_MEDI_CAL (7 Steps)</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node"
+          data-title="STEP 01 — Parameter Initialization"
+          data-body="All runtime parameters are declared and SET. Key values: @ClockStart = '01/01/2020', @ClockStop = GETDATE(), @lob = 'MEDI-CAL', @ContinuousMonths = 3, @AgeCutoff = 20, @GAPOF = 1, @MAXGAP = 1, @PCPrecordRANK = 1, all @lag values = 0."
+          data-tags="Parameters|@ClockStart|@lob|@AgeCutoff|@PCPrecordRANK">
+          <span class="step-num">Step 01</span><strong>Parameters</strong>
+          @lob = MEDI-CAL<br>@ClockStart 1/1/2020<br>@AgeCutoff = 20
+        </div>
+
+        <div class="step-box s-purple node"
+          data-title="STEP 02 — LOB &amp; Eligibility Filter"
+          data-body="Filters EnrollmentManager records using uvw_LINE_OF_BUSINESS joined to date_calendarISO. Applies @lob = 'MEDI-CAL' (LIKE pattern) on LINE_OF_BUSINESS column. Program ID lock: QMXHPQ0842. Members must have active Medi-Cal enrollment within ClockStart–ClockStop."
+          data-tags="LOB Filter|uvw_LINE_OF_BUSINESS|QMXHPQ0842|date_calendarISO">
+          <span class="step-num">Step 02</span><strong>LOB Filter</strong>
+          MEDI-CAL LIKE<br>QMXHPQ0842 lock<br>date_calendarISO
+        </div>
+
+        <div class="step-box s-cyan node"
+          data-title="STEP 03 — Continuous Enrollment Window"
+          data-body="Builds continuous enrollment spans using the ISO calendar. Uses LAG() and LEAD() window functions to detect gaps. @GAPOF=1, @MAXGAP=1. Members must have ≥ 3 consecutive months. Gap-in-days and gap-in-months are calculated per enrollment segment. Members failing the window are excluded from the denominator."
+          data-tags="Continuous Enrollment|LAG LEAD|@GAPOF|@MAXGAP|3 months">
+          <span class="step-num">Step 03</span><strong>Continuous Enroll</strong>
+          LAG / LEAD gaps<br>≥ 3 months<br>@MAXGAP = 1
+        </div>
+
+        <div class="step-box s-green node"
+          data-title="STEP 04 — Age, PCP &amp; Population Rules"
+          data-body="Three population rules applied in sequence: (1) Age ≥ 20 filter via @AgeCutoff = 20. (2) PCP attribution from uvw_PCP using DENSE_RANK @PCPrecordRANK = 1. (3) Newborn exclusion — members with QNXT relationship code C00498102 (dependent of mother) are flagged 'DELETE' and removed. (4) Medicare-primary exclusion — enrollstatus.primarystatus must = 'P'; all others deleted per Ms. Gabriela 20210604."
+          data-tags="Age ≥ 20|PCP DENSE_RANK|Newborn Exclusion|Medicare Exclusion|C00498102|primarystatus P">
+          <span class="step-num">Step 04</span><strong>Pop. Rules</strong>
+          Age ≥ 20 · PCP rank<br>Newborn exclusion<br>Medicare-primary excl.
+        </div>
+
+        <div class="step-box s-gold node"
+          data-title="STEP 05 — IHA Credit: 4 Pathways"
+          data-body="IHA completion credit is sourced from four independent pathways applied in priority order (first Y wins per member):\n\n1. QNXT Preventive Visit Claims (IHAclaimsPREVENTIVE → MINiha): CPT 99204, 99205, 99301–99310, 99326–99328, 99341–99350, 99381–99387, 99391–99397. Filtered to specialist types FAM/GNP/INM/OBG/GYN/PED.\n\n2. QNXT IHEBA Claims (IHEBA → MINiheba): CPT 99420, 96160, 96156, 96150.\n\n3. CHDP Encounters (CHDP_IHA → MINchdp): PARTIAL_SCREEN='0', HISTORY_PHYS_EXAM or DEVELOPMENTAL_ASSESS not blank and not 'B'. PROCCDE = 'CHDP'.\n\n4. DHCS Care Coordination (IHAdhcs → MINdhcs): pre-enrollment visits up to 12 months prior via CHGAPP_PROD.tblEDIDHCSCareCoordinationHeader (old format) and [CHGAPP_PROD].[APCD].[Medical] (new format, eff. 7/1/22)."
+          data-tags="4 Pathways|Preventive Visit|IHEBA|CHDP|DHCS APCD|MINiha|MINiheba|MINchdp|MINdhcs">
+          <span class="step-num">Step 05</span><strong>IHA Credit</strong>
+          4 pathways:<br>QNXT · IHEBA · CHDP<br>DHCS / APCD
+        </div>
+
+        <div class="step-box s-orange node"
+          data-title="STEP 06 — IHA Flags Written to DaysEnrolled"
+          data-body="DaysEnrolled is updated with four sequential UPDATE statements, each applying a different pathway (MINiha → MINiheba → MINchdp → MINdhcs). For each pathway: [Preventive Visit exam performed (Y/N)] is SET = 'Y' only if currently 'N' (first Y wins). [IHEBA performed (Y/N)] follows the same logic. Final UPDATE sets [IHA completed (Y/N)] = 'Y' only when BOTH [Preventive Visit exam performed] = 'Y' AND [IHEBA performed] = 'Y'."
+          data-tags="DaysEnrolled UPDATE|First Y wins|IHA completed Y/N|Preventive Visit Y/N|IHEBA Y/N">
+          <span class="step-num">Step 06</span><strong>Flag Updates</strong>
+          UPDATE DaysEnrolled<br>First-Y-wins logic<br>Both flags → IHA Y
+        </div>
+
+        <div class="step-box s-pink node"
+          data-title="STEP 07 — Final Assembly → IHA_MEDI_CAL + Rate Calc"
+          data-body="DaysEnrolled is written to INFORMATICS.dbo.IHA_MEDI_CAL. Two summary SELECT result sets follow:\n\n1. Quarterly: by PAYTÖNM / Initial Enroll Year / QTRref — Y count (affirmativeIHA), N count (negativeIHA), Grand Total (gt), Completion Rate as nvarchar %.\n\n2. Annual: by Initial Enroll Year only — Y (ciha), N (niha), Grand Total (gt), Completion Rate.\n\nRate formula: ISNULL(CAST(CAST(affirmativeIHA.Count × 100.0 AS money) / CAST(gt.Count × 1.0 AS money) AS nvarchar), 0) + '%'."
+          data-tags="IHA_MEDI_CAL|Rate Calculation|Quarterly|Annual|affirmativeIHA|gt subquery|PAYTÖNM">
+          <span class="step-num">Step 07</span><strong>Final Output</strong>
+          → IHA_MEDI_CAL table<br>Qtrly + Annual rate<br>SSRS email trigger
+        </div>
+
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW C: DERIVED DATA ELEMENTS -->
+      <div class="section-label">Derived / Controlled Data Elements</div>
+      <div class="data-elements-row">
+        <div class="data-element node"
+          data-title="Eligible Population — Denominator"
+          data-body="Total Medi-Cal members age ≥ 20, ≥ 3 months continuous enrollment, primary insurance only, newborns excluded, grouped by Initial Enroll Year and QTRref. Latest run: 149,842."
+          data-tags="Denominator|149,842|Eligible|Medi-Cal">
+          <strong>Eligible Pop.</strong>Grand total (gt)<br>denominator<br>149,842 members
+        </div>
+        <div class="data-element node"
+          data-title="Positive IHA Hits — Numerator (All 4 Pathways Combined)"
+          data-body="Members where [IHA completed (Y/N)] = 'Y', meaning both a Preventive Visit AND an IHEBA hit were recorded from any of the four pathways (QNXT preventive, QNXT IHEBA, CHDP, or DHCS/APCD). Latest run: 51,112."
+          data-tags="Numerator|51,112|IHA Y|4 Pathways">
+          <strong>Positive IHA Hits</strong>affirmativeIHA<br>all 4 pathways<br>51,112 members
+        </div>
+        <div class="data-element node"
+          data-title="DHCS / APCD Pre-Enrollment Credit"
+          data-body="Members who had a qualifying visit up to 12 months before their CHG enrollment date. Sourced from CHGAPP_PROD.dbo.tblEDIDHCSCareCoordinationHeader (old format, keyed on CIN/MemId) and [CHGAPP_PROD].[APCD].[Medical] (new format, eff. 7/1/22, keyed on PatientControlNumber). Added per Ms. Gabriela email 20220623."
+          data-tags="DHCS|APCD|Pre-enrollment|12-month lookback|CHGAPP_PROD">
+          <strong>DHCS / APCD Credit</strong>Pre-enroll visits<br>12-mo lookback<br>tblEDI + APCD
+        </div>
+        <div class="data-element node"
+          data-title="Completion Rate — Quarterly by Cohort"
+          data-body="Per-quarter completion rate as a % string. Computed per PAYTÖNM + Initial Enroll Year + QTRref. Range observed: 68–84% for recent cohort quarters. Overall rate 34.34% on 5/3/2026 (reflects long lookback since 2020)."
+          data-tags="Completion Rate|QTRref|34.34%|68–84%">
+          <strong>Completion Rate</strong>% per cohort Qtr<br>34.34% overall<br>68–84% recent Qtrs
+        </div>
+        <div class="data-element node"
+          data-title="Annual IHA Summary"
+          data-body="Second result set aggregated by [Initial Enroll Year] only (no QTRref). LEFT JOINs on ciha (Y) and niha (N) to show Y / N / Grand Total / Completion Rate per year. Supports year-over-year trend reporting."
+          data-tags="Annual|Initial Enroll Year|ciha|niha|Y-o-Y">
+          <strong>Annual Summary</strong>By Enroll Year only<br>ciha / niha / gt<br>Y-o-Y trend
+        </div>
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW D: CHECKPOINTS -->
+      <div class="section-label">Analyst Quality Checkpoints</div>
+      <div class="filter-row">
+        <div class="filter-box node"
+          data-title="Checkpoint — LOB Lock"
+          data-body="@lob must equal 'MEDI-CAL' before execution. Setting NULL returns all LOBs, inflating both denominator and numerator."
+          data-tags="Control|@lob|MEDI-CAL lock">
+          <strong>LOB Lock?</strong>@lob = 'MEDI-CAL'<br>never NULL
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — HcpCode '533' Active"
+          data-body="CHPIV HcpCode '533' was added C001 as of 20260319. Verify this code is still producing enrollment records in EnrollmentManager. Low CHPIV volumes signal a potential issue."
+          data-tags="Control|HcpCode 533|CHPIV|C001">
+          <strong>HcpCode '533'?</strong>CHPIV C001<br>20260319 added
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — CHGAPP_PROD Connectivity"
+          data-body="The DHCS/APCD pathway requires a live linked server connection to CHGAPP_PROD. Confirm both tblEDIDHCSCareCoordinationHeader and [APCD].[Medical] are accessible and returning rows for the current month's data load before running."
+          data-tags="Control|CHGAPP_PROD|Linked Server|APCD|tblEDI">
+          <strong>CHGAPP_PROD Live?</strong>tblEDI + APCD<br>linked server OK
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — Staging Table Currency"
+          data-body="INFORMATICS.dbo.IHA_MEDI_CAL must be current for this cycle. Check max date and row count before distribution."
+          data-tags="Control|Staging|IHA_MEDI_CAL|Row count">
+          <strong>Staging Fresh?</strong>IHA_MEDI_CAL<br>validate row counts
+        </div>
+        <div class="filter-box node"
+          data-title="Checkpoint — Rate Sanity"
+          data-body="Overall rate should fall ~30–45% given the 2020 lookback. Recent quarterly rates should be 68–84%. Flag deviations before distribution to Ms. Noreen, Ms. Gabi, Ms. Daphne."
+          data-tags="Control|Sanity|30–45%|Outlier">
+          <strong>Rate Sanity?</strong>~30–45% overall<br>68–84% by Qtr
+        </div>
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="output-box node"
+        data-title="Final Output — SSRS IHA Medi-Cal Email + Excel"
+        data-body="SSRS sends automated email from ssrsprod@chgsd.com. Header RESULT row: Positive IHA Hits, Total Eligible, Completion Rate, Date Range. Two result sets: (1) Quarterly by PAYTÖNM/QTRref, (2) Annual by Enroll Year. Excel file written to \\fileserver01\...\WCarr\IHA\IHA_MEDI-CAL.xlsx. CLAIMS companion file at CLAIMS subfolder."
+        data-tags="Final Output|SSRS|Email|IHA_MEDI-CAL.xlsx|Quarterly|Annual">
+        <span class="sys-label">Final Presentation / Operational Output</span>
+        <div class="out-modules">
+          <div class="out-module">SSRS Email Summary<span>RESULT header: hits, eligible, rate, range. Sent to Gabi, Adrian, Yousaf, Francisca, Christopher, Daphne, Noreen</span></div>
+          <div class="out-module">IHA_MEDI-CAL.xlsx<span>\\fileserver01\...\WCarr\IHA\<br>Quarterly + Annual result sets</span></div>
+          <div class="out-module">Quarterly Result Set<span>PAYTÖNM / Initial Enroll Year / QTRref — Y, N, Grand Total, Completion %</span></div>
+          <div class="out-module">Annual Result Set<span>Initial Enroll Year — Y / N / Grand Total / Completion % (Y-o-Y trend)</span></div>
+          <div class="out-module">CLAIMS Companion<span>Raw claims review file at CLAIMS subfolder path</span></div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+
+    <!-- DETAIL + LEGEND -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click any node in the diagram above</h3>
+        <p id="detailBody">Details will show data sources, code sets, business rules, and analyst notes for the selected element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span><span class="badge">DFD v2</span>
+          <span class="badge gold">CHGAPP_PROD</span><span class="badge green">4 IHA Pathways</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>INFORMATICS analytics warehouse</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>EnrollmentManager / LOB / eligibility</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>ProviderRepository / PCP / specialties</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>HMOPROD_PlanData · QNXT claims &amp; enrollment</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--pinkFill);border-color:var(--pink)"></div>CHGAPP_PROD · DHCS Care Coord + APCD</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>SQLPROD01.QPROD · CHDP module</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Analyst quality checkpoint</div>
+        </div>
+        <p class="print-note">Tip: browser print → Save as PDF to export. Tabs ② Code Sets and ③ Source Tables are the new additions in v2.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /Slide 0 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — CODE SETS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Code Sets — All Identifiers Used to Determine IHA Credit</div>
+    <div class="subtitle" style="margin-bottom:6px">Four independent IHA credit pathways each rely on a different code set or field-based rule. A member only needs to qualify via <strong>one</strong> pathway to be counted as a positive IHA hit. Yellow pills = <strong>active</strong> codes. Red strikethrough = <strong>retired</strong> but retained in filter for historical claims coverage.</div>
+
+    <div class="codeset-grid">
+
+      <!-- PATHWAY 1: PREVENTIVE VISIT CLAIMS -->
+      <div class="codeset-box node"
+        data-title="Pathway 1 — QNXT Preventive Visit Claims (CPT E&amp;M Codes)"
+        data-body="Source table: HMOPROD_PlanData.dbo.claim JOIN claimdetail. Staged into INFORMATICS.dbo.IHAclaimsPREVENTIVE → MINiha (first event per member). Provider specialty restriction: only claims billed by FAM (Family Medicine), GNP (Geriatric Nurse Practitioner), INM (Internal Medicine), OBG (OB/GYN), GYN, or PED (Pediatrics) qualify. The full CPT range includes: new patient office visits (99204–99205), nursing facility visits (99301–99310), domiciliary/rest home visits (99326–99328), home visits (99341–99350), preventive medicine — new patient (99381–99387), preventive medicine — established patient (99391–99397). Note: codes 99201–99203, 99211–99214 were explicitly removed per QA spec."
+        data-tags="Preventive Visit|QNXT|IHAclaimsPREVENTIVE|MINiha|99204|99205|99381–99387|99391–99397|FAM GNP OBG PED">
+        <div class="cs-header">Pathway 1 — Preventive Visit Claims <span class="cs-db qnxt">QNXT · claimdetail</span></div>
+        <div class="cs-sub">New &amp; established patient E&amp;M visits billed by qualifying specialty types. Staged → IHAclaimsPREVENTIVE → MINiha.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">NEW PATIENT OFFICE</div>
+        <div class="code-pill-row">
+          <span class="code-pill">99204</span><span class="code-pill">99205</span>
+          <span class="code-pill inactive">99201</span><span class="code-pill inactive">99202</span><span class="code-pill inactive">99203</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">NURSING FACILITY · DOMICILIARY · HOME VISITS</div>
+        <div class="code-pill-row">
+          <span class="code-pill">99301–99310</span><span class="code-pill">99326–99328</span><span class="code-pill">99341–99350</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">PREVENTIVE MEDICINE (New + Established Patient)</div>
+        <div class="code-pill-row">
+          <span class="code-pill">99381–99387</span><span class="code-pill">99391–99397</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">SPECIALTY FILTER (provider must match)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">FAM</span><span class="code-pill field">GNP</span><span class="code-pill field">INM</span><span class="code-pill field">OBG</span><span class="code-pill field">GYN</span><span class="code-pill field">PED</span>
+        </div>
+        <div class="cs-note"><b>Removed per QA spec:</b> 99201, 99202, 99203, 99211, 99212, 99213, 99214 were explicitly excluded.</div>
+      </div>
+
+      <!-- PATHWAY 2: IHEBA CLAIMS -->
+      <div class="codeset-box node"
+        data-title="Pathway 2 — QNXT IHEBA Claims (Health Risk Assessment CPT Codes)"
+        data-body="Source tables: HMOPROD_PlanData.dbo.claim JOIN claimdetail. Staged into INFORMATICS.dbo.IHEBA → MINiheba (first event per member). These codes represent the health risk assessment / health education component of the IHA. Code history: 99420 was the original code. Per Ms. Gabriela email 20170223, 99420 was retired and replaced by 96160. Per Ms. Gabriela email 20201103, 96150 was changed to 96156. All four codes are retained in the filter because historical claims from earlier periods will carry the older codes."
+        data-tags="IHEBA|QNXT|99420|96160|96156|96150|Health Risk Assessment|MINiheba">
+        <div class="cs-header">Pathway 2 — IHEBA (Health Risk Assessment) <span class="cs-db qnxt">QNXT · claimdetail</span></div>
+        <div class="cs-sub">Initial Health and Education Benefit Assessment — health risk assessment component. Staged → IHEBA → MINiheba.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">ACTIVE IHEBA CODES</div>
+        <div class="code-pill-row">
+          <span class="code-pill">96160</span>
+          <span class="code-pill">96156</span>
+          <span class="code-pill">96150</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">RETIRED — retained for historical coverage</div>
+        <div class="code-pill-row">
+          <span class="code-pill inactive">99420</span>
+        </div>
+        <div class="cs-note">
+          <b>Code history:</b><br>
+          99420 → retired, replaced by 96160 (per Gabi 20170223)<br>
+          96150 → changed to 96156 (per Gabi 20201103)<br>
+          All four retained for historical claim lookback since @ClockStart = 1/1/2020.
+        </div>
+      </div>
+
+      <!-- PATHWAY 3: CHDP -->
+      <div class="codeset-box node"
+        data-title="Pathway 3 — CHDP Encounters (Field-Based Rules, Not CPT Codes)"
+        data-body="Source table: SQLPROD01.QPROD.dbo.CHDP_CLAIM_HEADER. Staged into INFORMATICS.dbo.CHDP_IHA → MINchdp. CHDP encounters do not use standard CPT codes for IHA qualification. Instead, two clinical fields on the claim header drive the rule: HISTORY_PHYS_EXAM (must not be blank and must not contain 'B') OR DEVELOPMENTAL_ASSESS (same rule). Additionally, PARTIAL_SCREEN must equal '0' — a complete screen. The PROCCDE is set to the literal 'CHDP' to identify this pathway in MINchdp. Rule source: Ms. Gabriela 20170107 and 20170107 update on partial screen filter."
+        data-tags="CHDP|HISTORY_PHYS_EXAM|DEVELOPMENTAL_ASSESS|PARTIAL_SCREEN|Field-based|MINchdp|SQLPROD01">
+        <div class="cs-header">Pathway 3 — CHDP (Child Health &amp; Disability Prevention) <span class="cs-db chdp">SQLPROD01 · QPROD</span></div>
+        <div class="cs-sub">No CPT codes — qualification based on clinical fields on the CHDP_CLAIM_HEADER. Staged → CHDP_IHA → MINchdp.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">QUALIFYING FIELD RULES (either row qualifies)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">HISTORY_PHYS_EXAM ≠ blank, ≠ 'B'</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">DEVELOPMENTAL_ASSESS ≠ blank, ≠ 'B'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">MANDATORY GATE (both rows)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">PARTIAL_SCREEN = '0'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">PATHWAY IDENTIFIER</div>
+        <div class="code-pill-row">
+          <span class="code-pill">PROCCDE = 'CHDP'</span>
+        </div>
+        <div class="cs-note"><b>Per Gabi 20170107:</b> Only complete CHDP screens (PARTIAL_SCREEN='0') count. 'B' in either clinical field = incomplete. Medi-Cal (CL1) CHDP encounters only.</div>
+      </div>
+
+      <!-- PATHWAY 4: DHCS OLD FORMAT -->
+      <div class="codeset-box node"
+        data-title="Pathway 4a — DHCS Care Coordination (Old Format, pre-7/1/22)"
+        data-body="Source table: CHGAPP_PROD.dbo.tblEDIDHCSCareCoordinationHeader. This is the older DHCS care coordination file format that predates 7/1/2022. Keyed on CIN / MemId. The DateofServiceFrom field provides the service date for 12-month pre-enrollment lookback credit. Data is staged into INFORMATICS.dbo.IHAdhcs → MINdhcs. Added per Ms. Gabriela email 20220623: DHCS sends CHG 12 months of data monthly; members who had a qualifying preventive visit before joining CHG can receive retroactive IHA credit."
+        data-tags="CHGAPP_PROD|tblEDIDHCSCareCoordinationHeader|Old Format|CIN|MemId|DateofServiceFrom|IHAdhcs|MINdhcs">
+        <div class="cs-header">Pathway 4a — DHCS Care Coord (Old Format) <span class="cs-db chgapp">CHGAPP_PROD · dbo</span></div>
+        <div class="cs-sub">Pre-enrollment IHA credit from DHCS monthly data feed. Old format, effective before 7/1/2022. Staged → IHAdhcs → MINdhcs.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">SOURCE TABLE</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">CHGAPP_PROD.dbo.tblEDIDHCSCareCoordinationHeader</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">KEY FIELDS</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">CIN / MemId</span>
+          <span class="code-pill field">DateofServiceFrom</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">LOOKBACK WINDOW</div>
+        <div class="code-pill-row">
+          <span class="code-pill">12 months pre-enrollment</span>
+        </div>
+        <div class="cs-note"><b>Per Gabi 20220623:</b> DHCS sends 12 months of care data monthly. Visits before CHG enrollment that meet IHA criteria can generate credit. This pathway significantly improves reported completion rates.</div>
+      </div>
+
+      <!-- PATHWAY 4b: APCD NEW FORMAT -->
+      <div class="codeset-box node"
+        data-title="Pathway 4b — DHCS / APCD (New Format, effective 7/1/22)"
+        data-body="Source table: [CHGAPP_PROD].[APCD].[Medical]. This is the new APCD (All-Payer Claims Database) format for DHCS care coordination data, effective 7/1/2022. The key fields change vs. the old format: PatientControlNumber and CarrierSpecificUniqueMemberID replace CIN/MemId. DateofServiceFrom is still used for the 12-month pre-enrollment lookback. Data is staged into the same INFORMATICS.dbo.IHAdhcs → MINdhcs pipeline as the old format, so both formats contribute to the same MINdhcs pathway."
+        data-tags="CHGAPP_PROD|APCD|Medical|New Format|7/1/22|PatientControlNumber|CarrierSpecificUniqueMemberID|MINdhcs">
+        <div class="cs-header">Pathway 4b — DHCS / APCD (New Format eff. 7/1/22) <span class="cs-db chgapp">CHGAPP_PROD · APCD</span></div>
+        <div class="cs-sub">New APCD format replacing the old tblEDI table effective 7/1/2022. Same 12-month lookback, different key structure. Feeds same MINdhcs pipeline.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">SOURCE TABLE</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">[CHGAPP_PROD].[APCD].[Medical]</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">KEY FIELDS (changed from old format)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">PatientControlNumber</span>
+          <span class="code-pill field">CarrierSpecificUniqueMemberID</span>
+          <span class="code-pill field">DateofServiceFrom</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">LOOKBACK WINDOW</div>
+        <div class="code-pill-row">
+          <span class="code-pill">12 months pre-enrollment</span>
+        </div>
+        <div class="cs-note"><b>Transition note:</b> Both old (tblEDI) and new (APCD) tables are queried and merged into IHAdhcs so that claims spanning the 7/1/22 format changeover are fully captured.</div>
+      </div>
+
+      <!-- ENROLLMENT / EXCLUSION CODES -->
+      <div class="codeset-box node"
+        data-title="Enrollment &amp; Exclusion Identifiers"
+        data-body="These are not IHA credit codes but control which members enter and stay in the eligible population. Program ID QMXHPQ0842 locks the population to Medi-Cal (CL1). HcpCode '533' adds CHPIV members (C001, 20260319). Relationship code C00498102 identifies newborn dependents covered under Mom — excluded per Ms. Gabriela 2017. primarystatus = 'P' enforces primary-insurance-only — excludes Medicare members per Ms. Gabriela 20210604."
+        data-tags="QMXHPQ0842|HcpCode 533|C00498102|Newborn|primarystatus P|Medicare exclusion|Eligibility">
+        <div class="cs-header">Enrollment &amp; Population Exclusion Codes <span class="cs-db dhcs">QNXT · EnrollmentMgr</span></div>
+        <div class="cs-sub">Controls who enters the eligible denominator. Not IHA credit codes — these are population filter identifiers.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">PROGRAM / PLAN ID (Medi-Cal CL1 lock)</div>
+        <div class="code-pill-row">
+          <span class="code-pill enroll">QMXHPQ0842</span><span class="code-pill enroll">QMXBP0782</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">HCPCODE (enrollment filter)</div>
+        <div class="code-pill-row">
+          <span class="code-pill enroll">CHG (primary)</span><span class="code-pill enroll">'533' (CHPIV · C001)</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">NEWBORN EXCLUSION (QNXT memberrelation)</div>
+        <div class="code-pill-row">
+          <span class="code-pill rel">C00498102 (dependent)</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">INSURANCE STATUS (primary only)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">primarystatus = 'P'</span>
+        </div>
+        <div class="cs-note"><b>Age cutoff:</b> @AgeCutoff = 20 (members must be ≥ 20 years old). <b>Change log C001:</b> HcpCode '533' added for CHPIV as of 20260319.</div>
+      </div>
+
+    </div><!-- /codeset-grid -->
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — SOURCE TABLES
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Source Tables Reference — All Tables Touched by sp_IHA_MEDI_CAL</div>
+    <div class="subtitle" style="margin-bottom:18px">Six databases / servers contribute to this report. Work tables are created and dropped each run (session-scoped). Permanent INFORMATICS tables are dropped and recreated each run. QNXT and external tables are read-only sources.</div>
+
+    <!-- INFORMATICS -->
+    <div class="db-section">
+      <div class="db-title blue">INFORMATICS · dbo — SQLPRODAPP01 (Analytics Warehouse)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.IHA_MEDI_CAL</div><span class="ttype staging">Final Output</span><div class="tdesc">Production output table. Written at the end of each run. Holds all eligible members, their IHA completion flags, completion dates, and PCP attribution. Source of the two summary result sets.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.IHEBA</div><span class="ttype worktemp">Work Table</span><div class="tdesc">IHEBA visit claim staging. Sourced from HMOPROD_PlanData.claim + claimdetail filtered to CPT codes 99420, 96160, 96156, 96150. Dropped and recreated each run.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.MINiheba</div><span class="ttype worktemp">Work Table</span><div class="tdesc">First IHEBA visit date per member. MIN(startdate) from IHEBA grouped by memid. Used to SET [IHEBA performed (Y/N)] = 'Y' on DaysEnrolled.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.IHAclaimsPREVENTIVE</div><span class="ttype worktemp">Work Table</span><div class="tdesc">Preventive visit claim staging. Sourced from HMOPROD_PlanData.claim + claimdetail filtered to E&amp;M preventive CPT ranges. Specialty-filtered via #PCPSPE. Dropped and recreated each run.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.MINiha</div><span class="ttype worktemp">Work Table</span><div class="tdesc">First preventive visit date per member. MIN(startdate) from IHAclaimsPREVENTIVE. Used to SET [Preventive Visit exam performed (Y/N)] = 'Y'.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.CHDP_IHA</div><span class="ttype worktemp">Work Table</span><div class="tdesc">CHDP encounter staging. Sourced from SQLPROD01.QPROD.dbo.CHDP_CLAIM_HEADER. Field-based qualification: HISTORY_PHYS_EXAM or DEVELOPMENTAL_ASSESS not blank/B, PARTIAL_SCREEN='0'. PROCCDE = 'CHDP'.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.MINchdp</div><span class="ttype worktemp">Work Table</span><div class="tdesc">First CHDP encounter date per member. MIN(startdate) from CHDP_IHA. Updates both [Preventive Visit exam performed] and [IHEBA performed] flags on DaysEnrolled.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.IHAdhcs</div><span class="ttype worktemp">Work Table</span><div class="tdesc">DHCS care coordination staging. Sourced from CHGAPP_PROD.dbo.tblEDIDHCSCareCoordinationHeader (old format) and [CHGAPP_PROD].[APCD].[Medical] (new format eff. 7/1/22). 12-month pre-enrollment lookback.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.MINdhcs</div><span class="ttype worktemp">Work Table</span><div class="tdesc">First DHCS care coordination visit date per member. MIN(startdate) from IHAdhcs. Third pathway to update [Preventive Visit exam performed] = 'Y'.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.DaysEnrolled</div><span class="ttype worktemp">Work Table</span><div class="tdesc">The central working population table. Holds all eligible members passing LOB, age, continuous enrollment, newborn, and Medicare filters. Progressively updated with IHA flags from all four pathways. Written to IHA_MEDI_CAL at end of run.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.MINmem / dbo.MAXmem</div><span class="ttype worktemp">Work Table</span><div class="tdesc">Member's earliest effective date (MINmem) and latest termination date (MAXmem) in Medi-Cal. Used to define the enrollment window and remove members whose initial enrollment falls outside ClockStart–ClockStop.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.DE / dbo.DEfinal</div><span class="ttype worktemp">Work Table</span><div class="tdesc">Total enrolled days per member (DE) and final days-enrolled dataset (DEfinal) after all gap and continuity filters are applied. Joined to enrollkeys and MINmem to build DaysEnrolled.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_LINE_OF_BUSINESS</div><span class="ttype view">View</span><div class="tdesc">Translates QNXT programid / planid into LINE_OF_BUSINESS, PLAN, and PROGRAM labels. The primary LOB filter used throughout: LINE_OF_BUSINESS LIKE '%MEDI-CAL%'.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_PCP</div><span class="ttype view">View</span><div class="tdesc">Returns each member's most current PCP assignment. Internally ranks by effdate DESC using DENSE_RANK(). Filtered to @PCPrecordRANK = 1 in DaysEnrolled assembly.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.date_calendarISO</div><span class="ttype ref">Reference</span><div class="tdesc">50-year static ISO calendar. The backbone of the continuous enrollment calculation. Joined to eligibility spans to produce consecutive month counts and gap measurements.</div></div>
+      </div>
+    </div>
+
+    <!-- HMOPROD_PlanData -->
+    <div class="db-section">
+      <div class="db-title green">HMOPROD_PlanData · QNXT Transactional (SQLPROD02)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.claim</div><span class="ttype source">Source</span><div class="tdesc">Header-level claim records. Provides memid, claimid, planid, provid, startdate. Joined to claimdetail for CPT code access. Used for both IHEBA and preventive visit pathways.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.claimdetail</div><span class="ttype source">Source</span><div class="tdesc">Line-level claim records. Provides servcode (CPT/HCPCS code). The CPT code filter for all QNXT-sourced IHA pathways is applied here.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollkeys</div><span class="ttype source">Source</span><div class="tdesc">Master enrollment roster. Provides effdate, termdate, programid, planid, carriermemid, memid, segtype. Program ID lock: QMXHPQ0842. Used in continuous enrollment logic, DaysEnrolled assembly, MINmem, MAXmem, and DE build.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.member</div><span class="ttype source">Source</span><div class="tdesc">Member demographics. Provides DOB (for age calculation), primarylanguage (linked to language table), entityid, headofhouse (used as fallback for Health Plan ID when carriermemid is blank).</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollstatus</div><span class="ttype source">Source</span><div class="tdesc">Enrollment status history. Provides primarystatus. Members where primarystatus ≠ 'P' are deleted from DaysEnrolled — excludes Medicare-primary members per Ms. Gabriela 20210604.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollcoverage</div><span class="ttype source">Source</span><div class="tdesc">Enrollment coverage details. Provides ratecode. Joined in the status indicator subquery alongside enrollstatus to surface rate code context for each member's active coverage segment.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.memberrelation</div><span class="ttype source">Source</span><div class="tdesc">Member relationship records. Joined to qrelationship to identify newborn dependents. Relationship code C00498102 = dependent covered under mother. Matching BABYmemid records are flagged 'DELETE' and removed from DaysEnrolled.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.qrelationship</div><span class="ttype ref">Reference</span><div class="tdesc">Relationship code lookup table. Maps relationid to a description. Used to identify the 'DEPENDENT' relationship (C00498102) for the newborn exclusion logic.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.language</div><span class="ttype ref">Reference</span><div class="tdesc">Language code lookup. Maps member.primarylanguage (numeric ID) to a language description. LEFT JOINed in the final DaysEnrolled assembly for display purposes.</div></div>
+      </div>
+    </div>
+
+    <!-- CHGAPP_PROD -->
+    <div class="db-section">
+      <div class="db-title pink">CHGAPP_PROD — DHCS Care Coordination &amp; APCD (Linked Server)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.tblEDIDHCSCareCoordinationHeader</div><span class="ttype linked">Linked Server · Old Format</span><div class="tdesc">OLD format DHCS care coordination file (pre 7/1/2022). Keyed on CIN / MemId. Provides DateofServiceFrom for 12-month pre-enrollment IHA lookback. Staged into INFORMATICS.dbo.IHAdhcs.</div></div>
+        <div class="tbl-card"><div class="tname">[APCD].[Medical]</div><span class="ttype linked">Linked Server · New Format</span><div class="tdesc">NEW format APCD (All-Payer Claims Database) medical claims table (effective 7/1/2022). Keyed on PatientControlNumber + CarrierSpecificUniqueMemberID. Provides DateofServiceFrom. Staged into the same IHAdhcs pipeline. Both old and new format run together so the 7/1/22 transition is seamlessly covered.</div></div>
+      </div>
+    </div>
+
+    <!-- SQLPROD01.QPROD -->
+    <div class="db-section">
+      <div class="db-title gold">SQLPROD01.QPROD — CHDP Module (Linked Server)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.CHDP_CLAIM_HEADER</div><span class="ttype linked">Linked Server · Source</span><div class="tdesc">CHDP encounter records. Exclusively Medi-Cal (CL1). Qualification based on HISTORY_PHYS_EXAM or DEVELOPMENTAL_ASSESS fields (not blank, not 'B') AND PARTIAL_SCREEN = '0'. Staged into INFORMATICS.dbo.CHDP_IHA. Note in code: confirming with Mr. A. Hancock whether table is still actively updated.</div></div>
+      </div>
+    </div>
+
+    <!-- TEMP TABLES -->
+    <div class="db-section">
+      <div class="db-title cyan">TempDB — Session-Scoped Temp Tables (dropped end of run)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">#PCPSPE</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Provider specialty filter. Built from ProviderRepository. Holds provid, provider name, specialty code (FAM, GNP, INM, OBG, GYN, PED). Joined to claim on provid in both IHEBA and preventive visit queries to restrict which providers can generate IHA credit.</div></div>
+        <div class="tbl-card"><div class="tname">#ContinuousEnrollment</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">LAG/LEAD-enriched enrollment spans. Built from #RANKLAG. Holds GAPinDAYs, GAPinMONTHs, CONSECUTIVE fields per enrollment segment. The core continuous enrollment calculation happens here.</div></div>
+        <div class="tbl-card"><div class="tname">#TotalDaysEnrolled</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Aggregated total days and months enrolled per member (SUM across all continuous segments). Also holds GAP(s)of count. Joined to enrollkeys to produce INFORMATICS.dbo.DE.</div></div>
+        <div class="tbl-card"><div class="tname">#RANKLAG</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Intermediate ranking table for eligibility segments. Uses DENSE_RANK to sequence enrollment rows per member. Input to #ContinuousEnrollment. Dropped after #ContinuousEnrollment is built.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — RUNBOOK
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Runbook Sequence — sp_IHA_MEDI_CAL</div>
+    <div class="timeline">
+      <div class="tl"><strong>00 · Parameter Verification</strong><p>Open sp_IHA_MEDI_CAL in SSMS on SQLPRODAPP01 · INFORMATICS. Confirm @lob = 'MEDI-CAL', @ClockStart = '01/01/2020', @ClockStop = GETDATE(), @ContinuousMonths = 3, @AgeCutoff = 20. All @lag values = 0.</p></div>
+      <div class="tl"><strong>01 · HcpCode Check</strong><p>Confirm CHG HcpCode (primary) and CHPIV HcpCode '533' (C001, added 20260319) are both returning active enrollment records in EnrollmentManager. Quick COUNT per HcpCode before full run.</p></div>
+      <div class="tl"><strong>02 · CHGAPP_PROD Linked Server Check</strong><p>Verify linked server connectivity to CHGAPP_PROD. Confirm both dbo.tblEDIDHCSCareCoordinationHeader (old format) and [APCD].[Medical] (new format eff. 7/1/22) are accessible and returning rows for the current monthly DHCS data load.</p></div>
+      <div class="tl"><strong>03 · CHDP Linked Server Check</strong><p>Verify SQLPROD01.QPROD.dbo.CHDP_CLAIM_HEADER is accessible. Confirm with Mr. A. Hancock if needed that the table is actively being updated. Row count check for current period.</p></div>
+      <div class="tl"><strong>04 · SP Execution</strong><p>Execute EXEC dbo.sp_IHA_MEDI_CAL on SQLPRODAPP01 · INFORMATICS. SET NOCOUNT ON — monitor Messages tab for errors. All four IHA credit pathways run sequentially. Expected result sets: (1) Quarterly by PAYTÖNM / QTRref, (2) Annual by Enroll Year.</p></div>
+      <div class="tl"><strong>05 · Output Validation</strong><p>Review overall Completion Rate (5/3/2026: 51,112 / 149,842 = 34.34%). Validate recent quarterly rates fall in 68–84% range. Investigate any quarter below 60%. Confirm DHCS/APCD pathway (MINdhcs) contributed records — zero rows signals a CHGAPP_PROD connectivity issue.</p></div>
+      <div class="tl"><strong>06 · Excel Refresh &amp; SSRS Distribution</strong><p>Open IHA_MEDI-CAL.xlsx at \\fileserver01\...\WCarr\IHA\. Refresh all connections. Confirm SSRS job sends to Ms. Gabriela Rubalcava (To), CC: Adrian, Yousaf, Francisca, Christopher, Daphne, Noreen. Validate RESULT row in email header matches SP output.</p></div>
+    </div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — CONTROLS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Analyst Controls &amp; Quality Gates</div>
+    <table class="mini-table">
+      <tr><th>Control</th><th>Recommended Validation</th><th>Failure Symptom</th></tr>
+      <tr><td>LOB lock</td><td>@lob = 'MEDI-CAL'. Never run with NULL.</td><td>All LOBs returned — denominator and rate meaningless.</td></tr>
+      <tr><td>HcpCode '533'</td><td>Confirm CHPIV HcpCode '533' returning enrollment records post-C001 (20260319).</td><td>Missing CHPIV Imperial Valley population in denominator.</td></tr>
+      <tr><td>CHGAPP_PROD linked server</td><td>Test SELECT TOP 1 from both tblEDIDHCSCareCoordinationHeader and [APCD].[Medical] before full run.</td><td>MINdhcs = 0 rows; DHCS pathway contributes no credit, suppressing completion rate.</td></tr>
+      <tr><td>APCD format switchover</td><td>Confirm [APCD].[Medical] is being populated for dates ≥ 7/1/2022 and tblEDI covers pre-7/1/22 dates.</td><td>Gap in DHCS coverage if one format returns no rows for its expected date range.</td></tr>
+      <tr><td>Continuous enrollment</td><td>@GAPOF = 1, @MAXGAP = 1, @ContinuousMonths = 3 must not be changed.</td><td>Incorrect enrollment windows — ineligible short-term members in denominator.</td></tr>
+      <tr><td>Age cutoff</td><td>@AgeCutoff = 20. IHA targets adult Medi-Cal members ≥ 20.</td><td>Pediatric population included — completion rate understated.</td></tr>
+      <tr><td>Newborn exclusion</td><td>Confirm memberrelation JOIN on C00498102 is running and producing DELETEs in DaysEnrolled.</td><td>Newborns under Mom counted in eligible population — DHCS audit risk.</td></tr>
+      <tr><td>Medicare primary exclusion</td><td>Confirm enrollstatus.primarystatus = 'P' filter is deleting non-primary members from DaysEnrolled.</td><td>Dual-eligible Medicare members included — compliance violation per Gabi 20210604.</td></tr>
+      <tr><td>Staging table currency</td><td>Check max date in INFORMATICS.dbo.IHA_MEDI_CAL after run. Should reflect GETDATE().</td><td>Distribution with stale data from prior cycle.</td></tr>
+      <tr><td>Completion rate sanity</td><td>Overall ~30–45%, recent quarterly 68–84%. Deviations ± 10 points warrant investigation before distribution.</td><td>Denominator inflation or numerator undercounting — both impact regulatory credibility.</td></tr>
+    </table>
+    <div class="callout"><b>Senior Analyst Note (WCARR):</b> The primary risk area introduced in v2 is the CHGAPP_PROD linked server dependency. Both the old-format (tblEDI) and new-format (APCD) tables must return rows or the DHCS/APCD pathway silently contributes zero credit — which can depress completion rates without an obvious error. Always validate MINdhcs row count after execution. The APCD format switchover on 7/1/22 means both tables must be queried together for claims spanning that boundary.</div>
+  </div>
+</div><!-- /Slide 4 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 5 — PARAMETERS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Stored Procedure Parameters — sp_IHA_MEDI_CAL</div>
+    <div class="subtitle" style="margin-bottom:4px">All parameters declared at the top of the SP. Changes must be documented in the COMMENT(S) / CHANGE.LOG section with a C### reference per DUB C 2.0.</div>
+    <div class="param-grid">
+      <div class="param-card"><div class="pname">@ClockStart</div><div class="pval">date = '01/01/2020'</div><div class="pdesc">Report start date. Per Ms. Gabby email 20211215. Anchors enrollment and IHA lookback.</div></div>
+      <div class="param-card"><div class="pname">@ClockStop</div><div class="pval">date = GETDATE()</div><div class="pdesc">Dynamic end date. Resolves to today. Ensures current-day eligibility cutoff each run.</div></div>
+      <div class="param-card"><div class="pname">@lob</div><div class="pval">nvarchar = 'MEDI-CAL'</div><div class="pdesc">LOB filter via LIKE on LINE_OF_BUSINESS. NULL = all LOBs — never appropriate for this report.</div></div>
+      <div class="param-card"><div class="pname">@ContinuousMonths</div><div class="pval">decimal = 3</div><div class="pdesc">Minimum consecutive enrollment months required. Do not reduce below 3.</div></div>
+      <div class="param-card"><div class="pname">@AgeCutoff</div><div class="pval">decimal = 20</div><div class="pdesc">Members must be ≥ 20 years old. Targets adult Medi-Cal population.</div></div>
+      <div class="param-card"><div class="pname">@GAPOF / @MAXGAP</div><div class="pval">int = 1 / int = 1</div><div class="pdesc">Enrollment gap tolerance. A 1-month gap is allowed; gaps > 1 break the continuous window.</div></div>
+      <div class="param-card"><div class="pname">@lag / @lagyrs / @lagdays</div><div class="pval">int = 0 / 0 / 0</div><div class="pdesc">Date offset parameters. All zero = no lag. Adjust +/- for retrospective analysis only.</div></div>
+      <div class="param-card"><div class="pname">@PCPrecordRANK</div><div class="pval">int = 1</div><div class="pdesc">PCP attribution rank. = 1 returns most current PCP via DENSE_RANK(PARTITION BY memid ORDER BY effdate DESC).</div></div>
+      <div class="param-card"><div class="pname">@CCIIndicator</div><div class="pval">varchar(4) = DATEPART(yyyy,…)</div><div class="pdesc">CCI year from @lag-adjusted GETDATE(). Per Ms. Maryanne 834. Dynamic unless hard-coded.</div></div>
+      <div class="param-card"><div class="pname">@isoday</div><div class="pval">int = 1</div><div class="pdesc">ISO calendar day for effective date determination. Default = 1 (first of month).</div></div>
+      <div class="param-card"><div class="pname">@isomem</div><div class="pval">nvarchar = NULL</div><div class="pdesc">QA sample filter. NULL = all members. Set to a memid for targeted member-level testing.</div></div>
+      <div class="param-card"><div class="pname">@ExecDate</div><div class="pval">datetime = GETDATE()</div><div class="pdesc">Execution timestamp. Surfaced in the SSRS email RESULT header row.</div></div>
+    </div>
+    <div class="callout" style="margin-top:16px"><b>Change Log — C001 (20260319):</b> Added EnrollmentManager CHPIV HcpCode '533' to the enrollment filter. Ensures Community Health Plan of Imperial Valley members are included in the Medi-Cal IHA eligible population. Author: WCARR.</div>
+  </div>
+</div><!-- /Slide 5 -->
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft') buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body>
+</html>

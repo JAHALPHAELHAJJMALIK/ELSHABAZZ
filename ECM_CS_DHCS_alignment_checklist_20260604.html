@@ -1,0 +1,302 @@
+
+<h2 class="sr-only">ECM & CS STEP88 alignment checklist against DHCS HCPCS Coding Guidance v1.3 January 2026</h2>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:1rem 0 2rem}
+.section{margin-bottom:1.5rem}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem;padding-bottom:.4rem;border-bottom:.5px solid var(--color-border-tertiary)}
+.item{display:grid;grid-template-columns:24px 1fr auto;gap:8px 10px;align-items:start;padding:8px 10px;border-radius:var(--border-radius-md);margin-bottom:4px;background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary)}
+.item:hover{background:var(--color-background-secondary)}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;white-space:nowrap;align-self:start;margin-top:2px}
+.ok{background:var(--color-background-success);color:var(--color-text-success)}
+.gap{background:var(--color-background-danger);color:var(--color-text-danger)}
+.warn{background:var(--color-background-warning);color:var(--color-text-warning)}
+.item-label{font-size:13px;font-weight:500;color:var(--color-text-primary);line-height:1.4}
+.item-detail{font-size:12px;color:var(--color-text-secondary);line-height:1.5;margin-top:2px;grid-column:2}
+.icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.icon i{font-size:16px}
+.ok-icon{color:var(--color-text-success)}
+.gap-icon{color:var(--color-text-danger)}
+.warn-icon{color:var(--color-text-warning)}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.75rem 1rem;text-align:center}
+.stat-n{font-size:22px;font-weight:500}
+.stat-l{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+.ok-n{color:var(--color-text-success)}
+.gap-n{color:var(--color-text-danger)}
+.warn-n{color:var(--color-text-warning)}
+</style>
+
+<div class="wrap">
+
+<div class="summary-grid">
+  <div class="stat"><div class="stat-n ok-n">19</div><div class="stat-l">Aligned ✓</div></div>
+  <div class="stat"><div class="stat-n gap-n">3</div><div class="stat-l">Gaps / action required</div></div>
+  <div class="stat"><div class="stat-n warn-n">2</div><div class="stat-l">Review recommended</div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">ECM population — STEP88 eligible &amp; enrolled scripts</div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">ECM eligible anchor — memberattribute / qattribute</div>
+      <div class="item-detail">qa.description = 'ECM Eligible', TheValue LIKE '%Y%', crossfoot guard (termdate ≥ effdate). Pattern fully aligns with DHCS requirement to identify eligible population prior to enrollment.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">ECM enrolled anchor — separate attribute track</div>
+      <div class="item-detail">qa.description = 'ECM Enrolled' tracked independently from eligible — correct per DHCS enrolled-distinct-from-eligible logic. Both scripts mirror the same row-dedup pattern.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">CalAIM go-live anchor — @ClockStart = 01/01/2022</div>
+      <div class="item-detail">Both eligible and enrolled scripts set @ClockStart to ECM/CS CalAIM launch date. Consistent with DHCS program inception.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Newly ECM eligible / enrolled — first-ever effdate MIN logic</div>
+      <div class="item-detail">#NewlyECMEligible and #NewlyECMEnrolled correctly capture 1stEligible / 1stEnrolled via MIN(effdate). Aligns with DHCS quarterly "newly identified" count requirement (C004/C005 comments).</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">ProviderPortal.ECM.Member — IsECM = 1 join</div>
+      <div class="item-detail">Both scripts LEFT JOIN ProviderPortal.ECM.Member with IsECM = 1 to reconcile provider portal enrollment state. Correct architecture.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon warn-icon"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">ECM HCPCS codes not filtered in eligible/enrolled scripts — by design?</div>
+      <div class="item-detail">STEP88 ECM Eligible/Enrolled scripts identify population via memberattribute flags, not HCPCS codes. DHCS guidance codes (G9008/G9012/G9007) are claims-level. The design is defensible — confirm no HCPCS-level eligibility cross-check is required by current DHCS APL.</div>
+    </div>
+    <span class="badge warn">Review</span>
+  </div>
+
+</div>
+
+<div class="section">
+  <div class="section-title">CS population — #CSPopClaims# HCPCS code + modifier alignment</div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Housing Transition Navigation — H0043/H2016 + U6</div>
+      <div class="item-detail">Code: lines 79–83. DHCS v1.3 pg 9: H0043+U6, H2016+U6. ✓ Exact match both codes and modifier.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Housing Deposits — H0044 + U2</div>
+      <div class="item-detail">Code: lines 85–89. DHCS v1.3 pg 9: H0044+U2. ✓ Exact match.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Housing Tenancy &amp; Sustaining — T2040/T2050/T2041/T2051 + U6</div>
+      <div class="item-detail">Code: lines 91–95. DHCS v1.3 pg 10: all four codes + U6. ✓ Complete code set captured.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Short-Term Post-Hospitalization Housing — H0043/H0044 + U3</div>
+      <div class="item-detail">Code: lines 97–101. DHCS v1.3 pg 11: H0043+U3, H0044+U3. ✓ Exact match.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Recuperative Care — T2033 + U6</div>
+      <div class="item-detail">Code: lines 103–107. DHCS v1.3 pg 11: T2033+U6. ✓ Exact match.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Caregiver Respite — H0045/S5151/S9125 + U6</div>
+      <div class="item-detail">Code: lines 109–113. DHCS v1.3 pg 12: all three codes + U6. ✓ Complete.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Day Habilitation Programs — T2012/T2014/T2018/T2020/H2014/H2038/H2024/H2026 + U6</div>
+      <div class="item-detail">Code: lines 115–119. DHCS v1.3 pgs 12–13: all eight codes + U6. ✓ Complete code set.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">ALF Transitions — T2038+U4 / H2022+U5</div>
+      <div class="item-detail">Code: lines 121–128. DHCS v1.3 pg 14: T2038+U4 (transition expenses), H2022+U5 (ongoing ALF services). ✓ Both legs captured.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Community / Home Transition — T2038+U5</div>
+      <div class="item-detail">Code: lines 130–134. DHCS v1.3 pg 14: T2038+U5. ✓ Correct. Note: DHCS Jan 2026 also added H0044+U5 for non-recurring set-up expenses — see gap item below.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Personal Care &amp; Homemaker — S5130/T1019 + U6</div>
+      <div class="item-detail">Code: lines 136–140. DHCS v1.3 pg 15: S5130+U6, T1019+U6. ✓ Exact match.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Environmental Accessibility Adaptations — S5165+U6 (home mods)</div>
+      <div class="item-detail">Code: lines 142–146. DHCS v1.3 pg 15: S5165+U6. ✓ Correct. Asthma remediation S5165+U5 also separately captured (lines 160–164). Both legs present.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Sobering Centers — H0014 + U6</div>
+      <div class="item-detail">Code: lines 154–158. DHCS v1.3 pg 17: H0014+U6. ✓ Exact match.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon gap-icon"><i class="ti ti-alert-circle" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">GAP — Medically Tailored Meals / MSF: S9977 multi-modifier expansion missing</div>
+      <div class="item-detail">Code captures S5170/S9470/S9977 + U6 only (line 148). DHCS v1.3 Jan 2026 (pgs 16–17) added S9452+U5 (nutrition ed individual), S9452+U6 (nutrition ed group), S9977+U4 (produce Rx box), S9977+U5 (produce Rx retail), S9977+U7 (medically supportive groceries), S9977+U8 (food pharmacy), S9977+U9 (healthy food vouchers). Only S9977+U6 (medically tailored groceries) is currently captured. Six new modifier legs are absent in both #CSPopClaims# and #CSPopAuths#.</div>
+    </div>
+    <span class="badge gap">Gap — action required</span>
+  </div>
+
+  <div class="item">
+    <div class="icon gap-icon"><i class="ti ti-alert-circle" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">GAP — Community / Home Transition: H0044+U5 missing</div>
+      <div class="item-detail">DHCS v1.3 Jan 2026 (pg 14, Updated January 2026 flag) added H0044+U5 to capture non-recurring set-up expenses under Community or Home Transition Services. The SQL captures T2038+U5 (transition expenses leg) but does not include the H0044+U5 leg. Both #CSPopClaims# and #CSPopAuths# require a new CASE branch.</div>
+    </div>
+    <span class="badge gap">Gap — action required</span>
+  </div>
+
+  <div class="item">
+    <div class="icon gap-icon"><i class="ti ti-alert-circle" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">GAP — Housing outreach codes: T1016+U8 / T1016+U8+GQ absent</div>
+      <div class="item-detail">DHCS v1.3 Jan 2026 (pgs 18–20) mandates MCPs report T1016+U8 (in-person outreach) and T1016+U8+GQ (telephonic/electronic outreach) for housing services initiation outreach — both successful and unsuccessful. These codes are entirely absent from #CSPopClaims# and from the WHERE clause inclusion filter (line 266). DHCS requires MCPs to report and require providers to submit. Even if not currently reimbursed, encounter capture is mandatory.</div>
+    </div>
+    <span class="badge gap">Gap — action required</span>
+  </div>
+
+</div>
+
+<div class="section">
+  <div class="section-title">CS population — Transitional Rent (C006) — non-DHCS guidance codes</div>
+
+  <div class="item">
+    <div class="icon warn-icon"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">H0040+U1 / H0040+U2 / H0043+U2 / H0044+U6 — Transitional Rent</div>
+      <div class="item-detail">C006 logic (lines 167–177, 424–434) uses H0040 and modifier combinations (U1, U2) and H0043+U2, H0044+U6. H0040 and these modifier combos do not appear in DHCS Coding Guidance v1.3. This appears to be a plan-specific or QNXT-level auth code set per Ms. Kathryn's guidance. Confirm that Transitional Rent is a locally-approved service not yet in DHCS guidance, and document accordingly. Risk: DHCS encounter submission must only use DHCS-established codes — ensure Transitional Rent claims are not submitted to PACES with non-DHCS codes.</div>
+    </div>
+    <span class="badge warn">Review</span>
+  </div>
+
+</div>
+
+<div class="section">
+  <div class="section-title">Cross-cutting structural checks</div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Modifier checked across all five modcode fields</div>
+      <div class="item-detail">Every CASE branch checks modcode, modcode2, modcode3, modcode4, modcode5. Correct — DHCS allows modifier placement in any position.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">Claims vs auths dual-track (C005 mandate)</div>
+      <div class="item-detail">#CSPopClaims# (received = claim present) and #CSPopAuths# (approved = auth present) are independently staged per C005 narrative update. Aligns with DHCS "approved for" vs "received" reporting column distinction.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">M002 fix — IS NOT NULL replacing &lt;&gt; NULL in "Approved for Other Services"</div>
+      <div class="item-detail">Corrected in both UNION branches (20260326). T-SQL &lt;&gt; NULL always UNKNOWN — IS NOT NULL is the correct predicate. Peer-review catch was accurate and necessary.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">M003 fix — column alias normalization (slash+space)</div>
+      <div class="item-detail">Housing Transition/ Navigation Services alias unified across temp table definition, CASE block, and final SELECT subquery references. No broken reference risk.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+  <div class="item">
+    <div class="icon ok-icon"><i class="ti ti-check" aria-hidden="true"></i></div>
+    <div>
+      <div class="item-label">RCU01 / T2033+U6 UNION branch 2 (C001)</div>
+      <div class="item-detail">Second UNION branch in #CSPopAuths# handles RCU01 servicecode for Recuperative Care auths. Modifier T2033+U6 correctly applied. M001 (20260326) confirmed Transitional Rent logic extended to this branch.</div>
+    </div>
+    <span class="badge ok">Aligned</span>
+  </div>
+
+</div>
+</div>

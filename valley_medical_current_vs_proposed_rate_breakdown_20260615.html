@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valley Medical Transport — Rate Analysis | CHGSD Contracting</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1440px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}
+  .brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+  .nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}
+  .nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}
+  .slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden;margin-bottom:20px}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.60}
+
+  /* HERO GRID */
+  .hero{display:grid;grid-template-columns:1.3fr .7fr;gap:22px;margin-bottom:22px}
+
+  /* METRIC CARDS */
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:22px;color:#fff}
+  .metric span{font-size:12px;color:#aaa}
+  .metric.hi strong{color:#ff9090}
+  .metric.pos strong{color:#7de0b2}
+  .metric.warn strong{color:#ffe08a}
+  .metric.blue strong{color:#9dd6ff}
+
+  /* SECTION LABEL */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}
+  .head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* PROVIDER INFO BOXES */
+  .info-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+  .info-box{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:11px 15px;flex:1;min-width:140px}
+  .info-box .ib-label{font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px}
+  .info-box .ib-val{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+
+  /* RATE TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:middle;line-height:1.4}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .divrow td{background:#1c1c1c;font-size:10.5px;font-weight:700;color:#666;letter-spacing:1.5px;text-transform:uppercase;padding:6px 14px}
+  .pct-up{color:#ff9090;font-weight:700}
+  .cur{color:#aaa}
+  .pro{color:#7de0b2;font-weight:700}
+
+  /* BADGES */
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff;white-space:nowrap}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.orange{background:rgba(255,170,80,.12);border-color:rgba(255,170,80,.35);color:#ffb060}
+  .flat-pill{background:rgba(100,180,255,.10);border:1px solid rgba(100,180,255,.28);border-radius:6px;padding:2px 8px;font-size:10px;color:#9dd6ff}
+  .mile-pill{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);border-radius:6px;padding:2px 8px;font-size:10px;color:#7de0b2}
+
+  /* BAR CHART */
+  .bar-section{margin-top:20px}
+  .bar-row{display:flex;align-items:center;gap:14px;margin-bottom:9px;font-size:12.5px}
+  .bar-label{width:210px;color:#aaa;flex-shrink:0;line-height:1.3}
+  .bar-label small{display:block;font-size:10.5px;color:#666}
+  .bar-wrap{flex:1;height:15px;background:#1e1e1e;border-radius:4px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:4px;transition:width .7s ease}
+  .bar-val{width:64px;text-align:right;font-weight:700;color:#eee;flex-shrink:0}
+  .bar-divider{font-size:10.5px;font-weight:700;color:#555;letter-spacing:1.5px;text-transform:uppercase;margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .legend-row{display:flex;gap:20px;margin-top:16px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa}
+  .swatch{width:20px;height:12px;border-radius:3px}
+
+  /* CALLOUT */
+  .callout{margin-top:18px;background:rgba(255,200,100,.06);border-left:3px solid rgba(255,200,100,.50);border-radius:6px;padding:14px 16px;font-size:13.5px;color:#bbb;line-height:1.65}
+  .callout b{color:#ffe08a}
+  .callout.blue{background:rgba(100,180,255,.06);border-left-color:rgba(100,180,255,.50)}
+  .callout.blue b{color:#9dd6ff}
+  .callout.red{background:rgba(255,100,100,.06);border-left-color:rgba(255,100,100,.50)}
+  .callout.red b{color:#ff9090}
+
+  /* CHANGE LOG / TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:0;margin-top:16px}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:13px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:14px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13px;color:#bbb;line-height:1.55}
+
+  /* PARAM / META TABLE */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px;text-transform:uppercase}
+  .param-card .pval{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11.5px;color:#888;margin-top:5px;line-height:1.4}
+
+  /* LOB SUMMARY BOXES */
+  .lob-row{display:flex;gap:16px;margin-top:18px;flex-wrap:wrap}
+  .lob-box{flex:1;min-width:220px;background:#1e1e1e;border-radius:14px;padding:18px 20px}
+  .lob-box.dsnp{border:1px solid rgba(100,180,255,.35)}
+  .lob-box.medcal{border:1px solid rgba(100,220,160,.35)}
+  .lob-box .lob-name{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+  .lob-box.dsnp .lob-name{color:#9dd6ff}
+  .lob-box.medcal .lob-name{color:#7de0b2}
+  .lob-stat{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+  .lob-stat:last-child{border-bottom:none}
+  .lob-stat .ls-label{color:#888}
+  .lob-stat .ls-val{color:#eee;font-weight:700;font-family:'Courier New',monospace}
+  .lob-stat .ls-val.up{color:#ff9090}
+  .lob-stat .ls-val.pos{color:#7de0b2}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <div class="brand">
+    <h1>Valley Medical Transport — Current vs. Proposed Rate Analysis · C007</h1>
+    <div>CHGSD · INFORMATICS · CONTRACTING · TIN: 043678536 · NPI: 1881812089 · DOS: 03/01/2025 – 02/28/2026 · Run: 06/15/2026 · WCARR</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Executive Summary</button>
+    <button onclick="showSlide(1,this)">② Rate Table</button>
+    <button onclick="showSlide(2,this)">③ Impact Chart</button>
+    <button onclick="showSlide(3,this)">④ QA &amp; Change Log</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — EXECUTIVE SUMMARY
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Contracting Proposal · C007 · 06/15/2026</div>
+      <div class="title">Valley Medical Transport</div>
+      <div class="subtitle">
+        Rate increase request submitted by Daphyne Watson (Contract Development Manager) on 03/13/2026,
+        brought to COO 03/13/2026. Provider has been contracted with CHG since 05/01/2023.
+        LOB scope: <strong style="color:#9dd6ff">Medi-Cal</strong> and <strong style="color:#9dd6ff">Medicare</strong> — rates are identical across both.
+        Flat-rate methodology applied to all per-trip codes (A0130, T2005 variants) per Informatics
+        adjustment 06/15/2026 to prevent unit-multiplication inflation on single-event claims.
+      </div>
+      <div class="info-row">
+        <div class="info-box"><div class="ib-label">Provider TIN</div><div class="ib-val">043678536</div></div>
+        <div class="info-box"><div class="ib-label">NPI</div><div class="ib-val">1881812089</div></div>
+        <div class="info-box"><div class="ib-label">QNXT ProvID</div><div class="ib-val">147611</div></div>
+        <div class="info-box"><div class="ib-label">Specialty</div><div class="ib-val">NET / Non-Emergency Transportation</div></div>
+        <div class="info-box"><div class="ib-label">DOS Range</div><div class="ib-val">03/01/2025 – 02/28/2026</div></div>
+        <div class="info-box"><div class="ib-label">Claims Lag</div><div class="ib-val">No earlier than 03/01/2025</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="kicker">Weighted Impact — Actual SQL Output</div>
+      <div class="metric-grid">
+        <div class="metric hi">
+          <strong>+68.7%</strong>
+          <span>DSNP — proposed vs. current</span>
+        </div>
+        <div class="metric hi">
+          <strong>+65.7%</strong>
+          <span>Medi-Cal — proposed vs. current</span>
+        </div>
+        <div class="metric warn">
+          <strong>+883%</strong>
+          <span>Largest unit lift — T2005 DS (dry run)</span>
+        </div>
+        <div class="metric pos">
+          <strong>EQUIV × 1.05</strong>
+          <span>Counter-offer anchor (floor — Sir Salim sign-off required)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOB SUMMARY -->
+  <div class="card">
+    <div class="kicker">LOB Summary — JAG Pipeline Output</div>
+    <div class="lob-row">
+      <div class="lob-box dsnp">
+        <div class="lob-name">D-SNP (CommuniCare Advantage)</div>
+        <div class="lob-stat"><span class="ls-label">Unduplicated Members</span><span class="ls-val">11</span></div>
+        <div class="lob-stat"><span class="ls-label">Unique Claims</span><span class="ls-val">267</span></div>
+        <div class="lob-stat"><span class="ls-label">Days / Units</span><span class="ls-val">3,084</span></div>
+        <div class="lob-stat"><span class="ls-label">Total Billed</span><span class="ls-val">$14,356.59</span></div>
+        <div class="lob-stat"><span class="ls-label">Current Rate (Actual Paid)</span><span class="ls-val">$14,068.93</span></div>
+        <div class="lob-stat"><span class="ls-label">Proposed Rate Total</span><span class="ls-val up">$23,730.00</span></div>
+        <div class="lob-stat"><span class="ls-label">Counter Offer Total</span><span class="ls-val pos">$14,772.38</span></div>
+        <div class="lob-stat"><span class="ls-label">Overall Proposed Impact</span><span class="ls-val up">+68.7%</span></div>
+        <div class="lob-stat"><span class="ls-label">Overall Counter Impact</span><span class="ls-val pos">+5.0%</span></div>
+      </div>
+      <div class="lob-box medcal">
+        <div class="lob-name">Medi-Cal</div>
+        <div class="lob-stat"><span class="ls-label">Unduplicated Members</span><span class="ls-val">151</span></div>
+        <div class="lob-stat"><span class="ls-label">Unique Claims</span><span class="ls-val">5,980</span></div>
+        <div class="lob-stat"><span class="ls-label">Days / Units</span><span class="ls-val">87,568</span></div>
+        <div class="lob-stat"><span class="ls-label">Total Billed</span><span class="ls-val">$361,550.97</span></div>
+        <div class="lob-stat"><span class="ls-label">Current Rate (Actual Paid)</span><span class="ls-val">$361,294.21</span></div>
+        <div class="lob-stat"><span class="ls-label">Proposed Rate Total</span><span class="ls-val up">$598,743.75</span></div>
+        <div class="lob-stat"><span class="ls-label">Counter Offer Total</span><span class="ls-val pos">$379,358.92</span></div>
+        <div class="lob-stat"><span class="ls-label">Overall Proposed Impact</span><span class="ls-val up">+65.7%</span></div>
+        <div class="lob-stat"><span class="ls-label">Overall Counter Impact</span><span class="ls-val pos">+5.0%</span></div>
+      </div>
+    </div>
+    <div class="callout blue" style="margin-top:16px">
+      <b>Informatics Note (WCARR · 06/15/2026):</b> The flat-rate methodology adjustment
+      (NULLIF(ISNULL(1,0),0) × rate for per-trip codes) reduced the overall weighted impact
+      from an initial ~+97% (unit-multiplied) to the figures above. A0380 and T2049 retain
+      the per-mile × QUANTITY multiplier as mileage codes — this is correct and intentional.
+      T2005 stretcher codes represent the dominant dollar variance driver despite lower trip
+      volume — see Slide ③ for the proportional breakdown.
+    </div>
+  </div>
+
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — RATE TABLE
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Full HCPCS Rate Table — Current vs. Proposed (Both Medi-Cal &amp; Medicare · Rates Identical)</div>
+    <div class="subtitle" style="margin-bottom:4px">
+      Hierarchy: Tier 1 modifier-qualified branches evaluate BEFORE Tier 2 base CPT branches in the SQL CASE statement
+      to prevent modifier-bearing claim lines from falling through to the base CPT rate.
+    </div>
+    <table class="mini-table">
+      <thead>
+        <tr>
+          <th style="width:8%">Tier</th>
+          <th style="width:16%">HCPCS + Modifier</th>
+          <th style="width:24%">Description</th>
+          <th style="width:9%">Current</th>
+          <th style="width:9%">Proposed</th>
+          <th style="width:10%">$ Variance</th>
+          <th style="width:9%">% Lift</th>
+          <th style="width:8%">Method</th>
+          <th style="width:7%">Unit Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="divrow"><td colspan="9">⬡ &nbsp;Tier 1 — Modifier-Qualified Branches &nbsp;(evaluated first in CASE hierarchy)</td></tr>
+        <tr>
+          <td><span class="badge gold">Tier 1</span></td>
+          <td><strong style="color:#ffe08a">A0130 UJ</strong></td>
+          <td>Night call</td>
+          <td class="cur">$26.43</td>
+          <td class="pro">$45.00</td>
+          <td>+$18.57</td>
+          <td class="pct-up">+70.2%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per trip</td>
+        </tr>
+        <tr>
+          <td><span class="badge gold">Tier 1</span></td>
+          <td><strong style="color:#ffe08a">A0130 HN QN</strong></td>
+          <td>Dry run — cancel at door</td>
+          <td class="cur">$20.30</td>
+          <td class="pro">$35.00</td>
+          <td>+$14.70</td>
+          <td class="pct-up">+72.4%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per event</td>
+        </tr>
+        <tr>
+          <td><span class="badge gold">Tier 1</span></td>
+          <td><strong style="color:#ffe08a">A0380 HN QN</strong></td>
+          <td>Cancel at door (dry run — not a mileage line)</td>
+          <td class="cur">$20.30</td>
+          <td class="pro">$35.00</td>
+          <td>+$14.70</td>
+          <td class="pct-up">+72.4%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per event</td>
+        </tr>
+        <tr>
+          <td><span class="badge red">Tier 1</span></td>
+          <td><strong style="color:#ff9090">T2005 UJ</strong></td>
+          <td>Stretcher night call</td>
+          <td class="cur">$32.42</td>
+          <td class="pro">$220.00</td>
+          <td>+$187.58</td>
+          <td class="pct-up">+578.6%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per trip</td>
+        </tr>
+        <tr>
+          <td><span class="badge red">Tier 1</span></td>
+          <td><strong style="color:#ff9090">T2005 DS</strong></td>
+          <td>Dry run (stretcher)</td>
+          <td class="cur">$20.35</td>
+          <td class="pro">$200.00</td>
+          <td>+$179.65</td>
+          <td class="pct-up">+882.6%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per event</td>
+        </tr>
+        <tr class="divrow"><td colspan="9">⬡ &nbsp;Tier 2 — Base CPT Branches &nbsp;(no qualifying modifier present)</td></tr>
+        <tr>
+          <td><span class="badge">Tier 2</span></td>
+          <td><strong style="color:#9dd6ff">A0130</strong></td>
+          <td>Non-emergency wheelchair or ambulatory pick-up</td>
+          <td class="cur">$20.30</td>
+          <td class="pro">$35.00</td>
+          <td>+$14.70</td>
+          <td class="pct-up">+72.4%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per trip</td>
+        </tr>
+        <tr>
+          <td><span class="badge green">Tier 2</span></td>
+          <td><strong style="color:#7de0b2">A0380</strong></td>
+          <td>Per mile charge (mileage)</td>
+          <td class="cur">$1.50 / mi</td>
+          <td class="pro">$3.75 / mi</td>
+          <td>+$2.25 / mi</td>
+          <td class="pct-up">+150.0%</td>
+          <td><span class="mile-pill">× units</span></td>
+          <td style="color:#888;font-size:11px">Per mile</td>
+        </tr>
+        <tr>
+          <td><span class="badge red">Tier 2</span></td>
+          <td><strong style="color:#ff9090">T2005</strong></td>
+          <td>Non-emergency stretcher van</td>
+          <td class="cur">$26.29</td>
+          <td class="pro">$200.00</td>
+          <td>+$173.71</td>
+          <td class="pct-up">+660.8%</td>
+          <td><span class="flat-pill">flat</span></td>
+          <td style="color:#888;font-size:11px">Per trip</td>
+        </tr>
+        <tr>
+          <td><span class="badge green">Tier 2</span></td>
+          <td><strong style="color:#7de0b2">T2049</strong></td>
+          <td>Stretcher mileage per mile</td>
+          <td class="cur">$1.50 / mi</td>
+          <td class="pro">$5.00 / mi</td>
+          <td>+$3.50 / mi</td>
+          <td class="pct-up">+233.3%</td>
+          <td><span class="mile-pill">× units</span></td>
+          <td style="color:#888;font-size:11px">Per mile</td>
+        </tr>
+        <tr class="divrow"><td colspan="9">⬡ &nbsp;ELSE — Default catch-all (hard stop per corpus standard)</td></tr>
+        <tr>
+          <td><span class="badge" style="background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.15);color:#666">—</span></td>
+          <td style="color:#555">All other HCPCS</td>
+          <td style="color:#555">Outside contracting request scope</td>
+          <td class="cur" style="color:#555">—</td>
+          <td style="color:#555">$0.00</td>
+          <td style="color:#555">—</td>
+          <td style="color:#555">—</td>
+          <td style="color:#555">—</td>
+          <td style="color:#555">Other Services</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout blue" style="margin-top:16px">
+      <b>QA Gate:</b> "Other Services" volume in the #ContractAnalysis output should be near zero.
+      Any meaningful volume signals HCPCS codes present in the QNXT claim data that are not
+      covered by this contracting request — flag for Daphyne Watson review before presenting to the COO.
+    </div>
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — IMPACT CHART
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="hero" style="grid-template-columns:1.4fr .6fr">
+
+    <div class="card">
+      <div class="kicker">Proportional Rate Lift by HCPCS Category</div>
+      <div class="subtitle" style="margin-bottom:4px">Bar width scaled to highest % lift (T2005 DS +883% = 100%).</div>
+
+      <div class="bar-section">
+        <div class="bar-divider">Tier 1 — modifier-qualified</div>
+
+        <div class="bar-row">
+          <div class="bar-label">T2005 DS<small>Stretcher dry run</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:100%;background:#7f1f1f"></div></div>
+          <div class="bar-val" style="color:#ff9090">+883%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">T2005 UJ<small>Stretcher night call</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:65.5%;background:#a33030"></div></div>
+          <div class="bar-val" style="color:#ff9090">+579%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">A0130 HN QN<small>Dry run / cancel at door</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:8.2%;background:#854F0B"></div></div>
+          <div class="bar-val" style="color:#ffb060">+72%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">A0380 HN QN<small>Cancel at door (flat)</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:8.2%;background:#854F0B"></div></div>
+          <div class="bar-val" style="color:#ffb060">+72%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">A0130 UJ<small>Night call</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:7.9%;background:#854F0B"></div></div>
+          <div class="bar-val" style="color:#ffb060">+70%</div>
+        </div>
+
+        <div class="bar-divider" style="margin-top:18px">Tier 2 — base CPT</div>
+
+        <div class="bar-row">
+          <div class="bar-label">T2005<small>Non-emergency stretcher van</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:74.8%;background:#a33030"></div></div>
+          <div class="bar-val" style="color:#ff9090">+661%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">T2049<small>Stretcher mileage / mi</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:26.4%;background:#854F0B"></div></div>
+          <div class="bar-val" style="color:#ffb060">+233%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">A0380<small>Per mile charge</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:17.0%;background:#0F6E56"></div></div>
+          <div class="bar-val" style="color:#7de0b2">+150%</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">A0130<small>Ambulatory / wheelchair pick-up</small></div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:8.2%;background:#0F6E56"></div></div>
+          <div class="bar-val" style="color:#7de0b2">+72%</div>
+        </div>
+      </div>
+
+      <div class="legend-row">
+        <div class="legend-item"><div class="swatch" style="background:#a33030"></div>Stretcher codes &gt;500% lift</div>
+        <div class="legend-item"><div class="swatch" style="background:#854F0B"></div>Mid-range codes 70–233% lift</div>
+        <div class="legend-item"><div class="swatch" style="background:#0F6E56"></div>Ambulatory / mileage &lt;200% lift</div>
+        <div class="legend-item"><div class="swatch" style="background:#1e1e1e;border:1px solid #333"></div>Flat-rate method</div>
+        <div class="legend-item"><div class="swatch" style="background:#1e1e1e;border:1px dashed #7de0b2"></div>Per-mile × units</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="card" style="margin-bottom:0">
+        <div class="kicker">Volume vs. Dollar Split</div>
+        <div class="subtitle" style="font-size:13.5px;margin-top:8px;line-height:1.6">
+          <strong style="color:#9dd6ff">A0130 ambulatory</strong> is the
+          highest-volume category (5,814+ Medi-Cal claims, 381 DSNP claims)
+          at a comparatively modest <span style="color:#ffb060">+72%</span> per event.
+          <br><br>
+          <strong style="color:#ff9090">T2005 stretcher codes</strong> represent
+          a smaller share of total trips but carry the largest per-unit rate jump —
+          +579% to +883% — driving the disproportionate weighted impact.
+          <br><br>
+          Separating stretcher from ambulatory in the COO summary will tell a
+          cleaner, more defensible story for Sir Salim.
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:0">
+        <div class="kicker">Counter-Offer Anchor</div>
+        <div class="subtitle" style="font-size:13.5px;margin-top:8px;line-height:1.6">
+          Standard CHGSD formula:<br>
+          <span style="color:#9dd6ff;font-family:'Courier New',monospace;font-size:12px">
+            ISNULL(EQUIV × 1.05,<br>
+            (PAID_NET_AMT + TRI) × 1.05)
+          </span>
+          <br><br>
+          SQL output confirms counter at <span style="color:#7de0b2;font-weight:700">+5.0%</span>
+          across both LOBs — DSNP <strong style="color:#7de0b2">$14,772</strong>,
+          Medi-Cal <strong style="color:#7de0b2">$379,359</strong>.
+          <br><br>
+          This is the <em>floor</em> position. Final counter requires
+          Sir Salim French / Daphyne Watson sign-off before transmission.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <div class="callout red">
+      <b>QA Flag — A0380 HN QN unit scrutiny:</b> This branch prices a cancel-at-door event
+      at $35.00 flat (NULLIF(ISNULL(1,0),0) × 35.00). If any A0380 claim carries a high QUANTITY
+      value (e.g., 40 miles billed before cancel modifier detected), the flat-rate cap correctly
+      holds the proposed at $35 regardless. Verify unit distribution on A0380 HN QN lines in the
+      CONTRACTING_DETAIL output before finalizing the summary for Daphyne.
+    </div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — QA & CHANGE LOG
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Provider Metadata — Rate Request Documentation</div>
+      <div class="param-grid">
+        <div class="param-card"><div class="pname">Provider Name</div><div class="pval">Valley Medical Transport</div><div class="pdesc">ANC (Ancillary) — Non-Emergency Transportation</div></div>
+        <div class="param-card"><div class="pname">TIN (FedID)</div><div class="pval">043678536</div><div class="pdesc">Tax Identification Number — primary lookup key in uvw_PROVISO</div></div>
+        <div class="param-card"><div class="pname">NPI</div><div class="pval">1881812089</div><div class="pdesc">National Provider Identifier — secondary lookup key</div></div>
+        <div class="param-card"><div class="pname">QNXT ProvID</div><div class="pval">147611</div><div class="pdesc">Internal QNXT provider ID — used in HCT / TRI joins</div></div>
+        <div class="param-card"><div class="pname">SPECcode / PROVcode</div><div class="pval">NET / ANC</div><div class="pdesc">Transportation specialty — NET; Provider category — ANC (Ancillary)</div></div>
+        <div class="param-card"><div class="pname">Date Request Made</div><div class="pval">03/13/2026</div><div class="pdesc">Date provider submitted the rate increase request</div></div>
+        <div class="param-card"><div class="pname">Date to COO</div><div class="pval">03/13/2026</div><div class="pdesc">Date contracting brought to COO review</div></div>
+        <div class="param-card"><div class="pname">Effective Date Requested</div><div class="pval">TBD</div><div class="pdesc">Provider requested effective date — pending negotiation outcome</div></div>
+        <div class="param-card"><div class="pname">DOS Range</div><div class="pval">03/01/2025 – 02/28/2026</div><div class="pdesc">Date of service range for claims analysis</div></div>
+        <div class="param-card"><div class="pname">Claims Lag</div><div class="pval">No earlier than 03/01/2025</div><div class="pdesc">Report would be run no earlier than 3 months lag (standard)</div></div>
+        <div class="param-card"><div class="pname">LOB Scope</div><div class="pval">Medi-Cal + Medicare</div><div class="pdesc">Rates identical for both LOBs per contracting request doc</div></div>
+        <div class="param-card"><div class="pname">Contracted Since</div><div class="pval">05/01/2023</div><div class="pdesc">Length of provider relationship with CHG</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="kicker">Key Business Rules — Enforced in C007 Script</div>
+      <table class="mini-table" style="margin-top:8px">
+        <thead><tr><th>Rule</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td style="color:#9dd6ff">Flat rate — per-trip codes</td><td>NULLIF(ISNULL(1,0),0) × rate. Prevents QUANTITY inflation on single-event claims (A0130, T2005 all variants, A0380 HN QN).</td></tr>
+          <tr><td style="color:#7de0b2">Per-mile × units — mileage codes</td><td>NULLIF(ISNULL(QUANTITY,0),0) × rate. Applied to A0380 (base) and T2049 only.</td></tr>
+          <tr><td style="color:#ffe08a">Tier 1 before Tier 2</td><td>Modifier-qualified WHEN branches appear first in CASE. Prevents UJ / HN / DS lines falling through to base CPT rate.</td></tr>
+          <tr><td style="color:#ffb060">Both LOBs in scope</td><td>LOB filter commented out — Medi-Cal and Medicare both captured. Rates are identical per contracting doc.</td></tr>
+          <tr><td style="color:#ff9090">ELSE = 0 hard stop</td><td>Any HCPCS not in contracting request returns $0 proposed. No default rate fallback.</td></tr>
+          <tr><td style="color:#c4b8f0">modcode1–5 all checked</td><td>UJ / HN / QN / DS checked across modcode, modcode2, modcode3, modcode4, modcode5 to catch any position.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">DUB C 2.0 Change Log</div>
+    <div class="timeline">
+      <div class="tl">
+        <strong>C007 · Valley Medical Transport · 20260615 (WCARR)</strong>
+        <p>Replaced Contracting_Proposal_Category AND Proposed_Rate_Payment CASE blocks entirely.
+        Per Daphyne Watson (Contract Development Manager) contracting request 20260315 (date brought to COO 20260313).
+        Medi-Cal AND Medicare LOB (rates identical for both). Per-unit HCPCS basis with two-tier modifier hierarchy.
+        Flat-rate methodology applied to all per-trip codes per Informatics adjustment 06/15/2026 — initial
+        unit-multiplication approach produced ~+97% weighted impact; flat-rate correction yields +68.7% DSNP / +65.7% Medi-Cal.
+        Provider TIN: 043678536 · NPI: 1881812089 · DOS: 3/01/2025–2/28/2026 · Claims lag: no earlier than 3/01/2025.</p>
+      </div>
+      <div class="tl">
+        <strong>C006 · Hanger Clinic · 20260608 (WCARR)</strong>
+        <p>Prior contracting proposal — S1040 Cranial Remolding Orthosis: $2,200 → $2,400 per unit. Medi-Cal LOB only.
+        DME case rate basis. ELSE = 0 hard stop. TIN: 953837714 · NPI: 1538667969.</p>
+      </div>
+      <div class="tl">
+        <strong>C005 · Interfaith Community Services · 20260519 (WCARR)</strong>
+        <p>T2033-U6 Recuperative Care: $204/day → $225/day. Medi-Cal LOB only. Per diem basis.
+        TIN: 953837714 · NPI: 1538667969.</p>
+      </div>
+      <div class="tl">
+        <strong>C004 · Ellner Bariatric · 20260513 (WCARR)</strong>
+        <p>CPT 43644 / 43775 Bariatric Surgery: $3,400 → $3,800 case rate. General Surgery: 100% → 120% EQUIV.
+        Medi-Cal LOB only. TIN: 202538774 · NPI: 1043330277.</p>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px">
+      <b>Script reference:</b> CONTRACTING_VALLEY_MEDICAL_20260615_CLAUDE_ai.sql · Target server: SQLPROD02 (SQLPRODAPP01).
+      Primary databases: INFORMATICS, HMOPROD_PLANDATA. Output table: INFORMATICS.dbo.CONTRACTING_VALLEY_MEDICAL_TEMPLATE_DETAIL.
+      All SQL conforms to DUB C 2.0 coding standard (one space between tokens, left-aligned commas,
+      uppercase keywords, explicit AS on all aliases).
+    </div>
+  </div>
+</div><!-- /Slide 4 -->
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft')  buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body>
+</html>

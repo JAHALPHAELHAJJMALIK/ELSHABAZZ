@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EAE Network Certification — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 56px;
+  }
+
+  /* ===== TITLE ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #888;
+    margin-top: 5px;
+  }
+
+  /* ===== SECTION LABELS ===== */
+  .section-label {
+    text-align: center;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #777;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 72px;
+    margin: 12px 0 8px;
+  }
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; opacity: 0.28; }
+  .flow-arrow .shaft { width: 2px; height: 20px; background: #ccc; }
+  .flow-arrow .head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ccc; }
+
+  /* ===== GENERIC SYSTEM BOX ===== */
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 22px 20px;
+    position: relative;
+  }
+  .system-box .sys-label,
+  .output-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* ===== SOURCE ROW ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  /* ProviderRepository */
+  .box-provrepo {
+    background: rgba(255, 140, 140, 0.1);
+    border-color: rgba(255, 140, 140, 0.38);
+    width: 680px;
+  }
+  /* eVips / Symplr */
+  .box-evips {
+    background: rgba(255, 200, 100, 0.1);
+    border-color: rgba(255, 200, 100, 0.38);
+    width: 280px;
+  }
+  /* INFORMATICS */
+  .box-informatics {
+    background: rgba(140, 200, 255, 0.1);
+    border-color: rgba(140, 200, 255, 0.38);
+    width: 380px;
+  }
+  /* INFORMATICS EAE crosswalk */
+  .box-crosswalk {
+    background: rgba(180, 255, 200, 0.08);
+    border-color: rgba(180, 255, 200, 0.3);
+    width: 220px;
+  }
+
+  /* ===== MODULE ===== */
+  .module-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .module {
+    background: #252525;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 110px;
+    color: #f0f0f0;
+    line-height: 1.4;
+  }
+  .module span { font-size: 9.5px; color: #999; display: block; margin-top: 2px; }
+
+  /* ===== STEP BOXES ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .step-box {
+    background: rgba(100, 180, 255, 0.13);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 11px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 148px;
+    max-width: 172px;
+    position: relative;
+  }
+  .step-box strong { display: block; font-size: 11px; color: #fff; margin-bottom: 3px; }
+  .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.85);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .data-element {
+    background: rgba(80, 80, 80, 0.65);
+    border-radius: 5px;
+    padding: 9px 13px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 138px;
+    max-width: 180px;
+  }
+  .data-element strong { display: block; font-size: 11px; color: #fff; margin-bottom: 2px; }
+
+  /* ===== FILTER BOXES ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .filter-box {
+    background: rgba(255, 90, 90, 0.1);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 10px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 125px;
+    max-width: 158px;
+  }
+  .filter-box strong { display: block; font-size: 10.5px; color: #ff9090; margin-bottom: 2px; }
+
+  /* ===== OUTPUT BOXES ===== */
+  .output-section { margin-top: 18px; }
+
+  .output-box {
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1380px;
+    margin: 0 auto;
+  }
+
+  /* EAENetwork / KEEP_EAE_DETAIL (purple) */
+  .box-eaenetwork {
+    background: rgba(160, 140, 220, 0.1);
+    border: 2px solid rgba(160, 140, 220, 0.38);
+  }
+  .output-module {
+    background: rgba(160, 140, 220, 0.22);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 118px;
+    color: #e8e0ff;
+    line-height: 1.4;
+  }
+  .output-module span { font-size: 9.5px; color: #bbb0ee; display: block; margin-top: 2px; }
+
+  /* EAENetworkFINAL / DELIVERABLE (green) */
+  .box-final {
+    background: rgba(100, 220, 160, 0.1);
+    border: 2px solid rgba(100, 220, 160, 0.38);
+  }
+  .final-module {
+    background: rgba(100, 220, 160, 0.22);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 138px;
+    color: #d0ffe0;
+    line-height: 1.4;
+  }
+  .final-module span { font-size: 9.5px; color: #a0ddbb; display: block; margin-top: 2px; }
+
+  .output-modules, .final-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== OVERLAP BOX (orange accent) ===== */
+  .box-overlap {
+    background: rgba(255, 160, 80, 0.1);
+    border: 2px solid rgba(255, 160, 80, 0.38);
+    width: 1380px;
+  }
+  .overlap-module {
+    background: rgba(255, 160, 80, 0.2);
+    border: 1px solid rgba(255, 160, 80, 0.42);
+    border-radius: 6px;
+    padding: 9px 13px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 138px;
+    color: #ffddb0;
+    line-height: 1.4;
+  }
+  .overlap-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  /* ===== CATEGORY BADGE ===== */
+  .cat-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-bottom: 3px;
+    letter-spacing: 0.5px;
+  }
+  .cat-pcp   { background: rgba(100,200,255,0.25); color: #90d8ff; }
+  .cat-spec  { background: rgba(180,140,255,0.25); color: #c8b0ff; }
+  .cat-anc   { background: rgba(100,220,160,0.25); color: #90ddb0; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #aaa; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.15); }
+  .sw-provrepo   { background: rgba(255,140,140,0.38); }
+  .sw-evips      { background: rgba(255,200,100,0.38); }
+  .sw-informatics{ background: rgba(140,200,255,0.38); }
+  .sw-crosswalk  { background: rgba(180,255,200,0.3); }
+  .sw-exclusion  { background: rgba(255,90,90,0.22); border-style: dashed; }
+  .sw-eaenetwork { background: rgba(160,140,220,0.38); }
+  .sw-final      { background: rgba(100,220,160,0.38); }
+  .sw-overlap    { background: rgba(255,160,80,0.38); }
+
+  /* ===== NOTE BLOCK ===== */
+  .note-bar {
+    background: rgba(255,220,80,0.07);
+    border: 1px solid rgba(255,220,80,0.22);
+    border-radius: 6px;
+    padding: 8px 18px;
+    font-size: 10px;
+    color: #c8b870;
+    text-align: center;
+    margin: 14px auto 0;
+    max-width: 900px;
+  }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>EAE Network Certification — Provider Data Flow Diagram</h2>
+    <div class="subtitle">CalAIM D-SNP Network Guidance &nbsp;|&nbsp; LOB: MCAL + D-SNP + CMC &nbsp;|&nbsp; Submission Due: 03/14/2025 &nbsp;|&nbsp; Script: EAE_Network_Certification_Providers_20260302.sql &nbsp;|&nbsp; CHGSD &mdash; Community Health Group of San Diego</div>
+  </div>
+
+  <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+  <div class="section-label">&#9660; Source Systems</div>
+  <div class="source-row">
+
+    <!-- ProviderRepository -->
+    <div class="system-box box-provrepo">
+      <span class="sys-label">ProviderRepository (SQLPRODAPP01)</span>
+      <div class="module-row">
+        <div class="module">Snapshot<br><span>dbo.Snapshot — MAX(SnapshotID) per LOB<br>LOB: MEDICARE / MEDICAL → DSNP / MCAL</span></div>
+        <div class="module">Providers<br><span>dbo.Providers<br>pr.NPI, LastName, FirstName</span></div>
+        <div class="module">Sites<br><span>dbo.Sites<br>SiteNPI, Name, Address, City, Zip<br>InstitutionalFacilityType, FacilityType</span></div>
+        <div class="module">Taxonomy<br><span>dbo.ProviderTaxonomy<br>dbo.SiteTaxonomy<br>TaxonomyCode (non-null)</span></div>
+        <div class="module">Taxonomy Crosswalk<br><span>dbo.ANCTaxonomyCrosswalk<br>DENSE_RANK + ROW_NUMBER by CrosswalkDate<br>→ Latest record per TaxonomyCode</span></div>
+        <div class="module">Affiliations<br><span>dbo.SiteProviders<br>dbo.GroupSites / dbo.Groups<br>sp.ProviderType LIKE '%MD%'</span></div>
+      </div>
+    </div>
+
+    <!-- eVips / Symplr -->
+    <div class="system-box box-evips">
+      <span class="sys-label">eVips / Symplr (evips_chgcv)</span>
+      <div class="module-row">
+        <div class="module">Location Services<br><span>dbo.vwLocationServices<br>ServiceTypeName, ServiceTypeCode</span></div>
+        <div class="module">Location Products<br><span>dbo.vwLocationProducts<br>dbo.vwLocationProductServices<br>Archived='N', Status ACTIVE/PARTICIP</span></div>
+        <div class="module">Practices<br><span>dbo.vwPractices<br>NationalProviderID (NPI)</span></div>
+      </div>
+    </div>
+
+    <!-- INFORMATICS Provider Directories -->
+    <div class="system-box box-informatics">
+      <span class="sys-label">INFORMATICS — Provider Directory Reference Tables</span>
+      <div class="module-row">
+        <div class="module">PROVDIR_PCP<br><span>NPIis, SPEC<br>(FAMILY/GENERAL/INTERNAL MED)</span></div>
+        <div class="module">PROVDIR_HOSGENERALACUTE<br><span>NPIis — Acute Hospital cross-ref</span></div>
+        <div class="module">PROVDIR_SNF<br><span>NPIis — SNF / Subacute cross-ref</span></div>
+        <div class="module">PROVDIR_DLC<br><span>NPIis — Dialysis center cross-ref</span></div>
+        <div class="module">PROVDIR_CLINIC<br><span>NPIis, INDEXNM<br>FQHC + IHCP</span></div>
+      </div>
+    </div>
+
+    <!-- EAE Crosswalk -->
+    <div class="system-box box-crosswalk">
+      <span class="sys-label">INFORMATICS — EAE Crosswalk</span>
+      <div class="module-row">
+        <div class="module">EAE_CROSSWALK<br><span>SPECIALTYXWALK → DHCS Template Category mapping<br>(imported from .xlsx)</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== ARROWS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+  <div class="section-label">&#9660; Execution Sequence</div>
+  <div class="step-row">
+    <div class="step-box">
+      <span class="step-num">PRE-STEP</span>
+      <strong>Environment Reset</strong>
+      DROP IF EXISTS:<br>#snapshot, #DLC, #ICF,<br>#SUBACUTEFAC, EAENetwork,<br>EAENetworkFINAL,<br>KEEP_EAE_DETAIL,<br>EAE_OVERLAP_NETWORK
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 01</span>
+      <strong>#snapshot Build</strong>
+      MAX(SnapshotID) per LOB<br>RANKis BETWEEN 1 AND 3<br>LOB → LOBCode mapping<br>(MEDICAL→MCAL, MEDICARE→DSNP)
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 02</span>
+      <strong>#DLC Build</strong>
+      eVips: ServiceTypeName<br>LIKE '%DIALYSIS%CENTER%'<br>Active / Participating only<br>NationalProviderID extracted
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 03</span>
+      <strong>#ICF Build</strong>
+      eVips: ServiceTypeName<br>LIKE '%INTERMEDIATE%<br>CARE%FACILITIES%'<br>Per SIR SALIM COC_SURVEY
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 04</span>
+      <strong>#SUBACUTEFAC Build</strong>
+      eVips: ServiceTypeName<br>LIKE '%ACUTE%'<br>Sub-acute SNF identification<br>NationalProviderID extracted
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 05</span>
+      <strong>;WITH eaenetwork CTE</strong>
+      UNION across all provider<br>categories (see Row 3 below)<br>→ INTO INFORMATICS.dbo.<br>EAENetwork
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 06</span>
+      <strong>KEEP_EAE_DETAIL Build</strong>
+      Deduplicate + enrich via<br>EAE_CROSSWALK JOIN<br>→ Canonical detail table<br>MCAL + DSNP + CMC
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 07</span>
+      <strong>EAENetworkFINAL Build</strong>
+      Network overlap summary:<br># MCAL+Medicare providers,<br>MCAL-Only, DSNP-Only<br>% of Network Overlap calc
+    </div>
+    <div class="step-box">
+      <span class="step-num">STEP 08</span>
+      <strong>EAE_OVERLAP_NETWORK</strong>
+      Providers in DSNP/CMC<br>NOT in MCAL by category<br>Gap analysis for<br>Sir Salim / Contracting
+    </div>
+  </div>
+
+  <!-- ===== ARROWS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== ROW 3: PROVIDER CATEGORY UNIONS ===== -->
+  <div class="section-label">&#9660; ;WITH eaenetwork — UNION of Provider Categories (All → INFORMATICS.dbo.EAENetwork)</div>
+  <div class="data-elements-row">
+
+    <div class="data-element">
+      <span class="cat-badge cat-pcp">2 PCP</span>
+      <strong>Adult PCP — Taxonomy</strong>
+      DHCSNetCertGroup = 'Adult Primary Care'<br>sp.ProviderType LIKE '%MD%'<br>Excl: Pediatric, Non-Physician
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-pcp">2 PCP</span>
+      <strong>Family / General Practice</strong>
+      PROVDIR_PCP JOIN<br>SPEC IN ('FAMILY PRACTICE',<br>'GENERAL PRACTICE')<br>sp.ProviderType LIKE '%MD%'
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-pcp">2 PCP</span>
+      <strong>Internal Medicine</strong>
+      PROVDIR_PCP JOIN<br>SPEC = 'INTERNAL MEDICINE'<br>sp.ProviderType LIKE '%MD%'
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-spec">3 SPECIALIST</span>
+      <strong>Specialist — Taxonomy</strong>
+      DHCSNetCertGroup NOT IN<br>('Adult Primary Care',<br>'Pediatric Primary Care')<br>sp.ProviderType LIKE '%MD%'
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-spec">3 SPECIALIST</span>
+      <strong>General Surgery / Vascular</strong>
+      DHCSNetCertCategory LIKE '%GENERAL%SURGERY%'<br>NUCCSpecialization LIKE '%VASCULAR%SURGERY%'<br>sp.ProviderType LIKE '%MD%'
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-spec">3 SPECIALIST</span>
+      <strong>Phys Med &amp; Rehab</strong>
+      DHCSNetCertCategory<br>LIKE '%PHYS%MEDI%REHAB%'<br>sp.ProviderType LIKE '%MD%'
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-anc">4 ANCILLARY</span>
+      <strong>Acute Inpatient Hospitals</strong>
+      InstitFacilityType IN ('11','12','85')<br>FacilityType IN ('27','28')<br>+ PROVDIR_HOSGENERALACUTE JOIN
+    </div>
+    <div class="data-element">
+      <span class="cat-badge cat-anc">4 ANCILLARY</span>
+      <strong>SNF / Subacute / ICF / DLC<br>FQHC / IHCP / Ancillary Labs</strong>
+      PROVDIR_SNF × #SUBACUTEFAC<br>#ICF, PROVDIR_DLC × #DLC<br>PROVDIR_CLINIC (FQHC/IHCP)<br>SiteTaxonomy × ANCTaxonomyCrosswalk (Labs)
+    </div>
+
+  </div>
+
+  <!-- ===== ARROWS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== ROW 4: FILTERS ===== -->
+  <div class="section-label">&#9660; Taxonomy / Policy Exclusion Filters Applied (Per DHCS CalAIM D-SNP Policy Guide 12-30-22)</div>
+  <div class="filter-row">
+    <div class="filter-box">
+      <strong>Pediatric Exclusion</strong>
+      DHCSNetCertGroup / Category /<br>NUCCClassification / NUCCSpecialization<br>NOT LIKE '%PEDIATRIC%'
+    </div>
+    <div class="filter-box">
+      <strong>Non-Physician Exclusion</strong>
+      DHCSNetCertGroup NOT IN<br>('Non-Physician Medical<br>Practitioner')
+    </div>
+    <div class="filter-box">
+      <strong>Student Taxonomy Exclusion</strong>
+      NUCCClassification<br>NOT LIKE '%Student%'<br>(from ANCTaxonomyCrosswalk)
+    </div>
+    <div class="filter-box">
+      <strong>Specialty Exclusions</strong>
+      Genetics, Maternal/Fetal Med,<br>Ped Subspecialties, Ped Surgery,<br>Chiropractor — per Policy Guide
+    </div>
+    <div class="filter-box">
+      <strong>Null TaxonomyCode Guard</strong>
+      NOT ISNULL(pt.TaxonomyCode,'')<br>= '' on both ProviderTaxonomy<br>and SiteTaxonomy joins
+    </div>
+    <div class="filter-box">
+      <strong>Collation Normalization</strong>
+      All cross-server string comparisons<br>use COLLATE DATABASE_DEFAULT<br>(C001 fix: SQL_Latin1 conflict resolved)
+    </div>
+    <div class="filter-box">
+      <strong>Snapshot Currency</strong>
+      MAX(SnapshotID) per LOB<br>RANKis BETWEEN 1 AND 3<br>Createdate TRY_CONVERT(datetime)
+    </div>
+    <div class="filter-box">
+      <strong>eVips Active/Participating</strong>
+      Archived = 'N'<br>StatusTypeName IN ('ACTIVE','')<br>OR LIKE '%PARTICIP%'
+    </div>
+  </div>
+
+  <!-- ===== ARROWS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== ROW 5: EAENetwork / KEEP_EAE_DETAIL ===== -->
+  <div class="output-section">
+    <div class="output-box box-eaenetwork">
+      <span class="sys-label">INFORMATICS.dbo.EAENetwork &nbsp;&#8594;&nbsp; KEEP_EAE_DETAIL &nbsp;(Canonical Detail Table — MCAL + DSNP + CMC)</span>
+      <div class="output-modules">
+        <div class="output-module">TEMPLATE_CATEGORY<br><span>'2 PCP' / '3 SPECIALIST'<br>'4 ANCILLARY &amp; FACILITY'</span></div>
+        <div class="output-module">LOBCode<br><span>MCAL / DSNP / CMC<br>Derived from Snapshot LOB</span></div>
+        <div class="output-module">ProviderNPI<br><span>pr.NPI (individual)<br>NULL for facility categories</span></div>
+        <div class="output-module">SiteNPI<br><span>s.NPI (site/facility level)<br>Primary key for Ancillary</span></div>
+        <div class="output-module">SiteName<br><span>s.[Name]</span></div>
+        <div class="output-module">AddressLine1 / 2<br><span>s.Address / s.Address2</span></div>
+        <div class="output-module">City / State / ZipCode<br><span>From ProviderRepository Sites</span></div>
+        <div class="output-module">SPECIALTYXWALK<br><span>EAE_CROSSWALK join<br>DHCS template specialty label</span></div>
+        <div class="output-module">DHCSNetCertGroup<br>/ Category<br><span>From ANCTaxonomyCrosswalk</span></div>
+        <div class="output-module">NUCCClassification<br>/ NUCCSpecialization<br><span>From ANCTaxonomyCrosswalk</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ARROWS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== ROW 6: FINAL SUMMARY / DELIVERABLE ===== -->
+  <div class="output-section">
+    <div class="output-box box-final">
+      <span class="sys-label">INFORMATICS.dbo.EAENetworkFINAL &nbsp;&#8594;&nbsp; DELIVERABLE: DHCS EAE Network Certification Summary Template</span>
+      <div class="final-modules">
+        <div class="final-module">TEMPLATE_CATEGORY<br>/ SPECIALTYXWALK<br><span>Grouped summary rows</span></div>
+        <div class="final-module"># Medi-Cal AND<br>Medicare Providers<br><span>ProviderNPI or SiteNPI<br>in BOTH MCAL &amp; DSNP/CMC</span></div>
+        <div class="final-module"># Medi-Cal ONLY<br>Providers<br><span>In MCAL, NOT IN<br>DSNP/CMC</span></div>
+        <div class="final-module"># DSNP (Medicare)<br>ONLY Providers<br><span>In DSNP/CMC, NOT IN<br>MCAL</span></div>
+        <div class="final-module">% Network Overlap<br><span>= Medi-Cal+Medicare ÷<br>All Contracted Medi-Cal</span></div>
+        <div class="final-module">Denominator<br><span>Total contracted<br>Medi-Cal providers</span></div>
+        <div class="final-module">Detail Tab: Medi-Cal<br>&amp; Medicare Providers<br><span>KEEP_EAE_DETAIL<br>LOBCode IN ('MCAL')<br>where ProviderNPI IN DSNP</span></div>
+        <div class="final-module">Detail Tab: Facilities<br>(Ancillary)<br><span>SiteNPI in MCAL ∩ DSNP<br>TEMPLATE_CATEGORY LIKE '4%'</span></div>
+        <div class="final-module">Physical County<br><span>'SAN DIEGO' (hardcoded)<br>per DHCS submission format</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ARROWS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== ROW 7: OVERLAP / GAP ANALYSIS ===== -->
+  <div class="output-section">
+    <div class="output-box box-overlap">
+      <span class="sys-label">INFORMATICS.dbo.EAE_OVERLAP_NETWORK &nbsp;&#8594;&nbsp; Network Gap Analysis (D-SNP / CMC providers NOT in Medi-Cal) &mdash; For Sir Salim / Contracting</span>
+      <div class="overlap-modules">
+        <div class="overlap-module">Physician Gap<br>(Non-Ancillary)<br><span>ProviderNPI IN (DSNP/CMC)<br>NOT IN (MCAL)<br>TEMPLATE_CATEGORY NOT LIKE '4%'</span></div>
+        <div class="overlap-module">Facility / Site Gap<br>(Ancillary)<br><span>SiteNPI IN (DSNP/CMC)<br>NOT IN (MCAL)<br>TEMPLATE_CATEGORY LIKE '4%'</span></div>
+        <div class="overlap-module">QA Count — Dual<br><span>COUNT(DISTINCT NPI)<br>by TEMPLATE_CATEGORY<br>and SPECIALTYXWALK</span></div>
+        <div class="overlap-module">QA Count — MCAL Only<br><span>ProviderNPI/SiteNPI<br>in MCAL, NOT in DSNP/CMC</span></div>
+        <div class="overlap-module">QA Count — DSNP Only<br><span>ProviderNPI/SiteNPI<br>in DSNP/CMC, NOT in MCAL</span></div>
+        <div class="overlap-module">DHCS Submission Fields<br><span>NPI/SITE IDENTIFIER,<br>FACILITY_SITE_NAME,<br>PHYSICAL_COUNTY</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-bar">
+    &#9888;&nbsp; <strong>C001 Change Note (20250304):</strong> Per DHCS MCQMD response, Ancillary Labs now include taxonomy codes per the 2025 Network Guidance for EAE D-SNPs Taxonomy Crosswalk. SiteTaxonomy × ANCTaxonomyCrosswalk join covers all DHCS-defined lab taxonomy groups. Collation conflict (Msg 468) resolved: all cross-server comparisons use <code>COLLATE DATABASE_DEFAULT</code>.
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch sw-provrepo"></div>ProviderRepository (SQLPRODAPP01)</div>
+    <div class="legend-item"><div class="legend-swatch sw-evips"></div>eVips / Symplr (evips_chgcv)</div>
+    <div class="legend-item"><div class="legend-swatch sw-informatics"></div>INFORMATICS Provider Directories</div>
+    <div class="legend-item"><div class="legend-swatch sw-crosswalk"></div>EAE_CROSSWALK (DHCS Template Mapping)</div>
+    <div class="legend-item"><div class="legend-swatch sw-exclusion"></div>Exclusion Filters (Policy + Technical)</div>
+    <div class="legend-item"><div class="legend-swatch sw-eaenetwork"></div>EAENetwork / KEEP_EAE_DETAIL (Canonical Detail)</div>
+    <div class="legend-item"><div class="legend-swatch sw-final"></div>EAENetworkFINAL (DHCS Submission Deliverable)</div>
+    <div class="legend-item"><div class="legend-swatch sw-overlap"></div>EAE_OVERLAP_NETWORK (Gap Analysis — Contracting)</div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COMMUNITY_SUPPORTS_SERVICE — Definition Comparison</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+    width: 100%;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 340px;
+  }
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 340px;
+  }
+  .system-box.snowflake {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 340px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 110px;
+    color: #f0f0f0;
+  }
+
+  /* ===== VERTICAL FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+  .flow-arrow .shaft { width: 2px; height: 20px; background: #ccc; }
+  .flow-arrow .head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== COMPARISON TABLE CONTAINER ===== */
+  .table-box {
+    background: rgba(160, 140, 220, 0.08);
+    border: 2px solid rgba(160, 140, 220, 0.30);
+    border-radius: 10px;
+    padding: 20px 24px 22px;
+    position: relative;
+    width: 1200px;
+    margin: 0 auto;
+  }
+  .table-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+  }
+  thead th {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #999;
+    padding: 6px 10px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    text-align: left;
+  }
+  thead th:first-child { width: 28px; text-align: center; }
+  thead th:nth-child(2) { width: 19%; }
+  thead th:nth-child(3) { width: 24%; }
+  thead th:nth-child(4) { width: 24%; }
+  thead th:nth-child(5) { width: 25%; }
+
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+  td {
+    padding: 8px 10px;
+    vertical-align: top;
+    line-height: 1.5;
+    color: #ccc;
+    font-size: 11.5px;
+  }
+  td:first-child { text-align: center; padding-top: 10px; }
+
+  /* section header rows */
+  tr.section-hdr td {
+    background: rgba(255,255,255,0.05);
+    color: #888;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* service name cell */
+  .svc-name {
+    font-weight: 600;
+    color: #e8e0ff;
+    font-size: 12px;
+  }
+
+  /* code pill */
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 10.5px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: #b8d4ff;
+    white-space: nowrap;
+  }
+
+  .mod { color: #ffe89a; font-size: 10.5px; }
+  .label-text { color: #aaa; font-size: 10.5px; font-style: italic; }
+
+  /* status dots */
+  .dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-match  { background: #5cb85c; box-shadow: 0 0 4px rgba(92,184,92,0.5); }
+  .dot-delta  { background: #e24b4a; box-shadow: 0 0 4px rgba(226,75,74,0.6); }
+  .dot-note   { background: #EF9F27; box-shadow: 0 0 4px rgba(239,159,39,0.5); }
+
+  /* ===== DISCREPANCY / GAP BOXES ===== */
+  .gap-box {
+    background: rgba(226, 75, 74, 0.10);
+    border: 1px dashed rgba(226, 75, 74, 0.45);
+    border-radius: 8px;
+    padding: 14px 18px;
+    width: 1200px;
+    margin: 0 auto;
+  }
+  .gap-box .gap-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ff9090;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+  .gap-items {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .gap-item {
+    background: rgba(226, 75, 74, 0.15);
+    border: 1px solid rgba(226, 75, 74, 0.35);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #ffb0b0;
+    min-width: 220px;
+    flex: 1;
+    line-height: 1.5;
+  }
+  .gap-item strong {
+    display: block;
+    font-size: 11.5px;
+    color: #ff8080;
+    margin-bottom: 4px;
+  }
+
+  /* ===== NOTE BOXES ===== */
+  .note-box {
+    background: rgba(239, 159, 39, 0.08);
+    border: 1px dashed rgba(239, 159, 39, 0.40);
+    border-radius: 8px;
+    padding: 14px 18px;
+    width: 1200px;
+    margin: 0 auto;
+  }
+  .note-box .note-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffcc70;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+  .note-items {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .note-item {
+    background: rgba(239, 159, 39, 0.12);
+    border: 1px solid rgba(239, 159, 39, 0.30);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #ffe0a0;
+    min-width: 220px;
+    flex: 1;
+    line-height: 1.5;
+  }
+  .note-item strong {
+    display: block;
+    font-size: 11.5px;
+    color: #ffcc70;
+    margin-bottom: 4px;
+  }
+
+  /* ===== VERDICT BOX ===== */
+  .verdict-box {
+    background: rgba(100, 220, 160, 0.08);
+    border: 2px solid rgba(100, 220, 160, 0.30);
+    border-radius: 10px;
+    padding: 16px 24px;
+    width: 1200px;
+    margin: 0 auto;
+    font-size: 12px;
+    color: #a0e8c0;
+    line-height: 1.7;
+  }
+  .verdict-box .verdict-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #6adca0;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+  .verdict-box strong { color: #d0ffe0; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+  .legend-swatch {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .swatch-match  { background: rgba(92,184,92,0.6); }
+  .swatch-delta  { background: rgba(226,75,74,0.6); }
+  .swatch-note   { background: rgba(239,159,39,0.6); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>[COMMUNITY_SUPPORTS_SERVICE] — Definition Comparison</h2>
+    <div class="subtitle">
+      Source: STEP88_CS_COMMUNITYSUPPORT_POPULATION_20260213.sql &nbsp;|&nbsp;
+      Target: snowflake_COMMUNITY_SUPPORTS_SERVICE_DEFINITION_20260317.sql &nbsp;|&nbsp;
+      Comparison Date: 03/17/2026
+    </div>
+  </div>
+
+  <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+  <div class="source-row">
+
+    <div class="system-box qnxt">
+      <span class="sys-label">STEP88 Source — T-SQL (SQLPROD02)</span>
+      <div class="module-row">
+        <div class="module">Claims Block<br><span style="font-size:10px;color:#aaa;">#CSPopClaims#<br>dbo.claimdetail</span></div>
+        <div class="module">Auths Block<br><span style="font-size:10px;color:#aaa;">#CSPopAuths#<br>dbo.authservice</span></div>
+      </div>
+    </div>
+
+    <div class="system-box informatics">
+      <span class="sys-label">Snowflake — Claims CASE (Line 213)</span>
+      <div class="module-row">
+        <div class="module">TEMP_CLAIMS<br><span style="font-size:10px;color:#aaa;">cd.servcode<br>cd.modcode/modcode2</span></div>
+        <div class="module">ILIKE concat<br><span style="font-size:10px;color:#aaa;">modcode + modcode2<br>only (2 columns)</span></div>
+      </div>
+    </div>
+
+    <div class="system-box snowflake">
+      <span class="sys-label">Snowflake — Auth UPDATE (Line 1818)</span>
+      <div class="module-row">
+        <div class="module">DIM_AUTH<br><span style="font-size:10px;color:#aaa;">HCPC_CODE_SEARCH<br>LATERAL FLATTEN</span></div>
+        <div class="module">Mod Search<br><span style="font-size:10px;color:#aaa;">HCPC_MODCODE_<br>SEARCH_1/2/3</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Side-by-Side Code &amp; Modifier Comparison — All 15 CS Service Categories</div>
+
+  <!-- ===== MAIN COMPARISON TABLE ===== -->
+  <div class="table-box">
+    <span class="sys-label">COMMUNITY_SUPPORTS_SERVICE — Code Coverage Matrix</span>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>CS Service</th>
+          <th>STEP88 (T-SQL Source)<br><span style="font-weight:400;font-size:10px;color:#777;">modcode IN ('Ux') OR modcode2 IN...</span></th>
+          <th>Snowflake Claims CASE<br><span style="font-weight:400;font-size:10px;color:#777;">ILIKE on CONCAT(modcode, modcode2)</span></th>
+          <th>Snowflake Auth UPDATE<br><span style="font-weight:400;font-size:10px;color:#777;">HCPC_MODCODE_SEARCH_1/2/3 LIKE</span></th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- HOUSING -->
+        <tr class="section-hdr"><td colspan="5">Housing Services</td></tr>
+
+        <tr>
+          <td><span class="dot dot-note" title="label difference"></span></td>
+          <td class="svc-name">Housing Transition Navigation Services</td>
+          <td><code>H0043</code> <code>H2016</code> <span class="mod">+ U6</span><br><span class="label-text">"Housing Transition/ Navigation Services"</span></td>
+          <td><code>H0043</code> <code>H2016</code> <span class="mod">+ U6</span><br><span class="label-text">"Housing Transition Navigation Services"</span></td>
+          <td><code>H0043</code> <code>H2016</code> <span class="mod">+ U6</span><br><span class="label-text">"Housing Transition <strong>and</strong> Navigation Services"</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Housing Deposits</td>
+          <td><code>H0044</code> <span class="mod">+ U2</span></td>
+          <td><code>H0044</code> <span class="mod">+ U2</span></td>
+          <td><code>H0044</code> <span class="mod">+ U2</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Housing Tenancy and Sustaining Services</td>
+          <td><code>T2040</code> <code>T2050</code> <code>T2041</code> <code>T2051</code> <span class="mod">+ U6</span></td>
+          <td><code>T2040</code> <code>T2050</code> <code>T2041</code> <code>T2051</code> <span class="mod">+ U6</span></td>
+          <td><code>T2040</code> <code>T2050</code> <code>T2041</code> <code>T2051</code> <span class="mod">+ U6</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Short-Term Post Hospitalization Housing</td>
+          <td><code>H0043</code> <code>H0044</code> <span class="mod">+ U3</span></td>
+          <td><code>H0043</code> <code>H0044</code> <span class="mod">+ U3</span></td>
+          <td><code>H0043</code> <code>H0044</code> <span class="mod">+ U3</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Transitional Rent</td>
+          <td><code>H0040</code><span class="mod">+U1</span>; <code>H0040/H0043</code><span class="mod">+U2</span>; <code>H0044</code><span class="mod">+U6</span><br><span class="label-text">C006 logic per Ms. Kathryn 20251216</span></td>
+          <td><code>H0043/H0044</code><span class="mod">+U2</span>; <code>H0040</code><span class="mod">+U2/U1</span>; <code>H0044</code><span class="mod">+U6</span><br><span class="label-text">Same 3-branch logic ✓</span></td>
+          <td>WHEN 15: <code>H0040/H0043</code><span class="mod">+U2</span><br>WHEN 16: <code>H0040</code><span class="mod">+U1</span><br>WHEN 17: <code>H0044</code><span class="mod">+U6</span></td>
+        </tr>
+
+        <!-- CLINICAL -->
+        <tr class="section-hdr"><td colspan="5">Clinical / Community Living Services</td></tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Recuperative Care (Medical Respite)</td>
+          <td><code>T2033</code> <span class="mod">+ U6</span></td>
+          <td><code>T2033</code> <span class="mod">+ U6</span></td>
+          <td><code>T2033</code> <span class="mod">+ U6</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Respite Services</td>
+          <td><code>H0045</code> <code>S5151</code> <code>S9125</code> <span class="mod">+ U6</span></td>
+          <td><code>H0045</code> <code>S5151</code> <code>S9125</code> <span class="mod">+ U6</span></td>
+          <td><code>H0045</code> <code>S5151</code> <code>S9125</code> <span class="mod">+ U6</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-note"></span></td>
+          <td class="svc-name">Day Habilitation</td>
+          <td><code>T2012</code> <code>T2014</code> <code>T2018</code> <code>T2020</code><br><code>H2014</code> <code>H2038</code> <code>H2024</code> <code>H2026</code> <span class="mod">+ U6</span><br><span class="label-text">"Day Habilitation Programs"</span></td>
+          <td>Same 8 codes <span class="mod">+ U6</span><br><span class="label-text">"Day Habilitation" <em>(no "Programs")</em></span></td>
+          <td>Same 8 codes <span class="mod">+ U6</span><br><span class="label-text">"Day Habilitation Programs"</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-note"></span></td>
+          <td class="svc-name">NF Transition / Diversion to ALF</td>
+          <td><code>T2038</code><span class="mod">+U4</span> → ALF<br><code>H2022</code><span class="mod">+U5</span> → ALF<br><span class="label-text">Same bucket in STEP88</span></td>
+          <td><code>T2038</code><span class="mod">+U4</span> AND <code>H2022</code><span class="mod">+U5</span><br><span class="label-text">"Nursing Facility Transition/Diversion to Assisted Living Facilities"</span></td>
+          <td>WHEN 08: <code>T2038</code><span class="mod">+U4</span> → same label<br>WHEN 09: <code>H2022</code><span class="mod">+U5</span> → same label ✓</td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-note"></span></td>
+          <td class="svc-name">Community Transition Services</td>
+          <td><code>T2038</code> <span class="mod">+ U5</span><br><span class="label-text">"NF Transition to a Home"</span></td>
+          <td><code>T2038</code> <span class="mod">+ U5</span><br><span class="label-text">"Community Transition Services"</span></td>
+          <td><code>T2038</code> <span class="mod">+ U5</span><br><span class="label-text">"Community Transition Services/<br>Nursing Facility Transition to a Home"</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Personal Care and Homemaker Services</td>
+          <td><code>S5130</code> <code>T1019</code> <span class="mod">+ U6</span></td>
+          <td><code>S5130</code> <code>T1019</code> <span class="mod">+ U6</span></td>
+          <td><code>S5130</code> <code>T1019</code> <span class="mod">+ U6</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-note"></span></td>
+          <td class="svc-name">Environmental Accessibility Adaptation</td>
+          <td><code>S5165</code> <span class="mod">+ U6</span><br><span class="label-text">"Environmental Accessibility Adaptations"</span></td>
+          <td><code>S5165</code> <span class="mod">+ U6</span><br><span class="label-text">"Environmental Accessibility Adaptation (Home Modifications)"</span></td>
+          <td><code>S5165</code> <span class="mod">+ U6</span><br><span class="label-text">"Environmental Accessibility Adaptations"</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-note"></span></td>
+          <td class="svc-name">Medically Tailored Meals</td>
+          <td><code>S5170</code> <code>S9470</code> <code>S9977</code> <span class="mod">+ U6</span><br><span class="label-text">"Medically-Supportive Food"</span></td>
+          <td>Same 3 codes <span class="mod">+ U6</span><br><span class="label-text">"Medically Tailored Meals"</span></td>
+          <td>Same 3 codes <span class="mod">+ U6</span><br><span class="label-text">"Medically Tailored Meals/Medically-Supportive Food"</span></td>
+        </tr>
+
+        <tr>
+          <td><span class="dot dot-match"></span></td>
+          <td class="svc-name">Asthma Remediation</td>
+          <td><code>S5165</code> <span class="mod">+ U5</span></td>
+          <td><code>S5165</code> <span class="mod">+ U5</span></td>
+          <td><code>S5165</code> <span class="mod">+ U5</span></td>
+        </tr>
+
+        <!-- GAP ROW -->
+        <tr class="section-hdr"><td colspan="5">Coverage Gap Identified</td></tr>
+
+        <tr style="background: rgba(226,75,74,0.08);">
+          <td><span class="dot dot-delta"></span></td>
+          <td class="svc-name" style="color:#ff9090;">Sobering Centers</td>
+          <td><code>H0014</code> <span class="mod">+ U6</span><br><span class="label-text">Present in BOTH Claims + Auths blocks ✓</span></td>
+          <td><code>H0014</code> <span class="mod">+ U6</span><br><span class="label-text">Present in Claims CASE ✓</span></td>
+          <td style="color:#ff8080; font-weight:600;">⚠ ABSENT from Auth UPDATE block<br><span style="font-weight:400;font-size:11px;color:#ffb0b0;">H0014 not in DIM_AUTHORIZATIONSERVICE CASE.<br>Auths for Sobering Centers will return NULL.</span></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Actionable Gap — Remediation Required</div>
+
+  <!-- ===== GAP BOX ===== -->
+  <div class="gap-box">
+    <div class="gap-title">&#9888;&nbsp; Discrepancy Identified — Action Required</div>
+    <div class="gap-items">
+      <div class="gap-item">
+        <strong>Gap: Sobering Centers — Auth Path</strong>
+        <code>H0014</code> + U6 is defined in the STEP88 Auths block and the Snowflake Claims CASE but is <em>absent</em> from the Auth UPDATE block (lines 1818–1866). Any auth approved for a Sobering Center service will surface with a NULL COMMUNITY_SUPPORTS_SERVICE via the auth path.
+      </div>
+      <div class="gap-item">
+        <strong>Remediation: Add WHEN to Auth UPDATE</strong>
+        Insert the following WHEN clause into the DIM_AUTHORIZATIONSERVICE CASE (before ELSE NULL):<br><br>
+        <code style="display:block;background:rgba(0,0,0,0.3);padding:6px 8px;border-radius:4px;line-height:1.8;font-size:10.5px;">
+          /*18 - Sobering Centers*/<br>
+          WHEN (TRIM(f.value) = 'H0014'<br>
+          &nbsp;&nbsp;AND CONCAT(UPPER(a.HCPC_MODCODE_SEARCH_1),','<br>
+          &nbsp;&nbsp;,UPPER(a.HCPC_MODCODE_SEARCH_2),','<br>
+          &nbsp;&nbsp;,UPPER(a.HCPC_MODCODE_SEARCH_3))<br>
+          &nbsp;&nbsp;LIKE '%U6%')<br>
+          THEN 'Sobering Centers'
+        </code>
+      </div>
+    </div>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Label-Level Notes (No Data Impact — Normalize for Downstream Grouping)</div>
+
+  <!-- ===== NOTES BOX ===== -->
+  <div class="note-box">
+    <div class="note-title">&#9432;&nbsp; Label Discrepancies — Cosmetic / Grouping Risk</div>
+    <div class="note-items">
+      <div class="note-item">
+        <strong>Housing Transition Navigation Services</strong>
+        STEP88: "Housing Transition/ Navigation Services"<br>
+        Claims CASE: "Housing Transition Navigation Services"<br>
+        Auth UPDATE: "Housing Transition <em>and</em> Navigation Services"<br>
+        Three distinct label strings for the same service.
+      </div>
+      <div class="note-item">
+        <strong>Day Habilitation</strong>
+        STEP88 + Auth UPDATE: "Day Habilitation <em>Programs</em>"<br>
+        Claims CASE: "Day Habilitation" (truncated)<br>
+        Downstream GROUP BY on this column will split into two buckets.
+      </div>
+      <div class="note-item">
+        <strong>Community Transition Services</strong>
+        STEP88: "NF Transition to a Home"<br>
+        Claims CASE: "Community Transition Services"<br>
+        Auth UPDATE: "Community Transition Services/Nursing Facility Transition to a Home"<br>
+        Auth path uses the longer combined label.
+      </div>
+      <div class="note-item">
+        <strong>Modifier Breadth — Method Difference</strong>
+        STEP88 (T-SQL): OR chain across modcode–modcode5 (all 5 checked)<br>
+        Claims CASE (Snowflake): ILIKE on CONCAT(modcode, modcode2) — only 2 columns<br>
+        Auth UPDATE: DIM_AUTHORIZATIONSERVICE HCPC_MODCODE_SEARCH_1/2/3 — dimension pre-flattens. Not a defect; structural difference to document.
+      </div>
+    </div>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Overall Verdict</div>
+
+  <!-- ===== VERDICT BOX ===== -->
+  <div class="verdict-box">
+    <div class="verdict-title">&#10003;&nbsp; Comparison Summary</div>
+    All 15 Community Supports service categories map to the correct HCPC/CPT codes and modifier combinations across both the STEP88 T-SQL source and the Snowflake stored procedure.
+    <strong>One actionable gap identified:</strong> Sobering Centers (<code style="color:#b8d4ff;font-size:10.5px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:3px;padding:1px 5px;">H0014</code> + U6) is missing from the Auth UPDATE block — auths for this service will surface NULL on the auth resolution path until the WHEN clause above is added.
+    Three label-level discrepancies exist between the Claims CASE and Auth UPDATE blocks that do not affect code coverage but may cause downstream grouping mismatches if both paths are queried together in reports.
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-match"></div>Match — code + modifier logic aligned</div>
+    <div class="legend-item"><div class="legend-swatch swatch-delta"></div>Discrepancy — action required</div>
+    <div class="legend-item"><div class="legend-swatch swatch-note"></div>Note — label or method difference only</div>
+  </div>
+
+</body>
+</html>

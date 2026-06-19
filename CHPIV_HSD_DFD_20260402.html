@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHPIV HSD Network Taxonomy — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== DIAGRAM WRAPPER ===== */
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* colour tokens — source boxes */
+  .system-box.provider-repo {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 680px;
+  }
+
+  .system-box.informatics-ref {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 400px;
+  }
+
+  .system-box.python-upload {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 340px;
+  }
+
+  /* ===== MODULES INSIDE BOXES ===== */
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #f0f0f0;
+  }
+
+  /* ===== STEP SEQUENCE ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 185px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENT LABELS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 195px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== CROSSWALK / ENRICHMENT ROW (amber) ===== */
+  .crosswalk-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .crosswalk-box {
+    background: rgba(255, 200, 100, 0.12);
+    border: 1px solid rgba(255, 200, 100, 0.40);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ffe4a0;
+    min-width: 155px;
+    max-width: 220px;
+  }
+
+  .crosswalk-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #ffd060;
+    margin-bottom: 2px;
+  }
+
+  /* ===== FILTER ROW ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 180px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== DUAL-BRANCH OUTPUT ROW ===== */
+  .dual-output-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 20px;
+  }
+
+  /* ===== OUTPUT REPORT BOX (purple) ===== */
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 620px;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 110px;
+    color: #e8e0ff;
+  }
+
+  /* ===== UNIVERSE FILE BOX (green) ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 820px;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 9px 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 105px;
+    color: #d0ffe0;
+  }
+
+  /* ===== VERTICAL FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-pr        { background: rgba(255, 140, 140, 0.35); }
+  .swatch-informatics { background: rgba(140, 200, 255, 0.35); }
+  .swatch-python    { background: rgba(255, 200, 100, 0.35); }
+  .swatch-crosswalk { background: rgba(255, 200, 100, 0.25); border-style: solid; }
+  .swatch-filter    { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-provider  { background: rgba(160, 140, 220, 0.35); }
+  .swatch-facility  { background: rgba(100, 220, 160, 0.35); }
+
+</style>
+</head>
+<body>
+
+  <!-- ===== TITLE ===== -->
+  <div class="title-bar">
+    <h2>CHPIV HSD Network Taxonomy &#8212; Data Flow Diagram</h2>
+    <div class="subtitle">
+      EAE Network Adequacy Reporting &nbsp;|&nbsp; LOB: CHPIV D-SNP / C-SNP &nbsp;|&nbsp; SSA County: 05120 (Imperial County)
+      &nbsp;|&nbsp; Procedures: dbo.CHPIVHSDNMMMMP &amp; dbo.HSDNMMMMP &nbsp;|&nbsp; As Of: 2026-03-31
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+
+      <!-- ProviderRepository -->
+      <div class="system-box provider-repo">
+        <span class="sys-label">ProviderRepository (SQLPRODAPP01) — eVIPs Network Data</span>
+        <div class="module-row">
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.Providers<br>SnapshotID (CHPIV LOB)</span></div>
+          <div class="module">Sites<br><span style="font-size:10px;color:#aaa;">dbo.Sites<br>LocationSpecialty / Focus</span></div>
+          <div class="module">SiteProviders<br><span style="font-size:10px;color:#aaa;">dbo.SiteProviders<br>ProductType / ProviderType</span></div>
+          <div class="module">ProviderSpecialty<br><span style="font-size:10px;color:#aaa;">dbo.ProviderSpecialty<br>SpecialtyCode / Name</span></div>
+          <div class="module">Groups / GroupSites<br><span style="font-size:10px;color:#aaa;">dbo.Groups<br>dbo.GroupSites</span></div>
+        </div>
+      </div>
+
+      <!-- INFORMATICS Reference -->
+      <div class="system-box informatics-ref">
+        <span class="sys-label">INFORMATICS Reference (SQLPRODAPP01)</span>
+        <div class="module-row">
+          <div class="module">SpecialtyMapping<br><span style="font-size:10px;color:#aaa;">dbo.SpecialtyMapping<br>'Specialty Grouping - HSD Network'</span></div>
+          <div class="module">ZIP Codes<br><span style="font-size:10px;color:#aaa;">dbo.ZIP_CODES<br>DMHC County/ZIP xwalk</span></div>
+          <div class="module">Snapshot<br><span style="font-size:10px;color:#aaa;">dbo.Snapshot<br>LOB LIKE '%CHPIV%'</span></div>
+        </div>
+      </div>
+
+      <!-- Python Upload / Crosswalk -->
+      <div class="system-box python-upload">
+        <span class="sys-label">Python Upload — Taxonomy Crosswalk</span>
+        <div class="module-row">
+          <div class="module">CHPIV_NETWORK_TAXONOMY<br>_WITH_HSD<br><span style="font-size:10px;color:#aaa;">INFORMATICS.dbo<br>CHPIV_NETWORK_TAXONOMY_<br>WITH_HSD (1,648 rows)</span></div>
+          <div class="module">Source File<br><span style="font-size:10px;color:#aaa;">CHPIV_NETWORK_TAXONOMY_<br>WITH_HSD_20260402.xlsx<br>Desktop → SQL via Python</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+    <div class="section-label">&#9660; Execution Sequence — dbo.CHPIVHSDNMMMMP</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>Snapshot Resolution</strong>
+        #snapshot temp table<br>DENSE_RANK() on CHPIV LOB<br>MAX SnapshotID selected
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>HSDprovider — PCP Pull</strong>
+        ProviderRepository JOIN<br>SpecialtyMapping ('HSD Network')<br>ProductType = 'PCP' (both sp &amp; ps)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 03</span>
+        <strong>HSDprovider — NP / PA Pull</strong>
+        UNION ALL<br>NPMP ProductType → Code 006<br>PA ProviderType → Code 005
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 04</span>
+        <strong>HSDprovider — Clinical Psych / LCSW</strong>
+        UNION ALL (C001)<br>Psych LIKE '%PSYCHOLO%'<br>LCSW/ASW → Code 037 (AHP)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 05</span>
+        <strong>HSDprovider — Crosswalk INSERT</strong>
+        CHPIV_NETWORK_TAXONOMY_<br>WITH_HSD JOIN ZIP_CODES<br>MappedSpecialtyCode &lt; 40 (Providers)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 06</span>
+        <strong>HSDfacility — ProviderRepository</strong>
+        Sites-based facility pull<br>Codes 040–068 (Hospitals,<br>ASC, SNF, Dialysis, OBH…)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 07</span>
+        <strong>HSDfacility — Crosswalk INSERT</strong>
+        CHPIV_NETWORK_TAXONOMY_<br>WITH_HSD JOIN ZIP_CODES<br>MappedSpecialtyCode ≥ 40 (Facilities)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 08</span>
+        <strong>Bed Count Default</strong>
+        UPDATE HSDfacility<br>SET Licensed/Available/<br>StaffedBedCount = 0 WHERE NULL
+      </div>
+    </div>
+
+    <!-- ===== ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 3: CROSSWALK ENRICHMENT ===== -->
+    <div class="section-label">&#9660; NUCC Taxonomy → HSD Specialty Crosswalk (CHPIV_NETWORK_TAXONOMY_WITH_HSD)</div>
+
+    <div class="crosswalk-row">
+      <div class="crosswalk-box">
+        <strong>Direct HSD Match</strong>
+        902 rows — SPECIALTY value<br>exactly matched SpecialtyName<br>in crosswalk table
+      </div>
+      <div class="crosswalk-box">
+        <strong>Manual Domain Map</strong>
+        673 rows — Clinical domain<br>knowledge mapping<br>(e.g. Family Medicine, Heme/Onc)
+      </div>
+      <div class="crosswalk-box">
+        <strong>MappedSpecialtyName Match</strong>
+        72 rows — Matched against<br>MappedSpecialtyName side<br>(e.g. Cardiology, Vascular Surgery)
+      </div>
+      <div class="crosswalk-box">
+        <strong>No Specialty / NULL</strong>
+        1 row — NULL SPECIALTY<br>No code assigned;<br>ancillary/facility flagged
+      </div>
+      <div class="crosswalk-box">
+        <strong>MappedSpecialtySource Audit</strong>
+        Column appended (DO–DQ):<br>MappedSpecialtyCode,<br>MappedSpecialtyName, Source
+      </div>
+    </div>
+
+    <!-- ===== ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: DERIVED DATA ELEMENTS ===== -->
+    <div class="section-label">&#9660; Derived Data Elements</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>SSA County Code</strong>
+        Hard-coded '05120'<br>(Imperial County)<br>CHPIV-specific; CHGSD = 05470
+      </div>
+      <div class="data-element">
+        <strong>Provider Identity</strong>
+        FNAME + LNAME (concat)<br>NPI_NO → BIGINT → NVARCHAR<br>AcceptingNewPatients (Y/N)
+      </div>
+      <div class="data-element">
+        <strong>Specialty Routing</strong>
+        MappedSpecialtyCode &lt; 40 → HSDprovider<br>MappedSpecialtyCode ≥ 40 → HSDfacility<br>FIXMappedSpecialtyCode (3-char pad)
+      </div>
+      <div class="data-element">
+        <strong>County Enrichment</strong>
+        ZIP → County via<br>dbo.ZIP_CODES JOIN<br>(Imperial County filter)
+      </div>
+      <div class="data-element">
+        <strong>Contract Type</strong>
+        Hard-coded 'DC'<br>per D. Ritchie 20160906<br>Medical Group Affiliation = 'DC'
+      </div>
+      <div class="data-element">
+        <strong>OBH Facility (C003)</strong>
+        Code 068 — MFT / MHC / OTP<br>facility types per CMS 2024 final rule;<br>Psych/LCSW/CSW excluded (C001)
+      </div>
+      <div class="data-element">
+        <strong>Facility Specialties</strong>
+        Codes 040–068: Hospitals, Cardiac,<br>ICU, Dialysis, ASC, SNF, Radiology,<br>PT/OT/ST, Mammography, OBH…
+      </div>
+    </div>
+
+    <!-- ===== ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 5: FILTERS ===== -->
+    <div class="section-label">&#9660; CHPIV-Specific Filters &amp; Exclusions Applied</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>San Diego Filter REMOVED</strong>
+        C###: County LIKE '%SAN%DIEG%'<br>exclusion dropped for CHPIV<br>(Imperial County scope)
+      </div>
+      <div class="filter-box">
+        <strong>LOB Snapshot Filter</strong>
+        LOB LIKE '%CHPIV%'<br>NOT LIKE '%%-' or '%CHCHPIV%'<br>DENSE_RANK() = 1 (latest)
+      </div>
+      <div class="filter-box">
+        <strong>OBH Exclusion (C003)</strong>
+        Psych/CSW/LCSW (codes 029,036,037)<br>cannot appear under code 068<br>NOT IN subquery guard
+      </div>
+      <div class="filter-box">
+        <strong>NULL NPI Guard</strong>
+        ISNULL(MappedSpecialtyCode,0) ≠ 0<br>ISNULL wrapping per<br>NULL-unsafe NOT IN pattern fix
+      </div>
+      <div class="filter-box">
+        <strong>Provider vs Facility Split</strong>
+        Code &lt; 40 → HSDprovider table<br>Code ≥ 40 → HSDfacility table<br>FNAME = '' → Facility branch
+      </div>
+      <div class="filter-box">
+        <strong>Therapy Crosswalk Filter</strong>
+        SPECIALTY LIKE '%THERAP%'<br>routed to HSDfacility<br>via crosswalk INSERT block
+      </div>
+    </div>
+
+    <!-- ===== ARROWS ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: DUAL OUTPUT ===== -->
+    <div class="section-label">&#9660; Output Tables — INFORMATICS.dbo</div>
+
+    <div class="dual-output-row">
+
+      <!-- HSDprovider -->
+      <div class="report-box">
+        <span class="sys-label">INFORMATICS.dbo.HSDprovider &nbsp;&#8594;&nbsp; Individual Practitioners (Codes &lt; 40)</span>
+        <div class="report-modules">
+          <div class="report-module">SSA Code<br><span style="font-size:10px;opacity:0.8;">'05120' (Imperial)</span></div>
+          <div class="report-module">NPI Number<br><span style="font-size:10px;opacity:0.8;">NVARCHAR(20)</span></div>
+          <div class="report-module">Provider Name<br><span style="font-size:10px;opacity:0.8;">FNAME + LNAME</span></div>
+          <div class="report-module">Specialty Code<br><span style="font-size:10px;opacity:0.8;">FIXMappedSpecialtyCode</span></div>
+          <div class="report-module">Specialty Name<br><span style="font-size:10px;opacity:0.8;">MappedSpecialtyName</span></div>
+        </div>
+        <div class="report-modules" style="margin-top:10px;">
+          <div class="report-module">Street Address<br><span style="font-size:10px;opacity:0.8;">ADDRESS (upper-trimmed)</span></div>
+          <div class="report-module">City / County / State<br><span style="font-size:10px;opacity:0.8;">Via ZIP_CODES xwalk</span></div>
+          <div class="report-module">ZIP (5-char)<br><span style="font-size:10px;opacity:0.8;">SUBSTRING(ZipCode,1,5)</span></div>
+          <div class="report-module">Accepting New Pts<br><span style="font-size:10px;opacity:0.8;">Y / N / '' (ACCEPT_NEW_PAT)</span></div>
+          <div class="report-module">Medical Group<br><span style="font-size:10px;opacity:0.8;">Hard-coded 'DC'</span></div>
+        </div>
+      </div>
+
+      <!-- HSDfacility -->
+      <div class="universe-box">
+        <span class="sys-label">INFORMATICS.dbo.HSDfacility &nbsp;&#8594;&nbsp; Facilities (Codes ≥ 40) + Therapy Crosswalk</span>
+        <div class="universe-modules">
+          <div class="universe-module">SSA Code<br><span style="font-size:10px;opacity:0.7;">'05120' (Imperial)</span></div>
+          <div class="universe-module">NPI<br><span style="font-size:10px;opacity:0.7;">Site NPI / Crosswalk NPI</span></div>
+          <div class="universe-module">Facility Name<br><span style="font-size:10px;opacity:0.7;">s.Name / xwalk LNAME</span></div>
+          <div class="universe-module">Specialty Code<br><span style="font-size:10px;opacity:0.7;">040–068 (Facility types)</span></div>
+          <div class="universe-module">Address / City<br><span style="font-size:10px;opacity:0.7;">Sites or crosswalk source</span></div>
+          <div class="universe-module">County / ZIP<br><span style="font-size:10px;opacity:0.7;">Imperial via ZIP_CODES</span></div>
+          <div class="universe-module">StaffedBedCount<br><span style="font-size:10px;opacity:0.7;">Default 0 where NULL</span></div>
+          <div class="universe-module">SiteID / SnapshotID<br><span style="font-size:10px;opacity:0.7;">99999 (crosswalk rows)</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== ARROWS to validation ===== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 7: VALIDATION / QA OUTPUT ===== -->
+    <div style="margin-top:16px; display:flex; justify-content:center;">
+      <div style="
+        background: rgba(100,180,255,0.10);
+        border: 2px solid rgba(100,180,255,0.30);
+        border-radius: 10px;
+        padding: 18px 32px 20px;
+        position: relative;
+        width: 1300px;
+        margin: 0 auto;
+      ">
+        <span style="
+          position:absolute; top:-11px; left:50%; transform:translateX(-50%);
+          background:#1a1a1a; padding:0 12px; font-size:13px; font-weight:600;
+          white-space:nowrap; color:#ddd;
+        ">Validation Output &nbsp;&#8594;&nbsp; UNION ALL Count Summary (CROSS APPLY #snapshot)</span>
+        <div style="display:flex; gap:16px; justify-content:center; margin-top:4px; flex-wrap:wrap;">
+          <div style="background:rgba(100,180,255,0.20); border:1px solid rgba(100,180,255,0.40); border-radius:6px; padding:10px 16px; font-size:11.5px; text-align:center; min-width:130px; color:#cde8ff;">
+            HSD Facility Record(s)<br><span style="font-size:10px;opacity:0.75;">COUNT(DISTINCT NPI)<br>by SnapshotID / LOB</span>
+          </div>
+          <div style="background:rgba(100,180,255,0.20); border:1px solid rgba(100,180,255,0.40); border-radius:6px; padding:10px 16px; font-size:11.5px; text-align:center; min-width:130px; color:#cde8ff;">
+            HSD Provider Record(s)<br><span style="font-size:10px;opacity:0.75;">COUNT(DISTINCT NPI)<br>by SnapshotID / LOB</span>
+          </div>
+          <div style="background:rgba(100,180,255,0.20); border:1px solid rgba(100,180,255,0.40); border-radius:6px; padding:10px 16px; font-size:11.5px; text-align:center; min-width:160px; color:#cde8ff;">
+            Snapshot Context<br><span style="font-size:10px;opacity:0.75;">Description / LOB / CreateDate<br>via CROSS APPLY #snapshot (NOLOCK)</span>
+          </div>
+          <div style="background:rgba(100,180,255,0.20); border:1px solid rgba(100,180,255,0.40); border-radius:6px; padding:10px 16px; font-size:11.5px; text-align:center; min-width:160px; color:#cde8ff;">
+            QAS Ready Output<br><span style="font-size:10px;opacity:0.75;">SELECT from HSDprovider / HSDfacility<br>for Quest Analytics Suite submission</span>
+          </div>
+          <div style="background:rgba(100,180,255,0.20); border:1px solid rgba(100,180,255,0.40); border-radius:6px; padding:10px 16px; font-size:11.5px; text-align:center; min-width:160px; color:#cde8ff;">
+            CHGSD Parallel Run<br><span style="font-size:10px;opacity:0.75;">dbo.HSDNMMMMP (CHGSD)<br>SSA 05470 · San Diego · MAX(SnapshotID)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-pr"></div>ProviderRepository — eVIPs Network</div>
+    <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS Reference (SpecialtyMapping / ZIP_CODES)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-python"></div>Python Upload — CHPIV_NETWORK_TAXONOMY_WITH_HSD</div>
+    <div class="legend-item"><div class="legend-swatch swatch-crosswalk"></div>NUCC → HSD Crosswalk Enrichment</div>
+    <div class="legend-item"><div class="legend-swatch swatch-filter"></div>CHPIV-Specific Exclusion Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-provider"></div>HSDprovider Output (Codes &lt; 40)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-facility"></div>HSDfacility Output (Codes ≥ 40)</div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHPIV IBNP Monthly Refresh — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #ccc;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .diagram {
+    position: relative;
+    width: 1520px;
+    min-height: 520px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 24px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .system-box.enrollment {
+    background: rgba(140, 200, 255, 0.12);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 620px;
+  }
+
+  .system-box.claims {
+    background: rgba(255, 140, 140, 0.12);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 620px;
+  }
+
+  .system-box.reference {
+    background: rgba(255, 200, 100, 0.12);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 200px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #f0f0f0;
+  }
+
+  /* ===== STEP SEQUENCE ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.15);
+    border: 1px solid rgba(100, 180, 255, 0.35);
+    border-radius: 6px;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #cde8ff;
+    min-width: 155px;
+    max-width: 185px;
+    position: relative;
+  }
+
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.8);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    margin: 28px 0 6px;
+  }
+
+  .data-element {
+    background: rgba(80, 80, 80, 0.7);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 185px;
+  }
+
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  /* ===== ENRICHMENT ROW ===== */
+  .enrich-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 28px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .enrich-box {
+    background: rgba(255, 200, 100, 0.10);
+    border: 1px solid rgba(255, 200, 100, 0.30);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ffe8aa;
+    min-width: 130px;
+    max-width: 185px;
+    position: relative;
+  }
+
+  .enrich-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  .enrich-box .enrich-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 200, 100, 0.9);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== FILTER ROW ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0 6px;
+  }
+
+  .filter-box {
+    background: rgba(255, 90, 90, 0.12);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 175px;
+  }
+
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== SSIS ROW ===== */
+  .ssis-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 28px 0 6px;
+    flex-wrap: wrap;
+  }
+
+  .ssis-box {
+    background: rgba(100, 220, 160, 0.10);
+    border: 1px solid rgba(100, 220, 160, 0.30);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #c8ffe0;
+    min-width: 145px;
+    max-width: 185px;
+    position: relative;
+  }
+
+  .ssis-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  .ssis-box .ssis-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 220, 160, 0.9);
+    letter-spacing: 0.5px;
+  }
+
+  /* ===== OUTPUT CONTAINER ===== */
+  .output-section {
+    margin-top: 20px;
+  }
+
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1400px;
+    margin: 0 auto;
+  }
+
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .report-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #e8e0ff;
+  }
+
+  /* ===== UNIVERSE BOX ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.12);
+    border: 2px solid rgba(100, 220, 160, 0.35);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1400px;
+    margin: 0 auto;
+  }
+
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  .universe-modules {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .universe-module {
+    background: rgba(100, 220, 160, 0.25);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 120px;
+    color: #d0ffe0;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 14px 0 10px;
+  }
+
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+
+  .flow-arrow .shaft {
+    width: 2px;
+    height: 20px;
+    background: #ccc;
+  }
+
+  .flow-arrow .head {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e8e0ff;
+    letter-spacing: 0.3px;
+  }
+
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 22px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  .legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .swatch-enrollment { background: rgba(140, 200, 255, 0.35); }
+  .swatch-claims     { background: rgba(255, 140, 140, 0.35); }
+  .swatch-reference  { background: rgba(255, 200, 100, 0.35); }
+  .swatch-steps      { background: rgba(100, 180, 255, 0.35); }
+  .swatch-derived    { background: rgba(80, 80, 80, 0.9); }
+  .swatch-enrich     { background: rgba(255, 200, 100, 0.25); }
+  .swatch-exclusion  { background: rgba(255, 90, 90, 0.25); border-style: dashed; }
+  .swatch-ssis       { background: rgba(100, 220, 160, 0.35); }
+  .swatch-output     { background: rgba(160, 140, 220, 0.35); }
+  .swatch-verify     { background: rgba(100, 220, 160, 0.35); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>CHPIV IBNP Monthly Refresh &#8212; Data Flow Diagram</h2>
+    <div class="subtitle">
+      FINCHG.dbo &nbsp;|&nbsp; SQLPROD02 &nbsp;|&nbsp; LOB: CHPIV &nbsp;|&nbsp;
+      Rolling 40-Month Window &nbsp;|&nbsp; DevOps Sprint Ticket: #25209 &nbsp;|&nbsp;
+      Status Update prepared for: Sir Phil, Director of Informatics &nbsp;|&nbsp; 2026-03-04
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+    <div class="source-row">
+
+      <div class="system-box enrollment">
+        <span class="sys-label">Enrollment Sources &#8212; EnrollmentManager &amp; INFORMATICS (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">Health Coverage<br><span style="font-size:10px;color:#aaa;">healthcoverageoverlay<br>healthcoverage</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">EnrollmentManager<br>.dbo.Member</span></div>
+          <div class="module">Baseline Membership<br><span style="font-size:10px;color:#aaa;">INFORMATICS.dbo<br>uvw_BASELINE_MEMBERSHIP</span></div>
+          <div class="module">AidCode CrossWalk<br><span style="font-size:10px;color:#aaa;">FINCHG.dbo<br>Current_AidCode_CrossWalk</span></div>
+        </div>
+      </div>
+
+      <div class="system-box reference">
+        <span class="sys-label">Shared Reference</span>
+        <div class="module-row">
+          <div class="module">LOB View<br><span style="font-size:10px;color:#aaa;">INFORMATICS.dbo<br>uvw_LINE_OF_BUSINESS</span></div>
+        </div>
+      </div>
+
+      <div class="system-box claims">
+        <span class="sys-label">Claims Sources &#8212; HMOPROD_PLANDATA (QNXT / SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">Claims<br><span style="font-size:10px;color:#aaa;">dbo.claim<br>dbo.claimdetail</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">dbo.member<br>dbo.enrollkeys</span></div>
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.provider<br>dbo.provspecialty</span></div>
+          <div class="module">Benefit Plans<br><span style="font-size:10px;color:#aaa;">dbo.benefitplan<br>dbo.claimform</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 2: EXECUTION STEPS ===== -->
+    <div class="section-label">&#9660; Execution Sequence &#8212; Manual EXEC on SQLPROD02 · FINCHG</div>
+
+    <div class="step-row">
+      <div class="step-box">
+        <span class="step-num">STEP 01</span>
+        <strong>EXEC IBNPEnrollment</strong>
+        FINCHG.dbo.<br>CHPIV_IBNPEnrollment<br>@lobplanprog = 'CHPIV'
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 01-A</span>
+        <strong>Roll Previous Month</strong>
+        DROP PreviousMonth<br>sp_rename CurrentMonth<br>&#8594; PreviousMonth
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 01-B</span>
+        <strong>Raw Enroll Extract</strong>
+        #temp834 &#8594; #TempEnroll<br>Status IN (01,51,S1,<br>41,61,B1) + CapCode &#8800; ''
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02</span>
+        <strong>EXEC IBNPClaims</strong>
+        FINCHG.dbo.<br>CHPIV_IBNPClaims<br>@lobplanprog = 'CHPIV'
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02-A</span>
+        <strong>Roll Previous Month</strong>
+        DROP PreviousMonth<br>sp_rename CurrentMonth<br>&#8594; PreviousMonth
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02-B</span>
+        <strong>Claims Extract</strong>
+        #claim: status IN<br>(paid, Reversed) +<br>idx(claimid, startdate)
+      </div>
+      <div class="step-box">
+        <span class="step-num">STEP 02-C</span>
+        <strong>$0 OP Palomar Fix</strong>
+        RevCode 0450&#8211;0459,<br>UB04 billclass IN (3,4)<br>INSERT into #TempIBNP
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 3: DERIVED DATA ELEMENTS ===== -->
+    <div class="section-label">&#9660; Derived Data Elements &amp; Member Attribute Enrichment (#TempEnroll)</div>
+
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Age Group</strong>
+        21+ vs 0&#8211;20<br>based on BenefitBeginDate<br>vs Birth month + 1
+      </div>
+      <div class="data-element">
+        <strong>COA Group</strong>
+        AidCode CrossWalk join<br>LTC correction, Child<br>vs Adult (Family/OTLIC)
+      </div>
+      <div class="data-element">
+        <strong>Dual Status</strong>
+        Full-Dual (A+B),<br>Partial-Dual (A or B),<br>Non-Dual (neither)
+      </div>
+      <div class="data-element">
+        <strong>RDT Group</strong>
+        D-SNP, SPD/Full-Dual,<br>LTC age 21+, Institutional,<br>HCBS Hi/Lo, Adult, Child
+      </div>
+      <div class="data-element">
+        <strong>RDT SubGroup</strong>
+        SPD/Partial-Dual,<br>LTC/Partial-Dual<br>(age 21+)
+      </div>
+      <div class="data-element">
+        <strong>CCI Population</strong>
+        MediConnect (804),<br>Ineligible, Eligible<br>Not Enrolled (029)
+      </div>
+      <div class="data-element">
+        <strong>Prov Specialty</strong>
+        provspecialty PRIMARY<br>(date-effective) + overrides:<br>DLC, DME, RX
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 4: SPECIAL POPULATION LOOKUPS ===== -->
+    <div class="section-label">&#9660; Special Population RDT Group Overrides (Applied in Priority Order)</div>
+
+    <div class="enrich-row">
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>D-SNP / DSNP</strong>
+        PlanCode = 'SNP'<br>RDT_GROUP IS NULL<br>&#8594; 'DSNP'
+      </div>
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>MSSP</strong>
+        CHGAPP_PROD<br>.mssp_Member<br>cin + active_date
+      </div>
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>CBAS</strong>
+        #claim_CBAS<br>svccode IN (S5100,<br>S5101, S5102, S5105)
+      </div>
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>IHSS</strong>
+        CHGAPP_PROD<br>.tblEDIDHCS_IHSSPAY<br>cin + FROM_DOS
+      </div>
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>LTC (90-Day Rule)</strong>
+        Recursive CTE via<br>udfRDTLTCMembersByMonth<br>totaldays &#8805; 90
+      </div>
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>Subscriber_ID</strong>
+        HMOPROD_PLANDATA<br>.enrollkeys<br>carriermemid
+      </div>
+      <div class="enrich-box">
+        <span class="enrich-num">UPDATE</span>
+        <strong>Healthy (Residual)</strong>
+        CCI_Population NOT NULL<br>AND RDT_Group IS NULL<br>&#8594; 'Healthy'
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 5: COS HIERARCHY ROW 1 ===== -->
+    <div class="section-label">&#9660; CostCategory &#8212; Category of Service (COS) Hierarchy · 16 Tiers in Priority Order (Claims)</div>
+
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>01 · Inpatient Hospital</strong>
+        facilitycode=1,<br>billclass IN (1,2),<br>UB04 or LTACH spec
+      </div>
+      <div class="filter-box">
+        <strong>02 · CBAS</strong>
+        ProcCode IN (S5100,<br>S5101,S5102,S5105)<br>or ProvSpec=ADHC
+      </div>
+      <div class="filter-box">
+        <strong>03 · Emergency Room</strong>
+        RevCode 0450&#8211;0459<br>(excl 0456); OP&#8594;ER<br>reclassify via #OUTToER
+      </div>
+      <div class="filter-box">
+        <strong>04 · Outpatient Facility</strong>
+        facilitycode IN (1,2)<br>billclass IN (3,4)<br>UB04; ASC, BRC, DLC
+      </div>
+      <div class="filter-box">
+        <strong>05 · BHT Services</strong>
+        Age &lt; 21, H/96xxx<br>codes, ProvSpec OR<br>PaytoSpec = BHTH
+      </div>
+      <div class="filter-box">
+        <strong>06 · Mental Health OP</strong>
+        ProvSpec = PSY or<br>90xxx codes +<br>PSY/PSYC/APSC spec
+      </div>
+      <div class="filter-box">
+        <strong>07 · Long-Term Care</strong>
+        facilitycode=2,<br>billclass IN (1,2),<br>UB04
+      </div>
+      <div class="filter-box">
+        <strong>08 · FQHC</strong>
+        PaytoID whitelist<br>(Borrego, FHCSD,<br>La Maestra, etc.)
+      </div>
+    </div>
+
+    <div class="filter-row" style="margin-top: 10px;">
+      <div class="filter-box">
+        <strong>09 · Physician Specialty</strong>
+        formtype=1500,<br>ProvSpec IN (MON,<br>NEU, OPH, SUR&#8230;)
+      </div>
+      <div class="filter-box">
+        <strong>10 · Physician Primary Care</strong>
+        formtype=1500,<br>ProvSpec IN (FAM,<br>GER, PED, OBG&#8230;)
+      </div>
+      <div class="filter-box">
+        <strong>11 · Other Medical Prof.</strong>
+        ProvSpec IN (ACU,<br>AUD, DDS, OPT,<br>SLP, POD&#8230;)
+      </div>
+      <div class="filter-box">
+        <strong>12 · Hospice</strong>
+        facilitycode=8,<br>billclass IN (1,2)<br>or HPM, HSP, HHC
+      </div>
+      <div class="filter-box">
+        <strong>13 · Lab &amp; Radiology</strong>
+        ProcCode 70000&#8211;89999<br>or CLL/DXC, RevCode<br>030x&#8211;040x&#8211;061x
+      </div>
+      <div class="filter-box">
+        <strong>14 · Pharmacy</strong>
+        ProcCode LIKE 'J%'<br>or 96361, vaccines<br>(90371&#8230;)
+      </div>
+      <div class="filter-box">
+        <strong>15 · Transportation</strong>
+        S0209, T2001&#8211;T2007,<br>A0xxx codes,<br>ProvSpec=AMB,NET
+      </div>
+      <div class="filter-box">
+        <strong>16 · All Other (Residual)</strong>
+        CostCategory IS NULL<br>&#8594; 'All Other'<br>(verify each cycle)
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 6: SSIS AUTOMATION ===== -->
+    <div class="section-label">&#9660; SSIS Package Automation &#8212; CHPIV_IBNP_Monthly_Refresh.dtsx</div>
+
+    <div class="ssis-row">
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 01</span>
+        <strong>Exec IBNPClaims Proc</strong>
+        EXEC FINCHG.dbo.<br>CHPIV_IBNPClaims<br>Conn: SQLPROD02.FINCHG
+      </div>
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 02</span>
+        <strong>Exec IBNPEnrollment Proc</strong>
+        EXEC FINCHG.dbo.<br>CHPIV_IBNPEnrollment<br>Conn: SQLPROD02.FINCHG
+      </div>
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 03</span>
+        <strong>Save Claims &#8594; Tab File</strong>
+        Flat File Destination<br>IBNP Claims Detail File<br>Tab-delimited
+      </div>
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 04</span>
+        <strong>Save Enroll &#8594; Tab File</strong>
+        Flat File Destination<br>IBNP Enrollment Detail<br>Tab-delimited
+      </div>
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 05</span>
+        <strong>Copy Claims &#8594; EHC FTP</strong>
+        FTP Task<br>Claims Detail File<br>&#8594; EHC FTP Server
+      </div>
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 06</span>
+        <strong>Copy Enroll &#8594; EHC FTP</strong>
+        FTP Task<br>Enrollment Detail File<br>&#8594; EHC FTP Server
+      </div>
+      <div class="ssis-box">
+        <span class="ssis-num">TASK 07</span>
+        <strong>Send Mail CHG</strong>
+        To: wcam@chgsd.com<br>Subj: IBNP Claims<br>&amp; Enrollment Files
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 7: OUTPUT TABLES ===== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">Output Tables &#8594; FINCHG.dbo · CurrentMonth / PreviousMonth Rolling Pair (sp_rename pre-execution)</span>
+        <div class="report-modules">
+          <div class="report-module">CHPIV_IBNPEnrollment<br>_CurrentMonth<br><span style="font-size:10px;opacity:0.7;">MemberID, EligMonth,<br>AidCode, PlanCode, Gender</span></div>
+          <div class="report-module">CHPIV_IBNPEnrollment<br>_PreviousMonth<br><span style="font-size:10px;opacity:0.7;">Rolled from CurrentMonth<br>via sp_rename pre-exec</span></div>
+          <div class="report-module">CHPIV_IBNPClaims<br>_CurrentMonth<br><span style="font-size:10px;opacity:0.7;">MemberID, ClaimNumber,<br>CostCategory, PaidAmount</span></div>
+          <div class="report-module">CHPIV_IBNPClaims<br>_PreviousMonth<br><span style="font-size:10px;opacity:0.7;">Rolled from CurrentMonth<br>via sp_rename pre-exec</span></div>
+          <div class="report-module">InformaticsProcessLog<br><span style="font-size:10px;opacity:0.7;">INFORMATICS.dbo<br>SpName + CodeSectionName<br>+ LogDateTime timestamps</span></div>
+        </div>
+        <div class="report-modules" style="margin-top:10px;">
+          <div class="report-module">Age, COAGroup<br>DualStatus<br><span style="font-size:10px;opacity:0.7;">(Enrollment fields)</span></div>
+          <div class="report-module">RDT_Group<br>RDT_SubGroup<br><span style="font-size:10px;opacity:0.7;">(Enrollment fields)</span></div>
+          <div class="report-module">CCI_Population<br>ltc_claims (Y/N)<br><span style="font-size:10px;opacity:0.7;">(Enrollment fields)</span></div>
+          <div class="report-module">ProcCode, Modifier<br>RevCode, CostCategory<br><span style="font-size:10px;opacity:0.7;">(Claims fields)</span></div>
+          <div class="report-module">ProvType, ProvSpecialty<br>ProvNPI, ProvTaxonomy<br><span style="font-size:10px;opacity:0.7;">(Claims fields)</span></div>
+          <div class="report-module">PaidAmount, ChargedAmount<br>Units<br><span style="font-size:10px;opacity:0.7;">HAVING PaidAmt &lt;&gt; 0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- ===== ROW 8: VERIFICATION QUERIES ===== -->
+    <div class="output-section">
+      <div class="universe-box">
+        <span class="sys-label">Post-Execution Verification Queries &#8594; Run After Each Monthly Refresh to Confirm Data Currency &amp; LOB Filter Integrity</span>
+        <div class="universe-modules">
+          <div class="universe-module">Claims CurrentMonth<br><span style="font-size:10px;opacity:0.75;">SELECT TOP 1 *<br>FROM FINCHG.dbo.<br>CHPIV_IBNPClaims_CurrentMonth<br>ORDER BY StartofService DESC</span></div>
+          <div class="universe-module">Claims PreviousMonth<br><span style="font-size:10px;opacity:0.75;">SELECT TOP 1 *<br>FROM FINCHG.dbo.<br>CHPIV_IBNPClaims_PreviousMonth<br>ORDER BY StartofService DESC</span></div>
+          <div class="universe-module">LOB Validation<br><span style="font-size:10px;opacity:0.75;">SELECT DISTINCT<br>LINE_OF_BUSINESS<br>FROM INFORMATICS.dbo.<br>uvw_BASELINE_MEMBERSHIP</span></div>
+          <div class="universe-module">Enroll CurrentMonth<br><span style="font-size:10px;opacity:0.75;">SELECT TOP 1 *<br>FROM FINCHG.dbo.<br>CHPIV_IBNPEnrollment_CurrentMonth<br>ORDER BY EligMonth DESC</span></div>
+          <div class="universe-module">Enroll PreviousMonth<br><span style="font-size:10px;opacity:0.75;">SELECT TOP 1 *<br>FROM FINCHG.dbo.<br>CHPIV_IBNPEnrollment_PreviousMonth<br>ORDER BY EligMonth DESC</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /diagram -->
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-enrollment"></div>Enrollment Sources (EnrollmentManager / INFORMATICS)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-claims"></div>Claims Sources (HMOPROD_PLANDATA / QNXT)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-reference"></div>Shared Reference Views (LOB)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-steps"></div>Execution Steps / Temp Tables</div>
+    <div class="legend-item"><div class="legend-swatch swatch-derived"></div>Derived Data Elements</div>
+    <div class="legend-item"><div class="legend-swatch swatch-enrich"></div>Special Population RDT Overrides</div>
+    <div class="legend-item"><div class="legend-swatch swatch-exclusion"></div>COS Hierarchy / CostCategory Filters</div>
+    <div class="legend-item"><div class="legend-swatch swatch-ssis"></div>SSIS Automation Tasks (.dtsx)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-output"></div>Output Tables (FINCHG.dbo)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-verify"></div>Post-Execution Verification Queries</div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCQA UM 2026 Medi-Cal — Data Flow Diagram | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+
+  /* DFD STRUCTURE */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  /* INTERACTIVE NODES */
+  .system-box,.step-box,.data-element,.filter-box,.output-box,.codeset-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover,.codeset-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected,.codeset-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* SOURCE SYSTEM BOXES */
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:430px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:360px;background:var(--purpleFill);border-color:var(--purple)}
+  .provdb{width:310px;background:var(--cyanFill);border-color:var(--cyan)}
+  .qnxtdb{width:470px;background:var(--greenFill);border-color:var(--green)}
+  .qproddb{width:330px;background:var(--goldFill);border-color:var(--gold)}
+  .crossdb{width:370px;background:var(--pinkFill);border-color:var(--pink)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* STEP BOXES */
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:195px;font-size:12px;line-height:1.4}
+  .step-box strong{display:block;font-size:14px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+
+  /* DATA ELEMENTS */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:190px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  /* FILTER/CHECKPOINT BOXES */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:200px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  /* OUTPUT BOX */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:150px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  /* DETAIL + LEGEND */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  /* CODE SET SLIDE */
+  .codeset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .codeset-box{border:2px solid rgba(255,255,255,.13);background:#232323;padding:18px 16px}
+  .codeset-box .cs-header{font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .cs-db{font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:700}
+  .cs-db.qnxt{background:rgba(100,220,160,.15);border:1px solid rgba(100,220,160,.35);color:#7de0b2}
+  .cs-db.inform{background:rgba(100,180,255,.14);border:1px solid rgba(100,180,255,.35);color:#9dd6ff}
+  .cs-db.enroll{background:rgba(160,140,220,.14);border:1px solid rgba(160,140,220,.35);color:#c4b8f0}
+  .cs-db.cross{background:rgba(255,140,200,.13);border:1px solid rgba(255,140,200,.30);color:#ffacd8}
+  .codeset-box .cs-sub{font-size:11.5px;color:#888;margin-bottom:10px;line-height:1.4}
+  .code-pill-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+  .code-pill{background:#1c1c1c;border:1px solid rgba(255,200,100,.35);border-radius:6px;padding:5px 10px;font-family:'Courier New',monospace;font-size:12px;color:#ffe08a;font-weight:700}
+  .code-pill.inactive{border-color:rgba(255,100,100,.30);color:#ff9090;text-decoration:line-through}
+  .code-pill.field{border-color:rgba(120,230,240,.30);color:#8ee8f0;font-family:inherit;font-size:11px}
+  .code-pill.enroll{border-color:rgba(160,140,220,.35);color:#c4b8f0}
+  .code-pill.rel{border-color:rgba(255,170,80,.35);color:#ffb060}
+  .cs-note{font-size:11px;color:#777;line-height:1.45;margin-top:6px;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .cs-note b{color:#aaa}
+
+  /* SOURCE TABLE SLIDE */
+  .db-section{margin-bottom:24px}
+  .db-title{font-size:13px;font-weight:700;letter-spacing:.5px;padding:8px 14px;border-radius:7px;margin-bottom:10px;display:inline-flex;align-items:center;gap:8px}
+  .db-title.blue{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+  .db-title.green{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+  .db-title.purple{background:rgba(160,140,220,.12);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+  .db-title.cyan{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.28);color:#8ee8f0}
+  .db-title.gold{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+  .db-title.pink{background:rgba(255,140,200,.10);border:1px solid rgba(255,140,200,.28);color:#ffacd8}
+  .tbl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .tbl-card{background:#232323;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:13px 15px}
+  .tbl-card .tname{font-size:12.5px;font-weight:700;color:#fff;font-family:'Courier New',monospace;margin-bottom:5px}
+  .tbl-card .ttype{font-size:10px;padding:2px 7px;border-radius:999px;margin-bottom:7px;display:inline-block}
+  .ttype.staging{background:rgba(100,180,255,.12);border:1px solid rgba(100,180,255,.28);color:#9dd6ff}
+  .ttype.worktemp{background:rgba(255,170,80,.10);border:1px solid rgba(255,170,80,.25);color:#ffb060}
+  .ttype.source{background:rgba(100,220,160,.10);border:1px solid rgba(100,220,160,.25);color:#7de0b2}
+  .ttype.view{background:rgba(160,140,220,.10);border:1px solid rgba(160,140,220,.25);color:#c4b8f0}
+  .ttype.ref{background:rgba(120,230,240,.10);border:1px solid rgba(120,230,240,.25);color:#8ee8f0}
+  .ttype.linked{background:rgba(255,140,200,.10);border:1px solid rgba(255,140,200,.25);color:#ffacd8}
+  .ttype.perm{background:rgba(255,200,100,.10);border:1px solid rgba(255,200,100,.25);color:#ffe08a}
+  .tbl-card .tdesc{font-size:11.5px;color:#999;line-height:1.45}
+
+  /* TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* CONTROLS TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+
+  /* PARAMS */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:13px}
+  .param-card .pname{font-size:11.5px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:4px}
+  .param-card .pval{font-size:13px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11px;color:#888;margin-top:4px;line-height:1.4}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <h1>NCQA UM 2026 — Medi-Cal Utilization Management · Data Flow Diagram</h1>
+    <div>CHGSD · INFORMATICS · NCQA_UM_20260610.sql · @BRAND = CHGSD · LOB = MEDI-CAL · Date Range 06/14/2025 – 05/15/2026</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Code Sets</button>
+    <button onclick="showSlide(2,this)">③ Source Tables</button>
+    <button onclick="showSlide(3,this)">④ Runbook</button>
+    <button onclick="showSlide(4,this)">⑤ Controls</button>
+    <button onclick="showSlide(5,this)">⑥ Parameters</button>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — MAIN DFD
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Report Purpose</div>
+      <div class="title">NCQA 2026 UM File Submission — All Medical Necessity Denials</div>
+      <div class="subtitle">Constructs the NCQA 2026 Accreditation Utilization Management audit universe for <strong>Medi-Cal Medical Necessity Denials</strong>. Extracts all denied authorizations where the NCQA notification letter was sent within the accreditation window. Produces NCQA Columns A–I per the MEDI-CAL UM File Submission Narrative. Output stored to permanent tables in INFORMATICS.dbo for downstream audit delivery.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>569,072</strong><span>Rows returned (last production run)</span></div>
+        <div class="metric"><strong>MEDI-CAL</strong><span>Line of Business — @Authlob</span></div>
+        <div class="metric"><strong>4 File Types</strong><span>McaidPS · McaidCU · McaidPU · McaidPN</span></div>
+        <div class="metric"><strong>9 Columns</strong><span>NCQA A–I per submission narrative</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Submission Context</div>
+      <div class="subtitle" style="margin-bottom:12px">NCQA Accreditation Period covered by this extract:</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">@ClockStart = 06/14/2025<span>Start of NCQA audit window — notification letter anchor date</span></div>
+        <div class="module" style="min-width:100%;text-align:left">@ClockStop = 05/15/2026<span>End of NCQA audit window</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Filter — status = 'DENIED' + Auth Notification Letter Sent<span>Pre-filter anchor via qattribute + referralattribute</span></div>
+        <div class="module" style="min-width:100%;text-align:left">@BRAND = 'CHGSD' · @Authlob = 'MEDI-CAL'<span>Plan brand and line-of-business scope locks</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE DATABASES -->
+      <div class="section-label">Source Databases / Systems — Row A: QNXT &amp; Analytics</div>
+      <div class="source-row">
+
+        <div class="system-box qnxtdb node" data-title="HMOPROD_PLANDATA · QNXT Transactional (SQLPROD02)" data-body="Primary QNXT transactional system. The authoritative source for all authorization, member, and provider data. Key tables: referral (authorization header, status=DENIED), enrollkeys (member enrollment + LOB), qattribute+referralattribute (notification letter sent date anchor), authservice (CPT/Rev codes), authdiag (ICD codes), authservicereason+reasongroupdtl+authreason (denial reason), provider+entity (rendering/referring provider info), referraltext (remarks), svccode/diagcode/revcode (code lookup), svccatgroup (J-code/Part B detection), calltrack/callreason/calltype (COC/OON tracking), member/language/memberCmsHic (member demographics + MBI), authservicedetail (TAT threshold units), quser (QCSIDB — case manager name)." data-tags="HMOPROD_PLANDATA|QNXT|referral|enrollkeys|qattribute|authservice|authdiag|authreason|SQLPROD02">
+          <span class="sys-label">HMOPROD_PLANDATA · QNXT (SQLPROD02)</span>
+          <div class="module-row">
+            <div class="module">referral<span>Auth header<br>status + dates</span></div>
+            <div class="module">enrollkeys<span>Member enrollment<br>LOB + programid</span></div>
+            <div class="module">qattribute · referralattribute<span>Notification letter<br>sent date anchor</span></div>
+            <div class="module">authservice · authdiag<span>CPT / ICD codes<br>service detail</span></div>
+            <div class="module">authreason · reasongroupdtl<span>Denial reason text<br>+ reason group</span></div>
+          </div>
+        </div>
+
+        <div class="system-box sql node" data-title="INFORMATICS · dbo — Analytics Warehouse (SQLPRODAPP01)" data-body="Central analytics warehouse providing reference views and permanent output tables. Key views: uvw_LINE_OF_BUSINESS (planid/programid → LOB/PLAN/PROGRAM label, primary LOB filter), uvw_BASELINE_MEMBERSHIP (Medi-Cal member base), uvw_AUTHREFCLAIM (claim cross-reference), uvw_FALSE_PROVIDER_PAR (PAR status), uvw_PROVISO (provider supplemental), uvw_PCP (current PCP assignment), VLOOKUPIndicator_DENTAL_PAD_ABA (exclusion indicator). Permanent output tables: NCQA_UM_DENIALS (replaces #AUTHRFI) and NCQA_UM_DENIALS_OUTPUT (replaces #AUTHRFI_OUTPUT). Calendar reference: date_calendarISO (business day / holiday calendar for TAT calculation)." data-tags="INFORMATICS|SQLPRODAPP01|uvw_LINE_OF_BUSINESS|NCQA_UM_DENIALS|NCQA_UM_DENIALS_OUTPUT|date_calendarISO|uvw_FALSE_PROVIDER_PAR">
+          <span class="sys-label">INFORMATICS · dbo (SQLPRODAPP01)</span>
+          <div class="module-row">
+            <div class="module">uvw_LINE_OF_BUSINESS<span>LOB filter view<br>MEDI-CAL lock</span></div>
+            <div class="module">NCQA_UM_DENIALS<span>Permanent staging<br>replaces #AUTHRFI</span></div>
+            <div class="module">NCQA_UM_DENIALS_OUTPUT<span>Final output table<br>replaces #AUTHRFI_OUTPUT</span></div>
+            <div class="module">date_calendarISO<span>Business day / holiday<br>calendar for TAT</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-label" style="margin-top:18px">Source Databases / Systems — Row B: Enrollment, Provider &amp; Cross-Server</div>
+      <div class="source-row">
+
+        <div class="system-box enrolldb node" data-title="EnrollmentManager · Aid Code (SQLPRODAPP01)" data-body="Provides Aid Code for each Medi-Cal member. Tables used: EnrollmentManager.dbo.healthcoverage (primary aid code source), healthcoverageoverlay (override/correction layer), HcpStatusCode (status code lookup). Aid code is a required demographic element in the NCQA_UM_DENIALS_OUTPUT assembly. Joined on memid within the final GROUP BY SELECT." data-tags="EnrollmentManager|healthcoverage|healthcoverageoverlay|HcpStatusCode|Aid Code|Medi-Cal">
+          <span class="sys-label">EnrollmentManager · Aid Code</span>
+          <div class="module-row">
+            <div class="module">healthcoverage<span>Aid Code source<br>per member</span></div>
+            <div class="module">healthcoverageoverlay<span>Aid Code override<br>correction layer</span></div>
+            <div class="module code">HcpStatusCode<span>Status code<br>lookup reference</span></div>
+          </div>
+        </div>
+
+        <div class="system-box provdb node" data-title="ProviderRepository274 · PAR Status (SQLPRODAPP01 Linked)" data-body="Supplies PAR (Participating Provider) status for both the Refer-From and Refer-To provider on each authorization. Chain: (1) uvw_FALSE_PROVIDER_PAR checks for known non-PAR overrides; (2) uvw_PROVISO checks supplemental credentialing; (3) SQLPRODAPP01.INFORMATICS.dbo.uvw_ProviderRepository274_PAR (cross-server linked) returns the definitive PAR flag. The three-tier lookup is applied twice — once for ReferFrom provider and once for ReferTo provider." data-tags="ProviderRepository274|uvw_FALSE_PROVIDER_PAR|uvw_PROVISO|uvw_ProviderRepository274_PAR|PAR|ReferFrom|ReferTo">
+          <span class="sys-label">ProviderRepository274 · PAR</span>
+          <div class="module-row">
+            <div class="module">uvw_FALSE_PROVIDER_PAR<span>Tier 1 — non-PAR<br>override check</span></div>
+            <div class="module">uvw_ProviderRepository274_PAR<span>Tier 3 — definitive<br>PAR flag (cross-server)</span></div>
+          </div>
+        </div>
+
+        <div class="system-box crossdb node" data-title="HMOPROD_QCSIDB · Case Manager (SQLPROD02)" data-body="Provides case manager (owner) user name for each authorization. Table: HMOPROD_QCSIDB.dbo.quser. Joined to referral on r.ownerid = quser.userid. Case manager name is surfaced in NCQA_UM_DENIALS for audit reviewer reference. Not a QNXT schema — lives in the companion QCSI database on SQLPROD02." data-tags="HMOPROD_QCSIDB|quser|ownerid|Case Manager|SQLPROD02">
+          <span class="sys-label">HMOPROD_QCSIDB · Case Manager</span>
+          <div class="module-row">
+            <div class="module">quser<span>Case manager name<br>by ownerid</span></div>
+          </div>
+        </div>
+
+        <div class="system-box qproddb node" data-title="INFORMATICS · QPROD — PCP &amp; MBI (SQLPRODAPP01)" data-body="Two supplemental lookup sources. uvw_PCP: returns the member's current PCP (DENSE_RANK by effdate DESC, @PCPrecordRANK=1) including PCP name and NPI. uvw_BASELINE_MEMBERSHIP / memberCmsHic (via HMOPROD_PLANDATA): provides the MBI (Medicare Beneficiary Identifier) needed for members with Medicare dual-eligibility. language table (HMOPROD_PLANDATA): member's primary language ID → language description for display in output." data-tags="uvw_PCP|PCP|DENSE_RANK|memberCmsHic|MBI|language|uvw_BASELINE_MEMBERSHIP">
+          <span class="sys-label">INFORMATICS · PCP + MBI + Language</span>
+          <div class="module-row">
+            <div class="module">uvw_PCP<span>Current PCP / rank 1<br>DENSE_RANK DESC</span></div>
+            <div class="module code">memberCmsHic<span>MBI lookup<br>dual-eligible</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- PROCESSING STEPS -->
+      <div class="section-label">Script Processing — NCQA_UM_20260610.sql (10 Steps)</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node" data-title="STEP 01 — Pre-Filter Anchor: #QUALIFYING_AUTHS" data-body="The critical performance optimization. Before any large joins, a minimal pre-filter builds #QUALIFYING_AUTHS from three small tables only: qattribute + referralattribute + referral. Filter: r.status = 'DENIED' AND q.description LIKE '%AUTH%NOTIFI%LETT%SENT%' AND TRY_CONVERT(date, attrib.effdate) BETWEEN @ClockStart AND @ClockStop. This restricts the working set to only auths with a notification letter date in the NCQA window. Clustered index on referralid, nonclustered on memid. This single step eliminates the majority of unauthorized records before downstream heavy joins." data-tags="#QUALIFYING_AUTHS|Pre-Filter|DENIED|Notification Letter|qattribute|referralattribute|referral|Performance">
+          <span class="step-num">Step 01</span><strong>Pre-Filter Anchor</strong>
+          #QUALIFYING_AUTHS<br>DENIED + notif. letter<br>effdate in window
+        </div>
+
+        <div class="step-box s-purple node" data-title="STEP 02 — setauthref CTE (LOB + Enrollment)" data-body="WITH setauthref AS (...) — reads FROM #QUALIFYING_AUTHS (not full referral scan). Joins to HMOPROD_PLANDATA.dbo.enrollkeys to get programid + planid, then joins to INFORMATICS.dbo.uvw_LINE_OF_BUSINESS to resolve LINE_OF_BUSINESS. Filters: bp.LINE_OF_BUSINESS LIKE ISNULL('%'+@Authlob+'%','%') and bp.[Contract Number] = ISNULL(@BRAND,bp.[Contract Number]). This CTE is the LOB/brand gate before the main INSERT — ensures only MEDI-CAL / CHGSD authorizations proceed." data-tags="setauthref|CTE|LOB|uvw_LINE_OF_BUSINESS|enrollkeys|@Authlob|@BRAND|MEDI-CAL">
+          <span class="step-num">Step 02</span><strong>setauthref CTE</strong>
+          LOB + brand gate<br>uvw_LINE_OF_BUSINESS<br>MEDI-CAL / CHGSD
+        </div>
+
+        <div class="step-box s-cyan node" data-title="STEP 03 — Main Stage → INFORMATICS.dbo.NCQA_UM_DENIALS" data-body="The primary SELECT INTO writes to the permanent table INFORMATICS.dbo.NCQA_UM_DENIALS (replacing #AUTHRFI). 15+ JOINs including: authservice (CPT/Mod/units), authdiag (ICD-10), provider+entity (ReferFrom name/NPI), svccode/diagcode/revcode (code descriptions), calltrack inline subquery (COC flag), second calltrack (OON flag), authservicereason+reasongroupdtl+authreason (denial reason text and group), referraltext (remarks), quser (case manager). File Type derived from r.servicecode pattern match + r.[priority]: PS=Post-Service, CU=Concurrent, PU=Pre-Service Urgent, PN=Pre-Service Non-Urgent. INDEX created after INSERT: idx_REFACTOR_DupID ON (referralid, authorizationid, ClockStart)." data-tags="NCQA_UM_DENIALS|SELECT INTO|15+ JOINs|authservice|authdiag|provider|COC|OON|File Type|PS|CU|PU|PN">
+          <span class="step-num">Step 03</span><strong>Main Stage</strong>
+          → NCQA_UM_DENIALS<br>15+ JOINs<br>File Type + COC/OON
+        </div>
+
+        <div class="step-box s-green node" data-title="STEP 04 — AOR + Dx/CPT/Rev Enrichments" data-body="Four sequential UPDATE blocks applied to NCQA_UM_DENIALS:\n1. AOR (Authorization of Record): calltrack-based UPDATE setting AOR flag where [ContinuityOfCare] is populated.\n2. Dx Enrichment: STRING_AGG of ICD-10 codes from authdiag+diagcode, grouped by authorizationid.\n3. CPT Enrichment: STRING_AGG of procedure codes + modifiers from authservice+svccode.\n4. Rev Code Enrichment: STRING_AGG of revenue codes from authservice+revcode.\nAll enrichments use STRING_AGG() for multi-code aggregation into comma-delimited strings per authorization." data-tags="AOR|UPDATE|Dx|CPT|RevCode|STRING_AGG|authdiag|authservice|diagcode|svccode|revcode">
+          <span class="step-num">Step 04</span><strong>AOR + Enrichments</strong>
+          Dx + CPT + RevCode<br>STRING_AGG per auth<br>ICD-10 / HCPCS / RC
+        </div>
+
+        <div class="step-box s-gold node" data-title="STEP 05 — Part B Drug Detection" data-body="PartB CTE detects J-codes (Part B injectable drug codes) in the authorization's service detail. Source: authservice JOIN svccode JOIN svccatgroup. J-codes are identified by svccatgroup membership (drug category). UPDATE sets [PartBDrug] flag on NCQA_UM_DENIALS where any service line on the auth contains a J-code. This flag is used downstream in the NCQA output to identify drug-category denials separately." data-tags="Part B|J-Code|Drug|PartB CTE|authservice|svccode|svccatgroup|UPDATE">
+          <span class="step-num">Step 05</span><strong>Part B Drug</strong>
+          J-Code detection<br>svccatgroup CTE<br>PartBDrug flag UPDATE
+        </div>
+
+        <div class="step-box s-orange node" data-title="STEP 06 — #authattributes Single-Pass (OPT002)" data-body="Single-pass unified attribute extraction replacing 5 separate table reads (user-applied OPT002). One SELECT from qattribute JOIN referralattribute builds #authattributes with all 5 attribute types identified by CASE logic on q.description: MODIFIED (attribute LIKE '%AUTH%MODIF%'), EXTENSION (LIKE '%AUTH%EXTENS%'), NOTIFICATION (LIKE '%AUTH%NOTIFI%LETT%SENT%'), THRESHOLD (LIKE '%THRESHOLD%'), ORAL_NOTIFICATION (LIKE '%ORAL%'). Four subsequent UPDATE blocks join #authattributes back to NCQA_UM_DENIALS to populate: AuthModified, AuthExtension, AuthNotification (ClockStop override date), AuthThreshold, OralNotification fields." data-tags="#authattributes|Single-Pass|OPT002|MODIFIED|EXTENSION|NOTIFICATION|THRESHOLD|ORAL|5 Types|UPDATE">
+          <span class="step-num">Step 06</span><strong>#authattributes</strong>
+          Single-pass 5 types<br>MODIFIED/EXT/NOTIF<br>THRESHOLD/ORAL
+        </div>
+
+        <div class="step-box s-pink node" data-title="STEP 07 — TAT Engine + ClockStop C010 Override" data-body="Turnaround time calculation engine. C010 UPDATE: ClockStop is overridden with the AuthNotification date (notification letter sent date) from #authattributes — this aligns the clock with NCQA narrative requirement that TAT measures receipt-to-notification. Threshold/Units UPDATE: sets decision-type thresholds from authservicedetail. CROSS APPLY calendar lookup: joins INFORMATICS.dbo.date_calendarISO to calculate business days between ClockStart (receipt date, UTC→PST converted) and ClockStop (notification letter date). Business day TAT written to NCQA_UM_DENIALS.[TAT] column." data-tags="TAT|ClockStop|C010|CROSS APPLY|date_calendarISO|Business Days|UTC|Pacific Standard Time|authservicedetail|Threshold">
+          <span class="step-num">Step 07</span><strong>TAT Engine</strong>
+          ClockStop C010 override<br>CROSS APPLY calendar<br>Business-day TAT
+        </div>
+
+        <div class="step-box s-blue node" data-title="STEP 08 — PAR Status Chain (ReferFrom + ReferTo)" data-body="Three-tier PAR status resolution applied twice — once for ReferFrom provider, once for ReferTo provider.\nTier 1: uvw_FALSE_PROVIDER_PAR — known non-PAR override list.\nTier 2: uvw_PROVISO — supplemental credentialing / contracting status.\nTier 3: SQLPRODAPP01.INFORMATICS.dbo.uvw_ProviderRepository274_PAR — definitive cross-server PAR lookup.\nFor each provider, the chain evaluates left-to-right and returns the first non-null PAR determination. Result written to NCQA_UM_DENIALS.[ReferFromPAR] and [ReferToPAR]." data-tags="PAR|ReferFrom|ReferTo|uvw_FALSE_PROVIDER_PAR|uvw_PROVISO|uvw_ProviderRepository274_PAR|3-tier|Cross-server">
+          <span class="step-num">Step 08</span><strong>PAR Status</strong>
+          3-tier chain x2<br>ReferFrom + ReferTo<br>Cross-server lookup
+        </div>
+
+        <div class="step-box s-purple node" data-title="STEP 09 — Final Assembly → NCQA_UM_DENIALS_OUTPUT" data-body="Complex GROUP BY SELECT INTO INFORMATICS.dbo.NCQA_UM_DENIALS_OUTPUT joining NCQA_UM_DENIALS to:\n- uvw_PCP (DENSE_RANK @PCPrecordRANK=1 — current PCP)\n- EnrollmentManager.dbo.healthcoverage + healthcoverageoverlay + HcpStatusCode (Aid Code)\n- HMOPROD_PLANDATA.dbo.member + language (demographics + language description)\n- HMOPROD_PLANDATA.dbo.memberCmsHic (MBI for dual-eligible members)\nDeduplication via ROW_NUMBER() OVER (PARTITION BY authorizationid ORDER BY ...) = 1. Final working dataset ready for NCQA 2026 column mapping." data-tags="NCQA_UM_DENIALS_OUTPUT|GROUP BY|PCP|Aid Code|language|MBI|ROW_NUMBER|Deduplication|healthcoverage">
+          <span class="step-num">Step 09</span><strong>Final Assembly</strong>
+          → OUTPUT table<br>PCP + Aid Code + MBI<br>ROW_NUMBER dedup
+        </div>
+
+        <div class="step-box s-green node" data-title="STEP 10 — NCQA 2026 Final SELECT (Columns A–I)" data-body="refertoreferfrom CTE joined to NCQA_UM_DENIALS_OUTPUT. Final filter: [Line of Business] LIKE '%MEDI-CAL%' AND status = 'DENIED'. Column mapping per NCQA 2026 UM File Submission Narrative:\nA: authorizationid (Case ID)\nB: 'Health Plan' (literal)\nC: McaidPS / McaidCU / McaidPU / McaidPN (File Type with Mcaid prefix)\nD: CONVERT(nvarchar(10), ClockStop, 101) — notification letter date\nE: '' (Delegate Name — blank for direct plan denials)\nF: Reason to Deny or Modify (authreason text)\nG: Name of Template / AUTH TYPE\nH: CONVERT(nvarchar(10), ClockStart, 101) — received date\nI: TAT (business-day turnaround time)" data-tags="refertoreferfrom|CTE|NCQA|Column A|Column B|Column C|Column D|Column E|Column F|Column G|Column H|Column I|McaidPS|McaidCU|McaidPU|McaidPN|MEDI-CAL">
+          <span class="step-num">Step 10</span><strong>NCQA Final SELECT</strong>
+          Columns A–I<br>McaidPS/CU/PU/PN<br>MEDI-CAL + DENIED
+        </div>
+
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- DERIVED DATA ELEMENTS -->
+      <div class="section-label">Derived / Controlled Data Elements</div>
+      <div class="data-elements-row">
+        <div class="data-element node" data-title="Authorization Universe — All Medical Necessity Denials" data-body="The full audit universe: all QNXT authorizations where status='DENIED' AND the denial notification letter was sent (qattribute LIKE '%AUTH%NOTIFI%LETT%SENT%') AND the letter date falls within @ClockStart–@ClockStop. Anchored by #QUALIFYING_AUTHS pre-filter. Only MEDI-CAL / CHGSD authorizations pass the setauthref CTE gate." data-tags="Audit Universe|DENIED|Notification Letter|MEDI-CAL|#QUALIFYING_AUTHS">
+          <strong>Auth Universe</strong>All Med. Nec. Denials<br>Notif. letter in window<br>MEDI-CAL / CHGSD
+        </div>
+        <div class="data-element node" data-title="File Type — PS / CU / PU / PN" data-body="Four NCQA file types derived from r.servicecode and r.[priority] in the main SELECT. Mapping: PS = Post-Service (servicecode pattern matches post-service indicator), CU = Concurrent, PU = Pre-Service Urgent (priority = urgent), PN = Pre-Service Non-Urgent. In the NCQA Final SELECT (Step 10), the Mcaid prefix is prepended: McaidPS, McaidCU, McaidPU, McaidPN — per the MEDI-CAL UM File Submission Narrative requirement." data-tags="File Type|PS|CU|PU|PN|McaidPS|McaidCU|McaidPU|McaidPN|servicecode|priority">
+          <strong>File Type</strong>PS / CU / PU / PN<br>→ Mcaid prefix<br>in final SELECT
+        </div>
+        <div class="data-element node" data-title="TAT — Turnaround Time (Business Days)" data-body="Business-day count from ClockStart (UTC receipt date converted to Pacific Standard Time) to ClockStop (notification letter sent date from #authattributes C010 override). Calculated via CROSS APPLY on INFORMATICS.dbo.date_calendarISO which carries holiday flags and business-day indicators. Formula: COUNT of calendar rows between start and stop WHERE BusinessDay = 1 AND Holiday = 0." data-tags="TAT|Turnaround Time|Business Days|ClockStart|ClockStop|date_calendarISO|UTC|Pacific Standard Time|CROSS APPLY">
+          <strong>TAT (Business Days)</strong>ClockStart → ClockStop<br>UTC→PST converted<br>Holiday-aware calendar
+        </div>
+        <div class="data-element node" data-title="NCQA Columns A–I" data-body="Nine columns per NCQA 2026 UM File Submission Narrative for Medi-Cal Medical Necessity Denials:\nA: Case ID (authorizationid)\nB: Health Plan (literal 'Health Plan')\nC: File Type (McaidPS/CU/PU/PN)\nD: Date of Notification Letter (ClockStop, MM/DD/YYYY)\nE: Delegate Name (blank for direct plan)\nF: Reason to Deny or Modify\nG: Name of Template (AUTH TYPE)\nH: Date Received (ClockStart, MM/DD/YYYY)\nI: TAT (business days)" data-tags="NCQA|Column A|Column B|Column C|Column D|Column E|Column F|Column G|Column H|Column I|9 Columns">
+          <strong>NCQA Cols A–I</strong>Case ID · Health Plan<br>File Type · Dates<br>Reason · TAT
+        </div>
+        <div class="data-element node" data-title="Denial Reason — authreason Text" data-body="Denial reason text for Column F sourced from the authreason chain: authservicereason → reasongroupdtl → authreason. The reason group must be in the Denial-Medical Necessity group. STRING values from authreason.description are surfaced in NCQA_UM_DENIALS.[ReasonToDenyOrModify]." data-tags="Denial Reason|authreason|authservicereason|reasongroupdtl|Column F|Medical Necessity">
+          <strong>Denial Reason</strong>authreason chain<br>Medical Nec. group<br>→ Column F
+        </div>
+        <div class="data-element node" data-title="COC / OON Flags" data-body="Two inline subquery flags determined at Step 03:\nCOC (Continuity of Care): EXISTS subquery on calltrack+callreason+calltype WHERE calltype description LIKE '%CONTINUITY%'. Populated into [ContinuityOfCare].\nOON (Out of Network): EXISTS subquery on calltrack+callreason+calltype WHERE calltype LIKE '%OUT%NETWORK%'. Populated into [OutOfNetwork].\nBoth flags flow through to NCQA_UM_DENIALS_OUTPUT for audit reviewer reference." data-tags="COC|OON|ContinuityOfCare|OutOfNetwork|calltrack|callreason|calltype">
+          <strong>COC / OON Flags</strong>Continuity of Care<br>Out of Network<br>calltrack subquery
+        </div>
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- QUALITY CHECKPOINTS -->
+      <div class="section-label">Analyst Quality Checkpoints</div>
+      <div class="filter-row">
+        <div class="filter-box node" data-title="Checkpoint — @Authlob Lock" data-body="@Authlob must be set to 'MEDI-CAL' before execution. Leaving NULL returns all LOBs, inflating the audit universe with Commercial and other non-Medi-Cal authorizations — causing NCQA file submission failure." data-tags="Control|@Authlob|MEDI-CAL|LOB Lock">
+          <strong>LOB Lock?</strong>@Authlob = 'MEDI-CAL'<br>never NULL
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — @BRAND Lock" data-body="@BRAND must be set to 'CHGSD' for CHGSD NCQA submission. NULL returns all brands (CHGLA, CHGSD, etc.). Confirm @BRAND = 'CHGSD' is set before running the production extract." data-tags="Control|@BRAND|CHGSD|Brand Lock">
+          <strong>@BRAND = CHGSD?</strong>Never NULL for prod<br>setauthref CTE gate
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — #QUALIFYING_AUTHS Row Count" data-body="Verify #QUALIFYING_AUTHS returns a non-zero row count before the main INSERT. If zero rows: @ClockStart or @ClockStop parameters may be wrong, or no notification letters were sent in the date range. SELECT COUNT(*) FROM #QUALIFYING_AUTHS should be inspected immediately after Step 01." data-tags="Control|#QUALIFYING_AUTHS|Row Count|Sanity|ClockStart|ClockStop">
+          <strong>#QAR Rows &gt; 0?</strong>Verify after Step 01<br>before main INSERT
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — Permanent Table Currency" data-body="INFORMATICS.dbo.NCQA_UM_DENIALS and NCQA_UM_DENIALS_OUTPUT are permanent tables dropped and recreated each run. Confirm both tables exist and show current run date in metadata before delivering output. SELECT MAX(RunDate) or check row counts vs. expected universe size (~569,072 in last production run)." data-tags="Control|NCQA_UM_DENIALS|NCQA_UM_DENIALS_OUTPUT|Permanent Table|Row Count|RunDate">
+          <strong>Perm Tables Fresh?</strong>NCQA_UM_DENIALS<br>+ OUTPUT current?
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — TAT Reasonableness" data-body="Review TAT distribution before submission. Post-service (PS) TAT should be ≤ 30 calendar / business days. Concurrent (CU) should be ≤ 1 business day. Pre-service urgent (PU) ≤ 3 business days. Pre-service standard (PN) ≤ 14 calendar days. Flag outliers (negative TAT or TAT > 90 days) — these typically indicate data quality issues with the notification letter date." data-tags="Control|TAT|Reasonableness|PS|CU|PU|PN|Outlier|Business Days">
+          <strong>TAT Sanity?</strong>PS ≤ 30d · CU ≤ 1d<br>PU ≤ 3d · PN ≤ 14d<br>Flag outliers
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — File Type Distribution" data-body="Verify all four file types appear in the output: McaidPS, McaidCU, McaidPU, McaidPN. A missing file type may indicate a servicecode / priority mapping gap in the File Type derivation logic. Also confirm no NULL File Type values — NULLs in Column C will cause NCQA submission rejection." data-tags="Control|File Type|McaidPS|McaidCU|McaidPU|McaidPN|NULL|Column C">
+          <strong>All 4 File Types?</strong>PS/CU/PU/PN all present<br>No NULLs in Col C
+        </div>
+      </div>
+
+      <!-- FLOW ARROWS -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="output-box node" data-title="Final Output — NCQA 2026 UM File Submission (Medi-Cal Medical Necessity Denials)" data-body="The NCQA 2026 Accreditation UM File Submission for Medi-Cal. Result set from refertoreferfrom CTE joined to NCQA_UM_DENIALS_OUTPUT. Columns A–I per NCQA narrative. Filtered to LINE_OF_BUSINESS LIKE '%MEDI-CAL%' AND status = 'DENIED'. File Type prefixed McaidPS/CU/PU/PN. Delivered as Excel extract for NCQA auditor review. Last run: 569,072 rows on SQLPROD02 15.0 RTM via CHG\\wcarr connection in SSMS." data-tags="NCQA 2026|UM File Submission|Medi-Cal|DENIED|Columns A-I|McaidPS|McaidCU|McaidPU|McaidPN|Excel|Audit">
+        <span class="sys-label">NCQA 2026 Accreditation — UM File Submission Output</span>
+        <div class="out-modules">
+          <div class="out-module">Column A — Case ID<span>authorizationid — unique authorization identifier for each NCQA audit record</span></div>
+          <div class="out-module">Column B — Health Plan<span>Literal 'Health Plan' — identifies the entity making the determination</span></div>
+          <div class="out-module">Column C — File Type<span>McaidPS / McaidCU / McaidPU / McaidPN — NCQA file type code with Medi-Cal prefix</span></div>
+          <div class="out-module">Column D — Notification Date<span>CONVERT(nvarchar(10), ClockStop, 101) — date notification letter was sent (MM/DD/YYYY)</span></div>
+          <div class="out-module">Column E — Delegate Name<span>Blank ('') — direct plan determinations, no delegated entity</span></div>
+          <div class="out-module">Column F — Denial Reason<span>authreason text — reason to deny or modify from Medical Necessity denial reason group</span></div>
+          <div class="out-module">Column G — Template Name<span>AUTH TYPE field — name of authorization template / determination letter template</span></div>
+          <div class="out-module">Column H — Received Date<span>CONVERT(nvarchar(10), ClockStart, 101) — date authorization request was received</span></div>
+          <div class="out-module">Column I — TAT<span>Business-day turnaround time ClockStart → ClockStop via date_calendarISO holiday calendar</span></div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+
+    <!-- DETAIL + LEGEND -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click any node in the diagram above</h3>
+        <p id="detailBody">Details will show data sources, code sets, business rules, and analyst notes for the selected element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span><span class="badge">DFD v1</span>
+          <span class="badge gold">NCQA 2026</span><span class="badge green">10 Processing Steps</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>HMOPROD_PLANDATA · QNXT transactional (SQLPROD02)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>INFORMATICS analytics warehouse + output tables (SQLPRODAPP01)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>EnrollmentManager · Aid Code (SQLPRODAPP01)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>ProviderRepository274 · PAR status (cross-server)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--pinkFill);border-color:var(--pink)"></div>HMOPROD_QCSIDB · Case Manager (SQLPROD02)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>INFORMATICS PCP / MBI / Language supplemental</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Analyst quality checkpoint</div>
+        </div>
+        <p class="print-note">Tip: browser print → Save as PDF to export. DUB C 2.0 coding standards applied throughout NCQA_UM_20260610.sql.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /Slide 0 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — CODE SETS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Code Sets — All Identifiers Used in NCQA UM Denial Extract</div>
+    <div class="subtitle" style="margin-bottom:6px">Authorization attribute codes, file type derivation logic, denial reason group codes, and COC/OON calltrack identifiers that drive the NCQA UM audit universe. Yellow pills = <strong>active</strong> identifiers in the 2026 submission window. Field pills (cyan) = SQL field logic rather than discrete code values.</div>
+
+    <div class="codeset-grid">
+
+      <!-- FILE TYPE CODES -->
+      <div class="codeset-box node" data-title="File Type Derivation — PS / CU / PU / PN" data-body="Four NCQA UM file types are derived from two fields on the referral record: r.servicecode (service type classification) and r.[priority] (urgency indicator). Logic applied in the main SELECT INTO NCQA_UM_DENIALS at Step 03. In the NCQA Final SELECT (Step 10), the Mcaid prefix is prepended for Medi-Cal submission: McaidPS, McaidCU, McaidPU, McaidPN." data-tags="File Type|PS|CU|PU|PN|McaidPS|McaidCU|McaidPU|McaidPN|servicecode|priority|NCQA">
+        <div class="cs-header">File Type Derivation — NCQA Col C <span class="cs-db qnxt">QNXT · referral</span></div>
+        <div class="cs-sub">Derived from r.servicecode + r.[priority]. Mcaid prefix applied in Step 10 final SELECT for Medi-Cal submission.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">NCQA FILE TYPE CODES</div>
+        <div class="code-pill-row">
+          <span class="code-pill">McaidPS</span><span class="code-pill">McaidCU</span><span class="code-pill">McaidPU</span><span class="code-pill">McaidPN</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">SOURCE FIELDS (referral table)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">r.servicecode (service type)</span>
+          <span class="code-pill field">r.[priority] (urgency)</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">FILE TYPE MAPPING</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">PS = Post-Service</span>
+          <span class="code-pill field">CU = Concurrent</span>
+          <span class="code-pill field">PU = Pre-Service Urgent</span>
+          <span class="code-pill field">PN = Pre-Service Non-Urgent</span>
+        </div>
+        <div class="cs-note"><b>NCQA requirement:</b> Column C must carry the exact file type code. NULL values in Column C cause submission rejection. Verify all 4 types present in output before submission.</div>
+      </div>
+
+      <!-- ATTRIBUTE CODES -->
+      <div class="codeset-box node" data-title="Authorization Attribute Codes — qattribute / referralattribute" data-body="Five attribute types are extracted in the single-pass #authattributes build (Step 06, OPT002). All attribute identification is via LIKE pattern matching on qattribute.description (UPPER/LTRIM/RTRIM normalized). The AUTH NOTIFICATION LETTER SENT attribute is also the anchor for the #QUALIFYING_AUTHS pre-filter in Step 01 — only auths with this attribute in the NCQA window enter the universe." data-tags="#authattributes|MODIFIED|EXTENSION|NOTIFICATION|THRESHOLD|ORAL|qattribute|referralattribute|OPT002">
+        <div class="cs-header">Authorization Attribute Codes <span class="cs-db qnxt">QNXT · qattribute</span></div>
+        <div class="cs-sub">5 attribute types extracted in single-pass #authattributes build. Matched via LIKE on qattribute.description (UPPER normalized).</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">ATTRIBUTE PATTERN MATCHES</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">'%AUTH%NOTIFI%LETT%SENT%'</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">'%AUTH%MODIF%'</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">'%AUTH%EXTENS%'</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">'%THRESHOLD%'</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">'%ORAL%'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">PRE-FILTER ANCHOR (Step 01)</div>
+        <div class="code-pill-row">
+          <span class="code-pill">NOTIFICATION = ClockStop override</span>
+        </div>
+        <div class="cs-note"><b>OPT002 optimization:</b> Single-pass replaces 5 separate table reads against qattribute + referralattribute, significantly reducing I/O on large auth volumes.</div>
+      </div>
+
+      <!-- DENIAL REASON GROUP -->
+      <div class="codeset-box node" data-title="Denial Reason Group — Medical Necessity" data-body="Column F of the NCQA submission carries the reason text from the authreason table, filtered to the 'Denial-Medical Necessity' reason group. The chain is: authservicereason → reasongroupdtl → authreason. reasongroupdtl.groupid matches to the Medical Necessity denial group. The text from authreason.description is the literal value written to Column F. Only Medical Necessity denial reasons are included in this NCQA extract — other denial reasons (Administrative, Experimental) are excluded." data-tags="Denial Reason|Medical Necessity|authreason|authservicereason|reasongroupdtl|Column F|Denial-Medical Necessity">
+        <div class="cs-header">Denial Reason Group — Column F <span class="cs-db qnxt">QNXT · authreason</span></div>
+        <div class="cs-sub">Reason text for NCQA Column F. Filtered to Denial-Medical Necessity reason group only. Chain: authservicereason → reasongroupdtl → authreason.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">REASON GROUP FILTER</div>
+        <div class="code-pill-row">
+          <span class="code-pill">Denial-Medical Necessity</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">SOURCE CHAIN</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">authservicereason (auth → reason link)</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">reasongroupdtl (group classification)</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">authreason.description (Column F text)</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">EXCLUDED REASON GROUPS</div>
+        <div class="code-pill-row">
+          <span class="code-pill inactive">Denial-Administrative</span>
+          <span class="code-pill inactive">Denial-Experimental</span>
+        </div>
+        <div class="cs-note"><b>NCQA requirement:</b> Only Medical Necessity denials are in scope for the UM File Submission. Administrative and Experimental denials are out of scope for this extract.</div>
+      </div>
+
+      <!-- COC / OON CALL TYPES -->
+      <div class="codeset-box node" data-title="COC and OON Call Type Identifiers (calltrack)" data-body="Continuity of Care (COC) and Out of Network (OON) flags are set via inline EXISTS subqueries on calltrack JOIN callreason JOIN calltype in Step 03. Pattern matches on calltype.description using LIKE. COC flag populates [ContinuityOfCare] column; OON flag populates [OutOfNetwork]. Both flow through to NCQA_UM_DENIALS_OUTPUT for audit reviewer reference. These flags are informational — they do not change the NCQA column mapping but support DHCS/NCQA clinical review." data-tags="COC|OON|calltrack|callreason|calltype|ContinuityOfCare|OutOfNetwork|LIKE|EXISTS">
+        <div class="cs-header">COC / OON Call Type Identifiers <span class="cs-db qnxt">QNXT · calltrack</span></div>
+        <div class="cs-sub">Continuity of Care and Out-of-Network flags via EXISTS subqueries on calltrack+callreason+calltype. Informational — used for audit reviewer reference.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">COC PATTERN</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">calltype.description LIKE '%CONTINUITY%'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">OON PATTERN</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">calltype.description LIKE '%OUT%NETWORK%'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">OUTPUT FIELDS</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">[ContinuityOfCare]</span>
+          <span class="code-pill field">[OutOfNetwork]</span>
+        </div>
+        <div class="cs-note"><b>Implementation:</b> Both are inline EXISTS subqueries in the Step 03 main SELECT — no separate UPDATE pass needed. Result is a Y/N flag per authorization.</div>
+      </div>
+
+      <!-- PART B DRUG J-CODES -->
+      <div class="codeset-box node" data-title="Part B Drug Detection — J-Code via svccatgroup" data-body="J-codes (HCPCS Level II J-series — injectable/infusible drugs) are detected via the PartB CTE in Step 05. Source: authservice JOIN svccode JOIN svccatgroup. svccatgroup membership identifies the J-code category. UPDATE sets [PartBDrug] flag on NCQA_UM_DENIALS. This flag identifies drug-category denials for separate NCQA reporting streams. J-codes are typically J0000–J9999 range HCPCS codes." data-tags="Part B|J-Code|HCPCS|Drug|PartBDrug|authservice|svccode|svccatgroup|CTE|J0000–J9999">
+        <div class="cs-header">Part B Drug — J-Code Detection <span class="cs-db qnxt">QNXT · svccatgroup</span></div>
+        <div class="cs-sub">J-code injectable drug detection via PartB CTE. svccatgroup membership identifies drug category. Sets [PartBDrug] flag for downstream NCQA drug-category reporting.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">HCPCS CODE RANGE</div>
+        <div class="code-pill-row">
+          <span class="code-pill">J0000 – J9999</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">DETECTION CHAIN</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">authservice (service line)</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">svccode (HCPCS lookup)</span>
+        </div>
+        <div class="code-pill-row">
+          <span class="code-pill field">svccatgroup (drug category flag)</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">OUTPUT FLAG</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">[PartBDrug] = 'Y'</span>
+        </div>
+        <div class="cs-note"><b>Note:</b> J-code detection is implemented as a separate PartB CTE + UPDATE pass to avoid expanding the main SELECT row count via JOIN fanout.</div>
+      </div>
+
+      <!-- TAT CLOCK ANCHORS -->
+      <div class="codeset-box node" data-title="TAT Clock Anchors — ClockStart and ClockStop" data-body="The NCQA TAT (Column I) is calculated as business days between ClockStart and ClockStop. ClockStart: UTC receipt date from r.UtcReceiptDate converted to Pacific Standard Time using CONVERT(datetime,(r.UtcReceiptDate AT TIME ZONE 'UTC') AT TIME ZONE 'Pacific Standard Time'). ClockStop: overridden in the C010 UPDATE block (Step 07) with the AuthNotification letter date from #authattributes — aligning the clock stop to when the member was notified, per NCQA UM narrative requirement. Business days calculated via CROSS APPLY on date_calendarISO." data-tags="TAT|ClockStart|ClockStop|UTC|Pacific Standard Time|UtcReceiptDate|C010|AuthNotification|Business Days|date_calendarISO|CROSS APPLY">
+        <div class="cs-header">TAT Clock Anchors <span class="cs-db inform">INFORMATICS · date_calendarISO</span></div>
+        <div class="cs-sub">ClockStart = receipt date (UTC→PST). ClockStop = notification letter date (C010 override from #authattributes). Business days via CROSS APPLY.</div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">CLOCKSTART (NCQA Col H basis)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">r.UtcReceiptDate AT TIME ZONE 'UTC' → 'Pacific Standard Time'</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">CLOCKSTOP OVERRIDE (C010)</div>
+        <div class="code-pill-row">
+          <span class="code-pill field">AuthNotification date from #authattributes</span>
+        </div>
+        <div style="font-size:11px;color:#888;margin-bottom:6px;font-weight:700;letter-spacing:.5px">CALENDAR SOURCE</div>
+        <div class="code-pill-row">
+          <span class="code-pill enroll">INFORMATICS.dbo.date_calendarISO</span>
+        </div>
+        <div class="cs-note"><b>C010 business rule:</b> NCQA requires TAT measured to the date the denial notice was sent to the member, not the internal decision date. The C010 UPDATE applies this override after #authattributes is populated.</div>
+      </div>
+
+    </div><!-- /codeset-grid -->
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — SOURCE TABLES
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Source Tables Reference — All Tables Touched by NCQA_UM_20260610.sql</div>
+    <div class="subtitle" style="margin-bottom:18px">Five databases / servers contribute to this extract. Permanent INFORMATICS output tables are dropped and recreated each run. QNXT and EnrollmentManager tables are read-only sources. Temp tables are session-scoped and dropped at end of run.</div>
+
+    <!-- HMOPROD_PLANDATA -->
+    <div class="db-section">
+      <div class="db-title green">HMOPROD_PLANDATA · dbo — QNXT Transactional (SQLPROD02)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.referral</div><span class="ttype source">Source</span><div class="tdesc">Authorization header table. Primary driver: status='DENIED', referralid, authorizationid, memid, ownerid, servicecode, priority, UtcReceiptDate, seendate, ClockStart. Anchored by #QUALIFYING_AUTHS at Step 01.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.enrollkeys</div><span class="ttype source">Source</span><div class="tdesc">Member enrollment roster. Provides programid, planid, effdate, termdate. Joined in setauthref CTE to resolve LOB. Primary LOB gate for MEDI-CAL + CHGSD filter.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.qattribute</div><span class="ttype source">Source</span><div class="tdesc">Authorization attribute type definitions. attributeid → description (e.g., 'AUTH NOTIFICATION LETTER SENT'). Used in #QUALIFYING_AUTHS pre-filter and #authattributes single-pass extraction.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.referralattribute</div><span class="ttype source">Source</span><div class="tdesc">Authorization-level attribute records. Links referralid to attributeid with effdate. Contains the notification letter sent date (effdate) used as ClockStop override anchor.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.authservice</div><span class="ttype source">Source</span><div class="tdesc">Service line detail per authorization. Provides CPT/HCPCS servcode, modifier, units, revcode, authorizationid. Used for CPT enrichment (Step 04), Part B drug detection (Step 05), and TAT threshold units (Step 07).</div></div>
+        <div class="tbl-card"><div class="tname">dbo.authdiag</div><span class="ttype source">Source</span><div class="tdesc">Diagnosis code records per authorization. Provides ICD-10 diagcode + sequence. Used in Dx enrichment (Step 04) with STRING_AGG to build multi-code diagnosis strings per authorization.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.authservicereason</div><span class="ttype source">Source</span><div class="tdesc">Links authorization service lines to denial reason records. Bridge table in the authreason chain: authservicereason → reasongroupdtl → authreason. Applied at Step 03 main SELECT.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.reasongroupdtl</div><span class="ttype ref">Reference</span><div class="tdesc">Maps reason codes to their group classification. Filters to 'Denial-Medical Necessity' group in the denial reason chain. Excludes Administrative and Experimental denial reasons.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.authreason</div><span class="ttype ref">Reference</span><div class="tdesc">Denial reason text lookup. authreason.description = Column F value in the NCQA submission. Joined through authservicereason + reasongroupdtl chain.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.provider</div><span class="ttype source">Source</span><div class="tdesc">Provider header records. Provides provider name fields for ReferFrom and ReferTo. Joined twice in Step 03 main SELECT (once per provider role).</div></div>
+        <div class="tbl-card"><div class="tname">dbo.entity</div><span class="ttype source">Source</span><div class="tdesc">Entity-level details including NPI. Joined to provider to surface NPI for ReferFrom and ReferTo on each authorization record in NCQA_UM_DENIALS.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.authservicedetail</div><span class="ttype source">Source</span><div class="tdesc">TAT threshold and unit values per authorization service line. Updated to NCQA_UM_DENIALS in Step 07 Threshold/Units UPDATE block.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.referraltext</div><span class="ttype source">Source</span><div class="tdesc">Authorization remarks / free-text notes. Captured in [Remarks] column of NCQA_UM_DENIALS for audit reviewer reference.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.svccode</div><span class="ttype ref">Reference</span><div class="tdesc">CPT/HCPCS code description lookup. Used in CPT enrichment (Step 04) and Part B drug detection (Step 05) via svccatgroup join.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.diagcode</div><span class="ttype ref">Reference</span><div class="tdesc">ICD-10 diagnosis code description lookup. Used in Dx enrichment (Step 04) to add diagnosis descriptions alongside code values.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.revcode</div><span class="ttype ref">Reference</span><div class="tdesc">Revenue code description lookup. Used in Rev Code enrichment (Step 04) to add revenue code descriptions alongside code values.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.svccatgroup</div><span class="ttype ref">Reference</span><div class="tdesc">Service category group classification. Used in Part B drug detection (Step 05) to identify J-code (drug category) service lines via CTE.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.calltrack</div><span class="ttype source">Source</span><div class="tdesc">Call tracking records. Used in two inline EXISTS subqueries in Step 03: one for COC (ContinuityOfCare) flag, one for OON (OutOfNetwork) flag.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.callreason</div><span class="ttype ref">Reference</span><div class="tdesc">Call reason codes. Joined to calltrack in COC and OON EXISTS subqueries. Part of the three-table calltrack+callreason+calltype chain.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.calltype</div><span class="ttype ref">Reference</span><div class="tdesc">Call type descriptions. calltype.description LIKE '%CONTINUITY%' drives COC flag; LIKE '%OUT%NETWORK%' drives OON flag in the inline EXISTS subqueries.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.member</div><span class="ttype source">Source</span><div class="tdesc">Member demographics. Provides DOB, primarylanguage ID, entityid. Joined in Step 09 final assembly (NCQA_UM_DENIALS_OUTPUT).</div></div>
+        <div class="tbl-card"><div class="tname">dbo.language</div><span class="ttype ref">Reference</span><div class="tdesc">Language code lookup. Maps member.primarylanguage numeric ID to language description string. LEFT JOINed in Step 09 final assembly for display in output.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.memberCmsHic</div><span class="ttype source">Source</span><div class="tdesc">CMS HIC / MBI records. Provides Medicare Beneficiary Identifier (MBI) for dual-eligible members. LEFT JOINed in Step 09 final assembly.</div></div>
+      </div>
+    </div>
+
+    <!-- INFORMATICS -->
+    <div class="db-section">
+      <div class="db-title blue">INFORMATICS · dbo — Analytics Warehouse (SQLPRODAPP01)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.NCQA_UM_DENIALS</div><span class="ttype perm">Permanent Output</span><div class="tdesc">Primary staging permanent table. Replaces #AUTHRFI from prior script versions. Dropped and recreated each run. Holds all denial records after Steps 01–07 enrichments. Index: idx_REFACTOR_DupID ON (referralid, authorizationid, ClockStart).</div></div>
+        <div class="tbl-card"><div class="tname">dbo.NCQA_UM_DENIALS_OUTPUT</div><span class="ttype perm">Permanent Output</span><div class="tdesc">Final permanent output table. Replaces #AUTHRFI_OUTPUT. Written at Step 09 after PCP/Aid Code/Language/MBI assembly. Source of the NCQA Final SELECT (Step 10). Dropped and recreated each run.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_LINE_OF_BUSINESS</div><span class="ttype view">View</span><div class="tdesc">Translates QNXT planid/programid to LINE_OF_BUSINESS, PLAN, PROGRAM, and Contract Number labels. The LOB gate: LINE_OF_BUSINESS LIKE '%MEDI-CAL%' AND Contract Number = 'CHGSD'.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_BASELINE_MEMBERSHIP</div><span class="ttype view">View</span><div class="tdesc">Medi-Cal member base view. Supplemental member data used in the final NCQA_UM_DENIALS_OUTPUT assembly.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_AUTHREFCLAIM</div><span class="ttype view">View</span><div class="tdesc">Authorization-to-claim cross-reference view. Links authorizations to paid claims for post-service determination context. Joined in the main SELECT.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.date_calendarISO</div><span class="ttype ref">Reference</span><div class="tdesc">50-year ISO calendar with business day and holiday flags. Used in CROSS APPLY at Step 07 to calculate business-day TAT between ClockStart and ClockStop.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_FALSE_PROVIDER_PAR</div><span class="ttype view">View</span><div class="tdesc">Tier 1 of the PAR status lookup chain. Returns known non-PAR override records. Applied twice in Step 08 — once for ReferFrom, once for ReferTo provider.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_PROVISO</div><span class="ttype view">View</span><div class="tdesc">Tier 2 of the PAR status lookup chain. Supplemental provider credentialing / contracting status view.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.uvw_PCP</div><span class="ttype view">View</span><div class="tdesc">Current PCP per member. DENSE_RANK by effdate DESC, filtered to @PCPrecordRANK = 1. Joined in Step 09 final assembly for NCQA_UM_DENIALS_OUTPUT.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.VLOOKUPIndicator_DENTAL_PAD_ABA</div><span class="ttype ref">Reference</span><div class="tdesc">Exclusion indicator reference table. Identifies Dental/PAD/ABA authorization types that may be excluded from NCQA UM scope. Used as a filter gate in the main SELECT.</div></div>
+        <div class="tbl-card"><div class="tname">SQLPRODAPP01.INFORMATICS.dbo.uvw_ProviderRepository274_PAR</div><span class="ttype linked">Cross-Server View</span><div class="tdesc">Tier 3 of the PAR status lookup chain. The definitive PAR flag accessed via linked server from SQLPRODAPP01. Final authority on PAR/non-PAR designation for audit purposes.</div></div>
+      </div>
+    </div>
+
+    <!-- ENROLLMENTMANAGER -->
+    <div class="db-section">
+      <div class="db-title purple">EnrollmentManager · dbo — Aid Code (SQLPRODAPP01)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.healthcoverage</div><span class="ttype source">Source</span><div class="tdesc">Primary Aid Code source for Medi-Cal members. Joined in Step 09 final assembly (NCQA_UM_DENIALS_OUTPUT) to provide Aid Code per member per authorization date.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.healthcoverageoverlay</div><span class="ttype source">Source</span><div class="tdesc">Aid Code override / correction layer. Applied over healthcoverage where corrections exist. Takes precedence when present for a given member/date combination.</div></div>
+        <div class="tbl-card"><div class="tname">dbo.HcpStatusCode</div><span class="ttype ref">Reference</span><div class="tdesc">Aid Code status code lookup table. Maps numeric or coded Aid Codes to descriptive labels. Joined in Step 09 for Aid Code description display.</div></div>
+      </div>
+    </div>
+
+    <!-- QCSIDB -->
+    <div class="db-section">
+      <div class="db-title pink">HMOPROD_QCSIDB · dbo — Case Manager (SQLPROD02)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">dbo.quser</div><span class="ttype source">Source</span><div class="tdesc">QCSI user/case manager table. Provides case manager name by ownerid. Joined to referral on r.ownerid = quser.userid in Step 03. Not in the QNXT schema — lives in the companion QCSI database on SQLPROD02.</div></div>
+      </div>
+    </div>
+
+    <!-- TEMP TABLES -->
+    <div class="db-section">
+      <div class="db-title cyan">TempDB — Session-Scoped Temp Tables (dropped at end of run)</div>
+      <div class="tbl-grid">
+        <div class="tbl-card"><div class="tname">#QUALIFYING_AUTHS</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Pre-filter anchor table (Step 01). Built from qattribute + referralattribute + referral. DENIED + notification letter sent in window. Clustered index on referralid, nonclustered on memid. Critical performance optimization — eliminates non-qualifying auths before all downstream joins.</div></div>
+        <div class="tbl-card"><div class="tname">#authattributes</div><span class="ttype worktemp">Temp Table</span><div class="tdesc">Single-pass attribute extraction (Step 06, OPT002). Five attribute types extracted in one SELECT from qattribute + referralattribute. Replaces 5 separate reads. Used in 4 subsequent UPDATE blocks to populate NCQA_UM_DENIALS attribute fields.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /Slide 2 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 3 — RUNBOOK
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Runbook Sequence — NCQA_UM_20260610.sql</div>
+    <div class="timeline">
+      <div class="tl"><strong>01 · Set Parameters</strong><p>Verify and set all runtime parameters: @ClockStart = '06/14/2025', @ClockStop = '05/15/2026', @BRAND = 'CHGSD', @Authlob = 'MEDI-CAL', @PCPrecordRANK = 1. Confirm date range aligns with the current NCQA accreditation window per submission narrative. Never run with @Authlob = NULL or @BRAND = NULL in production.</p></div>
+      <div class="tl"><strong>02 · Drop / Create Permanent Tables</strong><p>The script drops and recreates INFORMATICS.dbo.NCQA_UM_DENIALS and INFORMATICS.dbo.NCQA_UM_DENIALS_OUTPUT at the top of each run. Confirm INFORMATICS.dbo write permissions for CHG\wcarr on SQLPRODAPP01 are active before executing.</p></div>
+      <div class="tl"><strong>03 · Pre-Filter Anchor (#QUALIFYING_AUTHS)</strong><p>Step 01 builds #QUALIFYING_AUTHS. Immediately check SELECT COUNT(*) FROM #QUALIFYING_AUTHS. Expected: several hundred thousand rows for a full accreditation window. Zero rows = parameter error or no matching notification letters. Do not proceed if count is zero.</p></div>
+      <div class="tl"><strong>04 · setauthref CTE + Main INSERT (Steps 02–03)</strong><p>The setauthref CTE reads from #QUALIFYING_AUTHS and applies the LOB/brand gate. Main INSERT to NCQA_UM_DENIALS runs with 15+ JOINs. Check row count in NCQA_UM_DENIALS after INSERT. CREATE INDEX idx_REFACTOR_DupID runs immediately after INSERT — confirm it completes before proceeding.</p></div>
+      <div class="tl"><strong>05 · Enrichment UPDATEs (Steps 04–07)</strong><p>Run all UPDATE blocks sequentially: AOR, Dx (STRING_AGG), CPT (STRING_AGG), RevCode (STRING_AGG), Part B drug (PartB CTE), #authattributes single-pass build, 4 attribute UPDATEs, TAT C010 ClockStop override, Threshold/Units, CROSS APPLY business-day TAT calculation.</p></div>
+      <div class="tl"><strong>06 · PAR Status Chain (Step 08)</strong><p>Three-tier PAR lookup runs twice (ReferFrom then ReferTo). Confirm uvw_FALSE_PROVIDER_PAR, uvw_PROVISO, and SQLPRODAPP01.INFORMATICS.dbo.uvw_ProviderRepository274_PAR are all accessible. The cross-server view requires an active linked server connection to SQLPRODAPP01 from SQLPROD02.</p></div>
+      <div class="tl"><strong>07 · Final Assembly (Step 09)</strong><p>Complex GROUP BY SELECT INTO NCQA_UM_DENIALS_OUTPUT joining PCP (uvw_PCP), Aid Code (EnrollmentManager), language, and MBI. ROW_NUMBER() deduplication applied. Verify row counts before and after to confirm expected dedup ratio.</p></div>
+      <div class="tl"><strong>08 · NCQA Final SELECT (Step 10)</strong><p>refertoreferfrom CTE + final SELECT producing 9-column NCQA output (Columns A–I). Verify: all 4 file types present (McaidPS/CU/PU/PN), no NULL values in any NCQA column, TAT values are within expected ranges per file type. Export result set to Excel for NCQA submission.</p></div>
+      <div class="tl"><strong>09 · Post-Run Validation</strong><p>Cross-reference row counts between NCQA_UM_DENIALS (Step 03 universe) and final SELECT output (Step 10). Investigate any significant drop. Check TAT distribution: flag negative TAT or TAT &gt; 90 days as data quality issues. Confirm @ClockStart and @ClockStop dates appear correctly in Column D and Column H values.</p></div>
+      <div class="tl"><strong>10 · Delivery</strong><p>Export final SELECT result set to Excel. Deliver per NCQA accreditation coordinator instructions. File naming convention: NCQA_UM_MEDI-CAL_CHGSD_[YYYYMMDD].xlsx. Retain NCQA_UM_DENIALS and NCQA_UM_DENIALS_OUTPUT in INFORMATICS.dbo until NCQA review is complete — do not drop manually.</p></div>
+    </div>
+  </div>
+</div><!-- /Slide 3 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 4 — CONTROLS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Quality Controls &amp; Business Rules</div>
+
+    <table class="mini-table">
+      <thead>
+        <tr>
+          <th>Control ID</th>
+          <th>Control Name</th>
+          <th>Rule / Check</th>
+          <th>Failure Impact</th>
+          <th>Step</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>C001</td>
+          <td>LOB Lock</td>
+          <td>@Authlob must = 'MEDI-CAL'. Enforced via LINE_OF_BUSINESS LIKE '%'+@Authlob+'%' in setauthref CTE. NULL returns all LOBs.</td>
+          <td>Audit universe inflated with non-Medi-Cal authorizations. NCQA submission scope violation.</td>
+          <td>02</td>
+        </tr>
+        <tr>
+          <td>C002</td>
+          <td>Brand Lock</td>
+          <td>@BRAND must = 'CHGSD'. Enforced via bp.[Contract Number] = ISNULL(@BRAND, ...) in setauthref CTE. NULL returns all brands.</td>
+          <td>CHGLA/other brand records contaminate CHGSD submission. File rejection risk.</td>
+          <td>02</td>
+        </tr>
+        <tr>
+          <td>C003</td>
+          <td>Status Filter</td>
+          <td>r.status = 'DENIED' enforced at #QUALIFYING_AUTHS (Step 01) and again in NCQA Final SELECT (Step 10).</td>
+          <td>Non-denied authorizations (APPROVED, PENDED, etc.) enter the NCQA universe. Submission error.</td>
+          <td>01, 10</td>
+        </tr>
+        <tr>
+          <td>C004</td>
+          <td>Notification Letter Date in Window</td>
+          <td>TRY_CONVERT(date, attrib.effdate) BETWEEN @ClockStart AND @ClockStop. The pre-filter anchor ensures only auths notified in the NCQA accreditation window are included.</td>
+          <td>Auths outside the accreditation window enter the universe. TAT values may be out-of-scope.</td>
+          <td>01</td>
+        </tr>
+        <tr>
+          <td>C005</td>
+          <td>ClockStop C010 Override</td>
+          <td>After #authattributes is built, UPDATE sets ClockStop = notification letter date. Without this override, TAT calculates to internal decision date, not member notification date — incorrect per NCQA narrative.</td>
+          <td>TAT values do not align with NCQA requirements. Column I incorrect for all records.</td>
+          <td>07</td>
+        </tr>
+        <tr>
+          <td>C006</td>
+          <td>File Type Coverage</td>
+          <td>All 4 file types (McaidPS, McaidCU, McaidPU, McaidPN) must appear in Column C. SELECT COUNT(*) FROM ... GROUP BY [File Type] to verify. No NULL File Type values permitted.</td>
+          <td>Missing file type = incomplete NCQA submission. NULL in Column C = submission rejection.</td>
+          <td>10</td>
+        </tr>
+        <tr>
+          <td>C007</td>
+          <td>TAT Reasonableness</td>
+          <td>Post-service (PS) ≤ 30 days. Concurrent (CU) ≤ 1 business day. Pre-service urgent (PU) ≤ 3 business days. Pre-service standard (PN) ≤ 14 calendar days. Flag negatives and &gt;90 days.</td>
+          <td>Outlier TAT values indicate data quality issues — notification letter date may be wrong or missing.</td>
+          <td>07, 10</td>
+        </tr>
+        <tr>
+          <td>C008</td>
+          <td>Permanent Table Write Permission</td>
+          <td>INFORMATICS.dbo.NCQA_UM_DENIALS and NCQA_UM_DENIALS_OUTPUT require CREATE TABLE / DROP TABLE / INSERT permissions for CHG\wcarr on SQLPRODAPP01. Verify before run.</td>
+          <td>Script fails at Step 03 INSERT if permissions are not current. No output produced.</td>
+          <td>03, 09</td>
+        </tr>
+        <tr>
+          <td>C009</td>
+          <td>Cross-Server PAR Connectivity</td>
+          <td>SQLPRODAPP01.INFORMATICS.dbo.uvw_ProviderRepository274_PAR requires active linked server from SQLPROD02 to SQLPRODAPP01. Verify with SELECT TOP 1 FROM the view before full run.</td>
+          <td>PAR lookup chain fails at Tier 3. ReferFromPAR and ReferToPAR may be NULL for all records.</td>
+          <td>08</td>
+        </tr>
+        <tr>
+          <td>C010</td>
+          <td>UTC → Pacific Standard Time Conversion</td>
+          <td>r.UtcReceiptDate must be converted to Pacific Standard Time using AT TIME ZONE pattern. Bare GETDATE() or no conversion produces incorrect ClockStart and TAT values.</td>
+          <td>TAT calculation is off by UTC offset (typically 7–8 hours). May affect same-day determination logic.</td>
+          <td>03, 07</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <b>DUB C 2.0 Standards Applied:</b> This script enforces the CHGSD INFORMATICS DUB C 2.0 coding standards throughout. Key rules: commas left-aligned at column 0, explicit JOIN types (INNER JOIN / LEFT JOIN — never bare JOIN), NOLOCK applied directly after table name as <code>TableName (NOLOCK) AS alias</code>, CASE/WHEN/THEN/ELSE/END each on new lines, all SQL syntax in UPPERCASE, all aliases preceded by AS keyword, DISTINCT replaced with GROUP BY in final SELECT where applicable, UNION → UNION ALL when duplicates handled in final aggregation.
+    </div>
+  </div>
+</div><!-- /Slide 4 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 5 — PARAMETERS
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Runtime Parameters — NCQA_UM_20260610.sql</div>
+    <div class="subtitle" style="margin-bottom:6px">All parameters are declared and SET in the parameter block at the top of the script. Production values shown for the 2026 NCQA accreditation submission.</div>
+
+    <div class="param-grid">
+      <div class="param-card">
+        <div class="pname">@ClockStart</div>
+        <div class="pval">'06/14/2025'</div>
+        <div class="pdesc">Start of NCQA accreditation audit window. Anchor date for notification letter received date filter. Corresponds to Column H (received date) lower bound.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">@ClockStop</div>
+        <div class="pval">'05/15/2026'</div>
+        <div class="pdesc">End of NCQA accreditation audit window. Upper bound for notification letter effdate in #QUALIFYING_AUTHS pre-filter. Also initial ClockStop — overridden per-auth by C010 UPDATE.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">@BRAND</div>
+        <div class="pval">'CHGSD'</div>
+        <div class="pdesc">Plan brand / Contract Number lock. Enforced in setauthref CTE via bp.[Contract Number] = ISNULL(@BRAND, ...). Must be 'CHGSD' for CHGSD NCQA submission. NULL = all brands.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">@Authlob</div>
+        <div class="pval">'MEDI-CAL'</div>
+        <div class="pdesc">Line of Business filter. Applied via bp.[LINE_OF_BUSINESS] LIKE ISNULL('%'+@Authlob+'%','%') in setauthref CTE. Must be 'MEDI-CAL' for Medi-Cal NCQA submission. NULL = all LOBs.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">@PCPrecordRANK</div>
+        <div class="pval">1</div>
+        <div class="pdesc">PCP record rank selector. DENSE_RANK() OVER (PARTITION BY memid ORDER BY effdate DESC) = @PCPrecordRANK returns only the most current PCP record per member. Always = 1 in production.</div>
+      </div>
+      <div class="param-card">
+        <div class="pname">Server / Connection</div>
+        <div class="pval">SQLPROD02</div>
+        <div class="pdesc">Primary execution server. CHG\wcarr connection via SSMS. SQLPRODAPP01 accessed via linked server for INFORMATICS views and EnrollmentManager tables. SQL Server 15.0 RTM.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:22px">
+      <div class="kicker" style="margin-bottom:12px">Declared Variables (Internal)</div>
+      <table class="mini-table">
+        <thead>
+          <tr><th>Variable</th><th>Type</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>@ClockStart</td><td>date</td><td>NCQA window start — notification letter anchor</td></tr>
+          <tr><td>@ClockStop</td><td>date</td><td>NCQA window end — initial value, overridden per-auth by C010</td></tr>
+          <tr><td>@BRAND</td><td>nvarchar(50)</td><td>Contract Number / brand lock — 'CHGSD'</td></tr>
+          <tr><td>@Authlob</td><td>nvarchar(50)</td><td>Line of Business filter — 'MEDI-CAL'</td></tr>
+          <tr><td>@PCPrecordRANK</td><td>int</td><td>PCP DENSE_RANK selector — always 1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout" style="margin-top:18px">
+      <b>Performance Notes:</b> NCQA_UM_20260610.sql incorporates two major optimizations over prior versions. <b>(1) #QUALIFYING_AUTHS pre-filter</b> (Step 01): anchors the working set on notification letter date + DENIED status before any LOB or enrollment joins — dramatically reduces the rows entering the 15+ JOIN main SELECT. <b>(2) #authattributes single-pass</b> (OPT002, Step 06): one read of qattribute + referralattribute replacing five separate reads for MODIFIED / EXTENSION / NOTIFICATION / THRESHOLD / ORAL attribute types. Both optimizations were user-applied to address excessive runtime observed in prior execution plans (NCQA CTE STAGING.sqlplan / NCQA CTE temp TABLE.sqlplan).
+    </div>
+  </div>
+</div><!-- /Slide 5 -->
+
+</div><!-- /deck -->
+
+<script>
+  // Slide navigation
+  const slides = document.querySelectorAll('.slide');
+  function showSlide(idx, btn) {
+    slides.forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    slides[idx].classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // Node click → detail panel
+  document.querySelectorAll('.node').forEach(node => {
+    node.addEventListener('click', function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+      this.classList.add('selected');
+
+      const title = this.dataset.title || '';
+      const body = this.dataset.body || '';
+      const tags = (this.dataset.tags || '').split('|').filter(Boolean);
+
+      document.getElementById('detailTitle').textContent = title;
+      document.getElementById('detailBody').textContent = body;
+
+      const tagContainer = document.getElementById('detailTags');
+      tagContainer.innerHTML = '';
+      const colors = ['', 'gold', 'green', 'pink', 'red', '', 'gold', 'green'];
+      tags.forEach((t, i) => {
+        const span = document.createElement('span');
+        span.className = 'badge ' + (colors[i % colors.length]);
+        span.textContent = t;
+        tagContainer.appendChild(span);
+      });
+    });
+  });
+
+  // Deselect on background click
+  document.addEventListener('click', function() {
+    document.querySelectorAll('.node').forEach(n => n.classList.remove('selected'));
+    document.getElementById('detailTitle').textContent = 'Click any node in the diagram above';
+    document.getElementById('detailBody').textContent = 'Details will show data sources, code sets, business rules, and analyst notes for the selected element.';
+    document.getElementById('detailTags').innerHTML = '<span class="badge">Interactive</span><span class="badge">DFD v1</span><span class="badge gold">NCQA 2026</span><span class="badge green">10 Processing Steps</span>';
+  });
+</script>
+</body>
+</html>

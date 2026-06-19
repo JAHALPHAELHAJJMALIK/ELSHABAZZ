@@ -1,0 +1,169 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.report{padding:1.25rem 0;max-width:680px}
+.section{margin-bottom:1.5rem}
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px}
+.badge-red{background:var(--color-background-danger);color:var(--color-text-danger)}
+.badge-amber{background:var(--color-background-warning);color:var(--color-text-warning)}
+.badge-green{background:var(--color-background-success);color:var(--color-text-success)}
+.badge-info{background:var(--color-background-info);color:var(--color-text-info)}
+h2{font-size:15px;font-weight:500;color:var(--color-text-primary)}
+.finding{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:8px}
+.finding-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--color-background-secondary)}
+.finding-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.finding-body{padding:10px 12px;font-size:12px;color:var(--color-text-secondary);line-height:1.6}
+table.diff{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+table.diff th{text-align:left;font-weight:500;color:var(--color-text-secondary);padding:3px 8px;font-size:11px;text-transform:uppercase;letter-spacing:0.04em}
+table.diff td{padding:4px 8px;border-top:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);vertical-align:top}
+table.diff tr:first-child td{border-top:0.5px solid var(--color-border-secondary)}
+.val-old{color:var(--color-text-danger);font-weight:500}
+.val-new{color:var(--color-text-success);font-weight:500}
+.npi{font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary)}
+.summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:1.5rem}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 12px}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
+.stat-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.action-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:4px;cursor:pointer;border:0.5px solid var(--color-border-secondary)}
+.action-pill:hover{background:var(--color-background-secondary)}
+.divider{height:0.5px;background:var(--color-border-tertiary);margin:1rem 0}
+.tag-resolved{background:var(--color-background-success);color:var(--color-text-success);font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px}
+</style>
+<div class="report">
+  <div style="margin-bottom:1.5rem">
+    <p style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">uvw_CS_CAPACITY — alignment review</p>
+    <h1 style="font-size:18px;font-weight:500;color:var(--color-text-primary);line-height:1.3">MOC template vs SQL view — 05/05/2026</h1>
+  </div>
+
+  <div class="summary-grid">
+    <div class="stat"><div class="stat-label">Capacity mismatches</div><div class="stat-val" style="color:var(--color-text-danger)">2</div></div>
+    <div class="stat"><div class="stat-label">SQL-only records</div><div class="stat-val" style="color:var(--color-text-warning)">19</div></div>
+    <div class="stat"><div class="stat-label">NPI conflicts</div><div class="stat-val" style="color:var(--color-text-danger)">1</div></div>
+    <div class="stat"><div class="stat-label">CHG providers matched</div><div class="stat-val" style="color:var(--color-text-success)">62</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="badge badge-red">Priority 1</span>
+      <h2>Capacity mismatch — Lifeline (C017 applied)</h2>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <span class="finding-title">Lifeline Community Services (North County Lifeline)</span>
+        <span class="tag-resolved">C017 applied in output SQL</span>
+      </div>
+      <div class="finding-body">
+        <span class="npi">NPI 1619393584</span> — Two of three service lines were stale (last updated C015/Feb 2026). Ms. Tania's email of 05/05/2026 confirms new numbers. Housing Transition Navigation (85) was already correct.
+        <table class="diff" style="margin-top:8px">
+          <tr><th>Service line</th><th>SQL (old)</th><th>Excel/Email</th><th>Action</th></tr>
+          <tr>
+            <td>Housing Deposits</td>
+            <td><span class="val-old">13</span></td>
+            <td><span class="val-new">20</span></td>
+            <td>Updated</td>
+          </tr>
+          <tr>
+            <td>Housing Tenancy and Sustaining Services</td>
+            <td><span class="val-old">13</span></td>
+            <td><span class="val-new">20</span></td>
+            <td>Updated</td>
+          </tr>
+          <tr>
+            <td>Housing Transition Navigation Services</td>
+            <td>85</td>
+            <td>85</td>
+            <td style="color:var(--color-text-success)">Match — no change</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="badge badge-red">Priority 2</span>
+      <h2>NPI conflict — 1376207829 assigned to two providers</h2>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <span class="finding-title">NPI 1376207829 — dual assignment</span>
+        <span class="badge badge-red">Requires confirmation</span>
+      </div>
+      <div class="finding-body">
+        The same NPI appears under two different provider names. This NPI cannot belong to two entities.
+        <table class="diff" style="margin-top:8px">
+          <tr><th>Provider name in SQL</th><th>Plan flags</th><th>Service lines</th></tr>
+          <tr><td>Serene Health</td><td>CHG=1, CHPIV=1</td><td>Hsg Deposits, Tenancy, Transition Nav, Short-term Post-Hosp</td></tr>
+          <tr><td>San Diego Wellness Collaborative</td><td>CHG=0, CHPIV=1</td><td>Hsg Deposits, Tenancy, Transition Nav</td></tr>
+        </table>
+        <p style="margin-top:8px"><strong style="font-weight:500">Action:</strong> Confirm with Sir Omar / CHPIV source whether this NPI belongs to Serene Health or San Diego Wellness Collaborative and remove/reassign accordingly.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="badge badge-red">Priority 3</span>
+      <h2>Deprecated NPI still active — Serene Health 1649809526</h2>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <span class="finding-title">C001 removal incomplete — NPI 1649809526 remains in SQL</span>
+        <span class="badge badge-red">4 records to purge</span>
+      </div>
+      <div class="finding-body">
+        C001 (20250429, per Ms. Claudia's email) directed removal of NPI 1649809526. C014 acknowledged it, but four records persist with this deprecated NPI still tagged CHG=1, CHPIV=1.
+        <table class="diff" style="margin-top:8px">
+          <tr><th>Provider</th><th>NPI (deprecated)</th><th>Service line</th><th>Cap</th></tr>
+          <tr><td>Serene Health</td><td class="npi">1649809526</td><td>Housing Deposits</td><td>200</td></tr>
+          <tr><td>Serene Health</td><td class="npi">1649809526</td><td>Housing Tenancy and Sustaining Services</td><td>450</td></tr>
+          <tr><td>Serene Health</td><td class="npi">1649809526</td><td>Housing Transition Navigation Services</td><td>1200</td></tr>
+          <tr><td>Serene Health</td><td class="npi">1649809526</td><td>NF Transition to a Home</td><td>25</td></tr>
+        </table>
+        <p style="margin-top:8px">Confirmed correct NPI is <span class="npi">1114765229</span> (already present with correct values).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="badge badge-amber">Priority 4</span>
+      <h2>CHG-flagged records not reflected in MOC template</h2>
+    </div>
+
+    <div class="finding">
+      <div class="finding-header">
+        <span class="finding-title">Providers in SQL (CHG=1) absent from the 05/05/2026 Excel</span>
+        <span class="badge badge-amber">Confirm intent</span>
+      </div>
+      <div class="finding-body">
+        The following CHG-flagged providers/service-lines exist in the SQL view but are not present in today's MOC template. May be intentional (CHG-internal or pre-submission additions) — confirm with Sir Omar / Ms. Tania whether these should appear in the next MOC submission.
+        <table class="diff" style="margin-top:8px">
+          <tr><th>Provider</th><th>NPI</th><th>Service</th><th>Note</th></tr>
+          <tr><td>La Maestra Health HCMP</td><td class="npi">1609849074</td><td>3 Housing lines</td><td>Second NPI, not in Excel</td></tr>
+          <tr><td>Serene Health</td><td class="npi">1114765229</td><td>NF Transition to a Home</td><td>Not in Excel (CHG only)</td></tr>
+          <tr><td>Serene Health</td><td class="npi">1376207829</td><td>4 service lines</td><td>See NPI conflict above</td></tr>
+          <tr><td>Horizon Centers of San Diego</td><td class="npi">1639636673 / 1497518880</td><td>Recuperative Care, Day Hab</td><td>Both NPIs, not in Excel</td></tr>
+          <tr><td>City of Refuge</td><td class="npi">1982395893</td><td>Recuperative Care</td><td>Not in Excel</td></tr>
+          <tr><td>ASR Construction</td><td class="npi">1194567933</td><td>Environmental Accessibility Adaptations</td><td>Not in Excel</td></tr>
+          <tr><td>Whole Person Care Clinic</td><td class="npi">1922790906</td><td>Day Habilitation Programs</td><td>Duplicate row — two provider_type values ('Primary Care Provider...' and 'Behavioral Health Facility') for same NPI/service</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <span class="badge badge-green">No action</span>
+      <h2>Full alignment confirmed — all remaining CHG providers</h2>
+    </div>
+    <div class="finding-body" style="font-size:12px;color:var(--color-text-secondary);padding:8px 0">
+      All 62 CHG provider / service-line / capacity combinations present in the MOC template (excluding Lifeline) match exactly to the SQL view. Provider types, NPIs, and capacity numbers are consistent. CHPIV-only providers (CHG=0, CHPIV=1) are outside scope of the CHG MOC template and were not evaluated here.
+    </div>
+  </div>
+</div>

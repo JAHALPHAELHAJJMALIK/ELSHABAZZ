@@ -1,0 +1,119 @@
+
+<style>
+  .wrap { padding: 1.5rem 0; font-family: var(--font-sans); }
+  .week-header { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; color: var(--color-text-tertiary); text-transform: uppercase; margin-bottom: 1.5rem; }
+  .domain { margin-bottom: 1.75rem; }
+  .domain-label { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 0.6rem; display: flex; align-items: center; gap: 8px; }
+  .domain-label::after { content: ''; flex: 1; height: 0.5px; background: var(--color-border-tertiary); }
+  .thread-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 0.85rem 1.1rem; margin-bottom: 0.6rem; display: flex; align-items: flex-start; gap: 12px; }
+  .thread-card:last-child { margin-bottom: 0; }
+  .badge { font-size: 10px; font-weight: 500; padding: 3px 8px; border-radius: var(--border-radius-md); white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .badge-done { background: #EAF3DE; color: #3B6D11; }
+  .badge-active { background: #E6F1FB; color: #185FA5; }
+  .badge-pending { background: #FAEEDA; color: #854F0B; }
+  .thread-body { flex: 1; }
+  .thread-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+  .thread-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.55; }
+  .summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.75rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.85rem 1rem; }
+  .metric-label { font-size: 11px; color: var(--color-text-tertiary); margin-bottom: 4px; }
+  .metric-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .metric-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+</style>
+<div class="wrap">
+  <div class="week-header">Week ending May 1, 2026 — /INSIGHTS wrap-up</div>
+
+  <div class="summary-row">
+    <div class="metric">
+      <div class="metric-label">Threads active</div>
+      <div class="metric-val">8</div>
+      <div class="metric-sub">across 3 domains</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Completed</div>
+      <div class="metric-val">5</div>
+      <div class="metric-sub">QA-clean deliverables</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Pending</div>
+      <div class="metric-val">1</div>
+      <div class="metric-sub">CCME stratification</div>
+    </div>
+  </div>
+
+  <div class="domain">
+    <div class="domain-label">PHM KPI stratification — DHCS PHM IN 26.001</div>
+
+    <div class="thread-card">
+      <span class="badge badge-done">Done</span>
+      <div class="thread-body">
+        <div class="thread-title">FUAH — Sex/Gender stratification</div>
+        <div class="thread-desc">Production-validated. Sex/Gender columns added and confirmed against denominator logic. Submission-ready.</div>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <span class="badge badge-done">Done</span>
+      <div class="thread-body">
+        <div class="thread-title">EDPC — Sex/Gender stratification + ENPC alignment</div>
+        <div class="thread-desc">Terminal output aligned to ENPC's three-table structure with combined denominator. Arithmetic overflow on eligible population query resolved. Sex/Gender columns added.</div>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <span class="badge badge-done">Done</span>
+      <div class="thread-body">
+        <div class="thread-title">ENPC / ENPC-A — Sex/Gender stratification</div>
+        <div class="thread-desc">Both measures scripted and stratification columns integrated. ENPC-A handled as variant with distinct eligible population logic.</div>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <span class="badge badge-pending">Pending</span>
+      <div class="thread-body">
+        <div class="thread-title">CMHRD — Sex/Gender stratification</div>
+        <div class="thread-desc">CMHRD scripting underway. Stratification column addition still pending. Final item blocking full suite completion.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="domain">
+    <div class="domain-label">Contracting analytics</div>
+
+    <div class="thread-card">
+      <span class="badge badge-done">Done</span>
+      <div class="thread-body">
+        <div class="thread-title">Select Specialty Hospital SD (TIN: 261466122)</div>
+        <div class="thread-desc">LTAC / Medi-Cal / DOS 2025. Rev code CASE logic finalized: 0120=$2,191, 0206=$2,401, 0200=$2,611, 0169=$740. No Accom per Daphyne. Counter = EQUIV_allow_compare × 1.05 hybrid. QA clean.</div>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <span class="badge badge-done">Done</span>
+      <div class="thread-body">
+        <div class="thread-title">Girard Orthopedic (TIN: 953396896) — dynamic fee schedule</div>
+        <div class="thread-desc">Medi-Cal = ISNULL(EQUIV×1.30, hybrid fallback); DSNP/CSNP = ISNULL(EQUIV×1.30, PNA×1.30). Counter = EQUIV×1.05. Category = Prevailing Services.</div>
+      </div>
+    </div>
+
+    <div class="thread-card">
+      <span class="badge badge-active">In view</span>
+      <div class="thread-body">
+        <div class="thread-title">Prior closures on record — UCSD, Rady, All Star PT</div>
+        <div class="thread-desc">UCSD Medical Center (multi-LOB), UCSD Specialty (8 TINs, anesthesia carve-out), Rady Children's (4.56% uplift), and All Star PT all finalized in prior cycles. Available for reference.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="domain">
+    <div class="domain-label">Documentation & infrastructure</div>
+
+    <div class="thread-card">
+      <span class="badge badge-active">Active</span>
+      <div class="thread-body">
+        <div class="thread-title">HTML Data Flow Diagrams — dark-aesthetic template</div>
+        <div class="thread-desc">DFDs in progress for COMBINED_DETERMRECON_APPEALS and CHPIV HSD network adequacy workflow. Governing standard: HTML_Data_Flow_Diagram_TEMPLATE_20260213.html across all documentation deliverables.</div>
+      </div>
+    </div>
+  </div>
+</div>

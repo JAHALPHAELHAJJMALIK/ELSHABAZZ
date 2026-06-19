@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Oz Peer Review — Sir Paco Code Alignment Checklist</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar { text-align: center; margin-bottom: 28px; }
+  .title-bar h2 { font-size: 18px; font-weight: 700; color: #e8e0ff; letter-spacing: 0.3px; }
+  .title-bar .subtitle { font-size: 12px; color: #999; margin-top: 4px; }
+
+  /* ===== SECTION LABEL ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+    width: 100%;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows { display: flex; justify-content: center; gap: 80px; margin: 14px 0 10px; }
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; opacity: 0.3; }
+  .flow-arrow .shaft { width: 2px; height: 20px; background: #ccc; }
+  .flow-arrow .head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ccc; }
+
+  /* ===== SOURCE SYSTEM BOXES ===== */
+  .source-row { display: flex; justify-content: center; gap: 28px; margin-bottom: 0; flex-wrap: wrap; }
+  .system-box { border: 2px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 18px 24px 20px; position: relative; }
+  .system-box .sys-label {
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    background: #1a1a1a; padding: 0 12px; font-size: 13px; font-weight: 600; white-space: nowrap; color: #ddd;
+  }
+  .system-box.req { background: rgba(255, 200, 100, 0.10); border-color: rgba(255, 200, 100, 0.35); width: 380px; }
+  .system-box.cs  { background: rgba(140, 200, 255, 0.10); border-color: rgba(140, 200, 255, 0.35); width: 340px; }
+  .system-box.ncs { background: rgba(255, 140, 140, 0.10); border-color: rgba(255, 140, 140, 0.35); width: 340px; }
+  .module-row { display: flex; gap: 12px; justify-content: center; margin-top: 6px; flex-wrap: wrap; }
+  .module {
+    background: #2a2a2a; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+    padding: 10px 14px; font-size: 11.5px; font-weight: 500; text-align: center; min-width: 100px; color: #f0f0f0;
+  }
+
+  /* ===== MAIN CHECKLIST TABLE ===== */
+  .table-box {
+    background: rgba(160, 140, 220, 0.08);
+    border: 2px solid rgba(160, 140, 220, 0.30);
+    border-radius: 10px;
+    padding: 20px 24px 22px;
+    position: relative;
+    width: 1200px;
+    margin: 0 auto;
+  }
+  .table-box .sys-label {
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    background: #1a1a1a; padding: 0 12px; font-size: 13px; font-weight: 600; white-space: nowrap; color: #ddd;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  thead th {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+    color: #999; padding: 6px 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.12); text-align: left;
+  }
+  thead th:first-child  { width: 28px; text-align: center; }
+  thead th:nth-child(2) { width: 30%; }
+  thead th:nth-child(3) { width: 18%; }
+  thead th:nth-child(4) { width: 30%; }
+  thead th:last-child   { width: 18%; }
+
+  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.03); }
+  td { padding: 8px 10px; vertical-align: top; line-height: 1.55; color: #ccc; font-size: 11.5px; }
+  td:first-child { text-align: center; padding-top: 10px; }
+
+  tr.section-hdr td {
+    background: rgba(255,255,255,0.05); color: #888; font-size: 10px;
+    font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+    padding: 5px 10px; border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .req-text { font-weight: 600; color: #e8e0ff; font-size: 12px; }
+  code {
+    font-family: 'Consolas', 'Courier New', monospace; font-size: 10.5px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 3px; padding: 1px 5px; color: #b8d4ff; white-space: nowrap;
+  }
+  .label-text { color: #aaa; font-size: 10.5px; font-style: italic; }
+  .proc-ref { color: #7ec8e3; font-size: 10.5px; }
+
+  /* status dots */
+  .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; }
+  .dot-pass    { background: #5cb85c; box-shadow: 0 0 4px rgba(92,184,92,0.5); }
+  .dot-gap     { background: #e24b4a; box-shadow: 0 0 4px rgba(226,75,74,0.6); }
+  .dot-partial { background: #EF9F27; box-shadow: 0 0 4px rgba(239,159,39,0.5); }
+  .dot-na      { background: #555; }
+
+  /* status badge inline */
+  .badge {
+    display: inline-block; font-size: 9.5px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px; letter-spacing: 0.4px; text-transform: uppercase; vertical-align: middle;
+  }
+  .badge-pass    { background: rgba(92,184,92,0.25);  color: #8de08d; border: 1px solid rgba(92,184,92,0.4); }
+  .badge-gap     { background: rgba(226,75,74,0.20);  color: #ff9090; border: 1px solid rgba(226,75,74,0.4); }
+  .badge-partial { background: rgba(239,159,39,0.20); color: #ffcc70; border: 1px solid rgba(239,159,39,0.4); }
+  .badge-na      { background: rgba(120,120,120,0.20); color: #888;   border: 1px solid rgba(120,120,120,0.4); }
+
+  /* ===== GAP BOXES ===== */
+  .gap-box {
+    background: rgba(226,75,74,0.10); border: 1px dashed rgba(226,75,74,0.45);
+    border-radius: 8px; padding: 14px 18px; width: 1200px; margin: 0 auto;
+  }
+  .gap-box .gap-title { font-size: 11px; font-weight: 700; color: #ff9090; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .gap-items { display: flex; gap: 14px; flex-wrap: wrap; }
+  .gap-item {
+    background: rgba(226,75,74,0.13); border: 1px solid rgba(226,75,74,0.30);
+    border-radius: 6px; padding: 10px 14px; font-size: 11px; color: #ffb0b0; min-width: 200px; flex: 1; line-height: 1.55;
+  }
+  .gap-item strong { display: block; font-size: 11.5px; color: #ff8080; margin-bottom: 4px; }
+
+  /* ===== NOTE BOXES ===== */
+  .note-box {
+    background: rgba(239,159,39,0.08); border: 1px dashed rgba(239,159,39,0.40);
+    border-radius: 8px; padding: 14px 18px; width: 1200px; margin: 0 auto;
+  }
+  .note-box .note-title { font-size: 11px; font-weight: 700; color: #ffcc70; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .note-items { display: flex; gap: 14px; flex-wrap: wrap; }
+  .note-item {
+    background: rgba(239,159,39,0.12); border: 1px solid rgba(239,159,39,0.28);
+    border-radius: 6px; padding: 10px 14px; font-size: 11px; color: #ffe0a0; min-width: 200px; flex: 1; line-height: 1.55;
+  }
+  .note-item strong { display: block; font-size: 11.5px; color: #ffcc70; margin-bottom: 4px; }
+  .note-item code { color: #ffe0a0; background: rgba(0,0,0,0.3); }
+
+  /* ===== VERDICT BOX ===== */
+  .verdict-box {
+    background: rgba(100, 220, 160, 0.08); border: 2px solid rgba(100, 220, 160, 0.30);
+    border-radius: 10px; padding: 16px 24px; width: 1200px; margin: 0 auto;
+    font-size: 12px; color: #a0e8c0; line-height: 1.7;
+  }
+  .verdict-box .verdict-title { font-size: 11px; font-weight: 700; color: #6adca0; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .verdict-box strong { color: #d0ffe0; }
+
+  /* ===== SCORE SUMMARY ROW ===== */
+  .score-row { display: flex; gap: 16px; justify-content: center; margin: 0 auto; width: 1200px; flex-wrap: wrap; }
+  .score-card {
+    border-radius: 8px; padding: 14px 20px; text-align: center; flex: 1; min-width: 150px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .score-card .num { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .score-card .lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; color: #aaa; }
+  .sc-pass    { background: rgba(92,184,92,0.15);  border-color: rgba(92,184,92,0.35); }
+  .sc-pass .num { color: #8de08d; }
+  .sc-gap     { background: rgba(226,75,74,0.15);  border-color: rgba(226,75,74,0.35); }
+  .sc-gap .num { color: #ff9090; }
+  .sc-partial { background: rgba(239,159,39,0.15); border-color: rgba(239,159,39,0.35); }
+  .sc-partial .num { color: #ffcc70; }
+  .sc-na      { background: rgba(120,120,120,0.15); border-color: rgba(120,120,120,0.35); }
+  .sc-na .num { color: #888; }
+
+  /* ===== LEGEND ===== */
+  .legend { display: flex; gap: 22px; justify-content: center; margin-top: 28px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #aaa; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); }
+  .swatch-pass    { background: rgba(92,184,92,0.6); }
+  .swatch-gap     { background: rgba(226,75,74,0.6); }
+  .swatch-partial { background: rgba(239,159,39,0.6); }
+  .swatch-na      { background: rgba(120,120,120,0.5); }
+</style>
+</head>
+<body>
+
+  <div class="title-bar">
+    <h2>Dr. Oz Analysis — Peer Review Alignment Checklist</h2>
+    <div class="subtitle">
+      Requirements: Dr_Oz_Analysis_Review_Instructions_03-03-2026.docx &nbsp;|&nbsp;
+      Code Under Review: SIR_PACO_CS_NON_CS_DR_OZ_REPORT_20260317.sql &nbsp;|&nbsp;
+      Reviewer: El Hajj Malik Jahwaca &nbsp;|&nbsp; Review Date: 03/17/2026
+    </div>
+  </div>
+
+  <!-- ===== ROW 1: SOURCE SYSTEM CONTAINERS ===== -->
+  <div class="source-row">
+
+    <div class="system-box req">
+      <span class="sys-label">Requirements — Dr. Oz Letter (03/03/2026)</span>
+      <div class="module-row">
+        <div class="module">Service Categories<br><span style="font-size:10px;color:#aaa;">CS + Non-CS<br>15 area types</span></div>
+        <div class="module">Min Data Elements<br><span style="font-size:10px;color:#aaa;">14 required fields<br>per dataset</span></div>
+        <div class="module">Analytical Reports<br><span style="font-size:10px;color:#aaa;">FWA / utilization<br>outlier logic</span></div>
+      </div>
+    </div>
+
+    <div class="system-box cs">
+      <span class="sys-label">COMMUNITY_SUPPORTS_UTILIZATION_DOC_OZ (CS Proc)</span>
+      <div class="module-row">
+        <div class="module">cs_population<br><span style="font-size:10px;color:#aaa;">FACT_MEMBERHISTORY<br>IS_PAID_CLAIM = YES</span></div>
+        <div class="module">CS Service Type<br><span style="font-size:10px;color:#aaa;">CASE on<br>COMMUNITY_SUPPORTS_SERVICE</span></div>
+      </div>
+    </div>
+
+    <div class="system-box ncs">
+      <span class="sys-label">NON_CS_UTILIZATION_DOC_OZ (Non-CS Proc)</span>
+      <div class="module-row">
+        <div class="module">non_cs_population<br><span style="font-size:10px;color:#aaa;">FACT_MEMBERHISTORY<br>CS IS NULL</span></div>
+        <div class="module">CPT Filter<br><span style="font-size:10px;color:#aaa;">DIM_SERVICECODE<br>16 codes</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <!-- ===== SCORE SUMMARY ===== -->
+  <div class="section-label">&#9660; Alignment Score Summary</div>
+  <div class="score-row">
+    <div class="score-card sc-pass"><div class="num">16</div><div class="lbl">Pass &#10003;</div></div>
+    <div class="score-card sc-partial"><div class="num">7</div><div class="lbl">Partial &#9651;</div></div>
+    <div class="score-card sc-gap"><div class="num">8</div><div class="lbl">Gap &#9888;</div></div>
+    <div class="score-card sc-na"><div class="num">4</div><div class="lbl">N/A (not offered)</div></div>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Section 1 — Minimum Data Elements (14 Required Fields)</div>
+
+  <!-- ===== TABLE 1: MIN DATA ELEMENTS ===== -->
+  <div class="table-box">
+    <span class="sys-label">Minimum Data Elements — Required for All Reports</span>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Required Field (Dr. Oz Spec)</th>
+          <th>CS Proc Column</th>
+          <th>Non-CS Proc Column</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Member ID</td>
+          <td><code>m.CARRIER_MEMBER_ID</code> → "Member ID"</td>
+          <td><code>m.CARRIER_MEMBER_ID</code> → "Member ID"</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Member Demographics incl. address &amp; contact</td>
+          <td>Name, DOB, Gender, Language, Ethnicity, Physical + Mailing Address, City, State, ZIP, County, Phone 1/2/3 + Types, Email — all present</td>
+          <td>Same full demographic block present</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Provider NPI + Tax ID</td>
+          <td><code>CONCAT(rendering.NPI,' ',rendering.FED_ID)</code></td>
+          <td><code>CONCAT(rendering.NPI,' ',rendering.FED_ID)</code></td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Rendering Provider ID (if applicable)</td>
+          <td><code>rendering.PROVIDERAK</code> → "Provider ID"</td>
+          <td><code>rendering.PROVIDERAK</code> → "Provider ID"</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">HCPCS/CPT Code</td>
+          <td><code>auth.HCPC_CODE_SEARCH</code> → "HCPCS/CPT Code"<br><span class="label-text">⚠ Pulls from DIM_AUTHORIZATIONSERVICE, not the claim service code. Commented-out alternative: mh.HCP_CODE</span></td>
+          <td><code>sc.CODEIDAK</code> → "HCPCS/CPT Code"<br><span class="label-text">Pulls from DIM_SERVICECODE — claim-level ✓</span></td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">Modifier(s)</td>
+          <td><code>auth.HCPC_MODCODE_SEARCH_1</code> only → "Modifier Codes"<br><span class="label-text">⚠ Only 1 of potentially 5 modifier columns. Commented-out: CONCAT_WS of all 5 mod codes from mh</span></td>
+          <td><code>NULL AS "Modifier Codes"</code><br><span class="label-text">⚠ Hard-coded NULL — no modifier surfaced for non-CS claims</span></td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Units Billed</td>
+          <td><code>mh.BILLED_UNITS</code> → "Units Billed"</td>
+          <td><code>mh.BILLED_UNITS</code> → "Units Billed"</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Date(s) of Service (from–to)</td>
+          <td><code>CLAIM_DETAIL_DOS_FROM_DATE</code> + <code>CLAIM_DETAIL_DOS_TO_DATE</code></td>
+          <td>Same two fields present</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Paid Amount</td>
+          <td><code>mh.AMOUNT_PAID</code></td>
+          <td><code>mh.AMOUNT_PAID</code></td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Authorization Number</td>
+          <td><code>mh.AUTHORIZATION_ID</code> → "Authorization Number"</td>
+          <td><code>mh.AUTHORIZATION_ID</code> → "Authorization Number"</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Place of Service</td>
+          <td><code>loc.LOCATION_DESCRIPTION</code> → "Place of service"</td>
+          <td><code>loc.LOCATION_DESCRIPTION</code> → "Place of service"</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Claim ID</td>
+          <td><code>mh.CLAIMAK</code> → "Claim ID"</td>
+          <td><code>mh.CLAIMAK</code> → "Claim ID"</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">Admission/Discharge Dates (if hospital data available)</td>
+          <td><code>mh.DISCHARGE_DATE</code> → "Admission/discharge dates"<br><span class="label-text">⚠ Only discharge date surfaced; ADMIT_DATE is available in FACT_MEMBERHISTORY but not pulled</span></td>
+          <td>Same — discharge only, no admit date</td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Section 2 — Service Category Coverage &amp; Service Type Classification</div>
+
+  <!-- ===== TABLE 2: SERVICE CATEGORIES ===== -->
+  <div class="table-box">
+    <span class="sys-label">Dr. Oz Service Categories — Coverage &amp; Classification Alignment</span>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Dr. Oz Service Category</th>
+          <th>Proc / CPT/Code Coverage</th>
+          <th>"Service Type" / "Community Support Service Type" Mapping</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-hdr"><td colspan="5">CS Procedure (COMMUNITY_SUPPORTS_UTILIZATION_DOC_OZ)</td></tr>
+
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">6. Housing Stabilization Services<br><span class="label-text">Housing navigation, deposit, sustaining (CS)</span></td>
+          <td>Captured via <code>COMMUNITY_SUPPORTS_SERVICE IS NOT NULL</code> filter; Housing Deposits explicitly mapped</td>
+          <td><code>'Housing Deposits'</code> → <code>'6. Housing Stabilization Services'</code> ✓<br><span class="label-text">Housing Navigation + Sustaining fall to '8. Integrated Community Supports' — see gap below</span></td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">7. Individual Home Supports<br><span class="label-text">Personal Care Homemaker Services (CS), Respite</span></td>
+          <td>Both captured via CS filter</td>
+          <td><code>'Personal Care and Homemaker Services'</code> → <code>'7. Individual Home Supports'</code> ✓<br><code>'Respite Services'</code> → <code>'7. Individual Home Supports'</code> ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">8. Integrated Community Supports<br><span class="label-text">Remaining CS services not in other areas</span></td>
+          <td>Captured via ELSE catch-all in CASE</td>
+          <td>ELSE → <code>'8. Integrated Community Supports'</code><br><span class="label-text">⚠ Housing Transition Navigation, Tenancy &amp; Sustaining, Short-Term Post-Hospital, Transitional Rent, Day Habilitation, Env. Accessibility, Medically Tailored Meals, Sobering Centers, Asthma Remediation, Comm. Transition — all fall here. Spec implies only <em>remaining</em> CS services should be bucket 8; several of these may warrant their own mappings.</span></td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">14. Recuperative Care<br><span class="label-text">Recuperative Care (CS) + Short Term Post Hospital (CS)</span></td>
+          <td>Captured via CS filter</td>
+          <td><code>'Recuperative Care (Medical Respite)'</code> → <code>'14. Recuperative Care'</code> ✓<br><span class="label-text">⚠ Short-Term Post Hospitalization Housing is in COMMUNITY_SUPPORTS_SERVICE but falls to ELSE (bucket 8), not bucket 14. Spec lists Short Term Post Hospital under Recuperative Care.</span></td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+
+        <tr class="section-hdr"><td colspan="5">Non-CS Procedure (NON_CS_UTILIZATION_DOC_OZ)</td></tr>
+
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">2. Adult Day Services<br><span class="label-text">CBAS</span></td>
+          <td><code>S5100, S5101, S5102, S9122</code> — present in WHERE + CASE</td>
+          <td><code>'2. Adult Day Services'</code> ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-na"></span></td>
+          <td class="req-text">1. Adult Companion Services</td>
+          <td>Not a CHG service — correctly excluded</td>
+          <td>N/A</td>
+          <td><span class="badge badge-na">N/A</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-na"></span></td>
+          <td class="req-text">3. Adult Rehabilitative Mental Health Services</td>
+          <td>Not a CHG service — correctly excluded</td>
+          <td>N/A</td>
+          <td><span class="badge badge-na">N/A</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-na"></span></td>
+          <td class="req-text">4. Assertive Community Treatment</td>
+          <td>Not a CHG service — correctly excluded</td>
+          <td>N/A</td>
+          <td><span class="badge badge-na">N/A</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">5. Early Intensive Developmental &amp; Behavioral Intervention<br><span class="label-text">ABA / BHT (97151–97158)</span></td>
+          <td>Code included: <code>97151, 97153, 97155, 97156, 0362T</code><br><span class="label-text">⚠ Spec references 97151–97158 (full range). Missing: <code>97154, 97157, 97158</code></span></td>
+          <td><code>'5. Early Intensive Developmental &amp; Behavioral Intervention'</code> ✓</td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">10. Night Supervision<br><span class="label-text">24-hour private duty nursing</span></td>
+          <td><code>T1000, T1001</code> — present in WHERE + CASE</td>
+          <td><code>'10. Night Supervision'</code> ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">11. Non-Emergency Medical Transportation<br><span class="label-text">NEMT + Ambulance</span></td>
+          <td><code>T2003, A0120, A0130, A0428, A0425</code> — present<br><span class="label-text">⚠ Spec analytical reports reference <code>A0130, A0428, A0425</code> for mileage outliers and ambulance. Code <code>T2003</code> and <code>A0120</code> included — confirm if A0120 (non-emergency bus/van) is intended scope.</span></td>
+          <td><code>'11. Non-Emergency Medical Transportation'</code> ✓</td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-na"></span></td>
+          <td class="req-text">12. Peer Recovery Services</td>
+          <td>Not a CHG service — correctly excluded</td>
+          <td>N/A</td>
+          <td><span class="badge badge-na">N/A</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Section 3 — Analytical / FWA Report Coverage</div>
+
+  <!-- ===== TABLE 3: ANALYTICAL REPORTS ===== -->
+  <div class="table-box">
+    <span class="sys-label">Dr. Oz Analytical Reports — Coverage in Sir Paco Code</span>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Dr. Oz Report Requirement</th>
+          <th>Logic Required</th>
+          <th>Present in Sir Paco Code?</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-hdr"><td colspan="5">CBAS / Adult Day Services</td></tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">Report 1: Hospital Overlap Edit</td>
+          <td>S5102 claims × inpatient/SNF/ILF/Recuperative Care admission dates — flag date overlap</td>
+          <td>Data provided (DOS + discharge/admit fields) but <strong>no overlap logic built</strong>. Both procs are raw population pulls only.</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">Report 2: Attendance Intensity Outlier</td>
+          <td>Count CBAS days billed/member/month; flag &gt;12 days/month</td>
+          <td><strong>Not implemented.</strong> Would require aggregation on BILLED_UNITS / DOS range grouping by member + month.</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr class="section-hdr"><td colspan="5">ABA / BHT</td></tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">Report 1: Provider Time Overlap</td>
+          <td>Total units/rendering provider/day → convert to hours; flag &gt;8h (warning), &gt;12h (high risk)</td>
+          <td><strong>Not implemented.</strong> BILLED_UNITS and rendering provider are available — aggregation logic absent.</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">Report 2: 97155 Frequency Outlier</td>
+          <td>Ratio of 97155 : 97153 units per provider; flag top 10%</td>
+          <td><strong>Not implemented.</strong></td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">Report 3: Credential-Modifier Match</td>
+          <td>Crosswalk provider credential file with modifiers HO/HM/HN; flag mismatches</td>
+          <td><strong>Not implemented.</strong> Modifier field is NULL in Non-CS proc — credential crosswalk impossible as-coded.</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr class="section-hdr"><td colspan="5">Housing, Recuperative Care &amp; CS Services</td></tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">Transitional Rent: Duration Compliance, Duplicate Housing, Payment Reconciliation</td>
+          <td>Months paid per member; concurrent housing services same DOS; rent vs contracted cap</td>
+          <td><strong>Not implemented.</strong> CS proc provides raw claim rows — no duration or duplicate-detection logic.</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">NEMT: Mileage Outlier, Ambulance Utilization, No-Visit Match</td>
+          <td>Avg mileage/trip by provider; BLS &gt;3/month; NEMT DOS × medical encounter cross-ref</td>
+          <td><strong>Not implemented.</strong> Raw NEMT claims in non-CS proc but no mileage, BLS flag, or encounter cross-ref logic.</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">Cross-Cutting: Provider Daily Hour Cap, Modifier Dashboard, Rapid Volume Growth</td>
+          <td>Provider &gt;16h/day; HO/TD/TT % tracking; &gt;30% MoM volume growth flag</td>
+          <td>Data foundation present (units, provider, DOS) but <strong>no aggregation or flagging logic built</strong></td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Section 4 — Structural / Technical Observations</div>
+
+  <!-- ===== TABLE 4: STRUCTURAL ===== -->
+  <div class="table-box">
+    <span class="sys-label">Structural &amp; Technical Code Review Points</span>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Review Point</th>
+          <th>CS Proc</th>
+          <th>Non-CS Proc</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="dot dot-gap"></span></td>
+          <td class="req-text">DECLARE block — hardcoded test dates left uncommented in Non-CS proc</td>
+          <td>CS proc correctly comments out DECLARE / test date assignments — production-ready ✓</td>
+          <td><span style="color:#ff9090;font-weight:600;">STARTDATE / ENDDATE DECLARE and assignments are <em>uncommented</em> (<code>STARTDATE := '2025-01-01'</code>). Proc will ALWAYS run 2025-01-01 → 2026-03-10 regardless of passed parameters. Must be commented out before production deployment.</span></td>
+          <td><span class="badge badge-gap">Gap — Critical</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Parameter binding</td>
+          <td>Uses <code>:STARTDATE</code> / <code>:ENDDATE</code> bind variables correctly ✓</td>
+          <td>Parameters declared but overridden by hardcoded assignments (see above)</td>
+          <td><span class="badge badge-gap">Gap</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">ENROLLMENT_SEGMENT_TYPE = 'INT' filter</td>
+          <td>Present ✓ — limits to Medi-Cal integration segment</td>
+          <td>Present ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">IS_PAID_CLAIM = 'YES' filter</td>
+          <td>Present ✓ — paid claims only</td>
+          <td>Present ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">COMMUNITY_SUPPORTS_SERVICE mutual exclusion</td>
+          <td>Filters <code>IS NOT NULL</code> — correct for CS population ✓</td>
+          <td>Filters <code>IS NULL</code> — correct for non-CS population ✓<br><span class="label-text">Note: ensures clean CS/non-CS partition with no overlap ✓</span></td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">Auth JOIN in CS proc (DIM_AUTHORIZATIONSERVICE)</td>
+          <td>INNER JOIN on <code>mh.AUTHORIZATIONSERVICESK</code> — will exclude CS claims with no linked auth service row. Should confirm if all CS claims have auth records or if LEFT JOIN is appropriate.</td>
+          <td>No auth join — uses DIM_SERVICECODE ✓ for non-CS</td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">DISTINCT usage</td>
+          <td><code>SELECT DISTINCT</code> at claim detail level — may collapse multi-service-line claim rows. Confirm grain is claim detail (one row per service line) or member-claim.</td>
+          <td>Same concern applies</td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-partial"></span></td>
+          <td class="req-text">PAYTO provider JOIN — unused output</td>
+          <td>Joins <code>DIM_PROVIDERSPECIALTY AS payto</code> but no payto fields are selected in either proc. Unnecessary JOIN adds overhead.</td>
+          <td>Same — payto joined, nothing selected</td>
+          <td><span class="badge badge-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">zzUnknown scrubbing</td>
+          <td>Consistent <code>REPLACE(..., 'zzUnknown', 'Unknown')</code> across all demographic fields ✓</td>
+          <td>Same pattern consistent ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+        <tr>
+          <td><span class="dot dot-pass"></span></td>
+          <td class="req-text">Date conversion pattern</td>
+          <td><code>TO_DATE(mh.CLAIM_START_DATE::VARCHAR,'YYYYMMDD')</code> — consistent with Snowflake integer-date handling ✓</td>
+          <td>Same pattern ✓</td>
+          <td><span class="badge badge-pass">Pass</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Critical Gaps — Remediation Required Before Deployment</div>
+
+  <!-- ===== GAP BOX ===== -->
+  <div class="gap-box">
+    <div class="gap-title">&#9888;&nbsp; Gaps — Must Address</div>
+    <div class="gap-items">
+      <div class="gap-item">
+        <strong>GAP 1 — Non-CS Proc: Hardcoded Test Dates (CRITICAL)</strong>
+        DECLARE block in NON_CS proc has <code>STARTDATE := '2025-01-01'</code> and <code>ENDDATE := '2026-03-10'</code> uncommented. Proc will ignore passed parameters entirely. Comment these lines out before any production call.
+      </div>
+      <div class="gap-item">
+        <strong>GAP 2 — Modifier Codes: NULL in Non-CS Proc</strong>
+        <code>NULL AS "Modifier Codes"</code> is hardcoded. The spec requires modifiers for all datasets. For ABA/BHT credential-modifier crosswalk (Report 3) to work, mh.MOD_CODE_1–5 must be surfaced. Recommend uncommenting and using the CONCAT_WS approach (already present as a comment in both procs).
+      </div>
+      <div class="gap-item">
+        <strong>GAP 3 — ABA Code Range Incomplete</strong>
+        Spec references the full ABA range 97151–97158. Codes <code>97154, 97157, 97158</code> are absent from the Non-CS proc WHERE clause and CASE statement. Confirm with clinical/coding if these are billable by CHG providers.
+      </div>
+      <div class="gap-item">
+        <strong>GAP 4 — Short-Term Post Hospitalization Housing Misclassified</strong>
+        The spec lists Short Term Post Hospital under "14. Recuperative Care" but the CS proc CASE sends it to the ELSE bucket → <code>'8. Integrated Community Supports'</code>. Add an explicit WHEN:<br>
+        <code>WHEN COMMUNITY_SUPPORTS_SERVICE = 'Short-Term Post Hospitalization Housing' THEN '14. Recuperative Care'</code>
+      </div>
+      <div class="gap-item">
+        <strong>GAP 5 — Housing Navigation &amp; Sustaining Misclassified</strong>
+        Spec places Housing Navigation and Housing Sustaining under "6. Housing Stabilization Services." Currently both fall to ELSE → <code>'8. Integrated Community Supports'</code>. Add explicit WHENs for <code>'Housing Transition Navigation Services'</code> and <code>'Housing Tenancy and Sustaining Services'</code> → <code>'6. Housing Stabilization Services'</code>.
+      </div>
+      <div class="gap-item">
+        <strong>GAP 6 — Analytical / FWA Report Logic Not Built</strong>
+        Both procs are raw population extracts. The Dr. Oz spec requires 20+ specific analytical reports (hospital overlap, provider time outliers, duration compliance, NEMT cross-reference, etc.). These are entirely absent from the current code. Sir Paco's procs provide the data foundation — the report logic is a separate build increment.
+      </div>
+      <div class="gap-item">
+        <strong>GAP 7 — HCPCS/CPT in CS Proc from Auth, Not Claim</strong>
+        CS proc uses <code>auth.HCPC_CODE_SEARCH</code> (from DIM_AUTHORIZATIONSERVICE) rather than the claim-level service code. The commented-out <code>mh.HCP_CODE</code> is the claim-level code. Confirm with Dr. Oz whether the auth code or the billed claim code is the intended data element. These may differ for modified/substituted services.
+      </div>
+      <div class="gap-item">
+        <strong>GAP 8 — Admit Date Missing</strong>
+        "Admission/discharge dates" only surfaces <code>mh.DISCHARGE_DATE</code>. <code>mh.ADMIT_DATE</code> is available in FACT_MEMBERHISTORY. For hospital overlap reports (CBAS, Personal Care, Recuperative Care), the admit date is essential. Add <code>TO_DATE(mh.ADMIT_DATE::VARCHAR,'YYYYMMDD') AS "Admission Date"</code> as a separate column, or confirm the spec intends only discharge.
+      </div>
+    </div>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Observations &amp; Recommendations (Non-Blocking)</div>
+
+  <!-- ===== NOTE BOX ===== -->
+  <div class="note-box">
+    <div class="note-title">&#9432;&nbsp; Notes — Review with Sir Paco</div>
+    <div class="note-items">
+      <div class="note-item">
+        <strong>Unused PAYTO JOIN</strong>
+        Both procs JOIN <code>DIM_PROVIDERSPECIALTY AS payto</code> on <code>mh.PAYTOPROVIDERSK</code> but select nothing from it. This is an unnecessary INNER JOIN that restricts rows and adds cost. If payto data is not needed in the output, remove the JOIN. If payto NPI/Tax ID is needed (for NEMT or nursing billing), add the appropriate column.
+      </div>
+      <div class="note-item">
+        <strong>Auth JOIN Grain Risk (CS Proc)</strong>
+        INNER JOIN on <code>DIM_AUTHORIZATIONSERVICE</code> means any paid CS claim without a matched <code>AUTHORIZATIONSERVICESK</code> will be silently excluded. Recommend auditing for NULL AUTHORIZATIONSERVICESK in FACT_MEMBERHISTORY where COMMUNITY_SUPPORTS_SERVICE IS NOT NULL and converting to LEFT JOIN if gaps are found.
+      </div>
+      <div class="note-item">
+        <strong>DISTINCT May Collapse Service Lines</strong>
+        Both procs use SELECT DISTINCT across a wide column set. Verify that the intended grain is one row per unique claim line. If two service lines on the same claim share all selected fields except DOS, DISTINCT could still keep both rows — confirm desired output grain with Dr. Oz team.
+      </div>
+      <div class="note-item">
+        <strong>Transitional Rent Missing from CS Service Type CASE</strong>
+        <code>'Transitional Rent'</code> is a valid COMMUNITY_SUPPORTS_SERVICE value per STEP88 and the Snowflake definition. It is not listed in the CS proc CASE — it will fall to <code>'8. Integrated Community Supports'</code>. Confirm if this is intentional or if a mapping to "6. Housing Stabilization Services" is needed (per spec intent).
+      </div>
+      <div class="note-item">
+        <strong>Modifier Codes — CS Proc Surfaces Auth Modifier Only</strong>
+        CS proc outputs <code>auth.HCPC_MODCODE_SEARCH_1</code> (one auth-level modifier). The commented-out alternative uses <code>CONCAT_WS(',', mh.MOD_CODE_1 ... MOD_CODE_5)</code> which is the full claim-level modifier string and would better support the credential-modifier crosswalk reports. Recommend uncommenting for consistency with Non-CS approach once NULL issue is resolved.
+      </div>
+      <div class="note-item">
+        <strong>Output RETURNS TABLE — VARCHAR(33) for Service Type</strong>
+        The RETURNS TABLE definition specifies <code>"Community Support Service Type" VARCHAR(33)</code> in the CS proc and <code>"Service Type" VARCHAR(33)</code> in Non-CS proc. The value <code>'5. Early Intensive Developmental &amp; Behavioral Intervention'</code> is 54 characters — will exceed VARCHAR(33) and cause a runtime error. Increase to VARCHAR(100) minimum.
+      </div>
+    </div>
+  </div>
+
+  <!-- arrows -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="section-label">&#9660; Overall Verdict</div>
+
+  <!-- ===== VERDICT BOX ===== -->
+  <div class="verdict-box">
+    <div class="verdict-title">&#10003;&nbsp; Peer Review Summary — El Hajj Malik Jahwaca | 03/17/2026</div>
+    Sir Paco's two stored procedures provide a <strong>solid data foundation</strong> — the member demographic block, provider fields, paid claim filtering, CS/non-CS partitioning, and date handling are all well-constructed and consistent with the CHGSD Snowflake standards.
+    <br><br>
+    <strong>However, the code represents raw population extracts only.</strong> The Dr. Oz specification requires 20+ analytical and FWA-detection reports built on top of this foundation — none of which are present in the current submission. This should be understood as Phase 1 of a multi-phase build.
+    <br><br>
+    <strong>8 gaps require action before deployment</strong>, with GAP 1 (hardcoded test dates in the Non-CS proc) being the only critical production blocker. GAP 4 and GAP 5 (service type misclassification) and GAP 6 (missing ABA codes) directly affect the accuracy of Dr. Oz's analytical output and should be resolved in the next code iteration. The VARCHAR(33) limit on the Service Type return column (observation 6) will cause a runtime error and should be addressed before the proc is called.
+  </div>
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-pass"></div>Pass — requirement met</div>
+    <div class="legend-item"><div class="legend-swatch swatch-partial"></div>Partial — met with caveats / confirm needed</div>
+    <div class="legend-item"><div class="legend-swatch swatch-gap"></div>Gap — not implemented / action required</div>
+    <div class="legend-item"><div class="legend-swatch swatch-na"></div>N/A — not a CHG-offered service</div>
+  </div>
+
+</body>
+</html>

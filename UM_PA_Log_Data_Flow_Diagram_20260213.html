@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1.2 UM Medical PA Log — Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  .title-bar { text-align: center; margin-bottom: 24px; }
+  .title-bar h2 { font-size: 18px; font-weight: 700; color: #c8e6c9; letter-spacing: 0.3px; }
+  .title-bar .subtitle { font-size: 12px; color: #999; margin-top: 4px; }
+
+  .diagram { position: relative; width: 1560px; }
+
+  /* ===== CONTAINERS ===== */
+  .source-row { display: flex; justify-content: center; gap: 20px; flex-wrap: nowrap; }
+  .source-row + .source-row { margin-top: 14px; }
+
+  .system-box { border: 2px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 16px 18px 18px; position: relative; }
+  .system-box .sys-label { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: #1a1a1a; padding: 0 10px; font-size: 12.5px; font-weight: 600; white-space: nowrap; color: #ddd; }
+
+  .system-box.qnxt-auth { background: rgba(255, 140, 140, 0.12); border-color: rgba(255, 140, 140, 0.35); width: 620px; }
+  .system-box.qnxt-ref { background: rgba(255, 200, 140, 0.12); border-color: rgba(255, 200, 140, 0.35); width: 500px; }
+  .system-box.qnxt-attrib { background: rgba(200, 230, 200, 0.12); border-color: rgba(200, 230, 200, 0.35); width: 500px; }
+  .system-box.qcsi { background: rgba(180, 180, 255, 0.12); border-color: rgba(180, 180, 255, 0.35); width: 240px; }
+  .system-box.enrollment-mgr { background: rgba(160, 230, 160, 0.12); border-color: rgba(160, 230, 160, 0.35); width: 260px; }
+  .system-box.informatics { background: rgba(140, 200, 255, 0.12); border-color: rgba(140, 200, 255, 0.35); width: 420px; }
+
+  .module-row { display: flex; gap: 10px; justify-content: center; margin-top: 5px; flex-wrap: wrap; }
+  .module { background: #2a2a2a; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 12px; font-size: 11.5px; font-weight: 500; text-align: center; min-width: 100px; color: #f0f0f0; line-height: 1.3; }
+  .module .tbl { font-size: 9.5px; color: #aaa; display: block; margin-top: 2px; }
+
+  /* ===== PROCESSING ===== */
+  .pipeline-section { margin: 14px 0 4px; text-align: center; }
+  .pipeline-label { font-size: 11px; color: #777; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .pipeline-row { display: flex; justify-content: center; align-items: center; gap: 0; }
+  .pipeline-step { background: rgba(200, 230, 200, 0.12); border: 1.5px solid rgba(200, 230, 200, 0.35); border-radius: 8px; padding: 9px 14px; font-size: 11px; font-weight: 500; text-align: center; color: #c8e6c9; min-width: 140px; line-height: 1.35; }
+  .pipeline-step .step-sub { font-size: 9.5px; color: #8ab88a; display: block; margin-top: 2px; }
+  .pipeline-step.exclusion { background: rgba(255, 120, 100, 0.12); border-color: rgba(255, 120, 100, 0.40); }
+  .pipeline-step.exclusion, .pipeline-step.exclusion .step-sub { color: #ffb0a0; }
+  .pipeline-step.exclusion .step-sub { color: #d09080; }
+  .pipeline-arrow { color: rgba(200, 230, 200, 0.4); font-size: 20px; padding: 0 5px; user-select: none; }
+
+  /* ===== ATTRIBUTE ENRICHMENT ===== */
+  .attrib-section { margin: 14px 0 4px; text-align: center; }
+  .attrib-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .attrib-block { background: rgba(200, 230, 200, 0.10); border: 1.5px solid rgba(200, 230, 200, 0.30); border-radius: 7px; padding: 9px 14px; text-align: center; min-width: 165px; }
+  .attrib-block .ab-title { font-size: 11px; font-weight: 600; color: #c8e6c9; margin-bottom: 3px; }
+  .attrib-block .ab-detail { font-size: 10px; color: #999; line-height: 1.4; }
+
+  /* ===== DATA ELEMENTS ===== */
+  .data-elements-row { display: flex; justify-content: center; gap: 12px; margin: 16px 0 6px; flex-wrap: wrap; }
+  .data-element { background: rgba(80,80,80,0.7); border-radius: 5px; padding: 9px 12px; font-size: 10.5px; text-align: center; line-height: 1.4; color: #ddd; min-width: 120px; max-width: 160px; }
+  .data-element strong { display: block; font-size: 11px; color: #fff; margin-bottom: 2px; }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows { display: flex; justify-content: center; gap: 70px; margin: 9px 0 7px; }
+  .flow-arrow { display: flex; flex-direction: column; align-items: center; opacity: 0.3; }
+  .flow-arrow .shaft { width: 2px; height: 14px; background: #ccc; }
+  .flow-arrow .head { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #ccc; }
+
+  /* ===== OUTPUT ===== */
+  .output-section { margin-top: 10px; }
+  .report-box { background: rgba(160,140,220,0.12); border: 2px solid rgba(160,140,220,0.35); border-radius: 10px; padding: 18px 24px 20px; position: relative; width: 1400px; margin: 0 auto; }
+  .report-box .sys-label { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); background: #1a1a1a; padding: 0 12px; font-size: 13px; font-weight: 600; white-space: nowrap; color: #ddd; }
+  .report-modules { display: flex; gap: 10px; justify-content: center; margin-top: 4px; flex-wrap: wrap; }
+  .report-module { background: rgba(160,140,220,0.25); border: 1px solid rgba(160,140,220,0.45); border-radius: 6px; padding: 9px 13px; font-size: 11.5px; font-weight: 500; text-align: center; min-width: 105px; color: #e8e0ff; line-height: 1.3; }
+
+  /* ===== LEGEND ===== */
+  .legend { display: flex; gap: 18px; justify-content: center; margin-top: 24px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 10.5px; color: #aaa; }
+  .legend-swatch { width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.15); }
+  .sw-auth { background: rgba(255,140,140,0.35); }
+  .sw-ref { background: rgba(255,200,140,0.35); }
+  .sw-attrib { background: rgba(200,230,200,0.35); }
+  .sw-qcsi { background: rgba(180,180,255,0.35); }
+  .sw-enroll { background: rgba(160,230,160,0.35); }
+  .sw-info { background: rgba(140,200,255,0.35); }
+  .sw-excl { background: rgba(255,120,100,0.35); }
+  .sw-output { background: rgba(160,140,220,0.35); }
+</style>
+</head>
+<body>
+
+<div class="title-bar">
+  <h2>1.2 UM Medical PA Log — Data Flow Diagram</h2>
+  <div class="subtitle">Prior, Concurrent &amp; Retrospective Authorization Reviews &nbsp;|&nbsp; Audit Period: April 1, 2025 – December 31, 2025 &nbsp;|&nbsp; Primary Medi-Cal (incl. SPD) &nbsp;|&nbsp; All PA Requests (excl. Auto-Auth)</div>
+</div>
+
+<div class="diagram">
+
+  <!-- ===== ROW 1: SOURCE SYSTEMS ===== -->
+  <div class="source-row">
+    <div class="system-box qnxt-auth">
+      <span class="sys-label">QNXT Auth / UM System (HMOPROD_PlanData)</span>
+      <div class="module-row">
+        <div class="module">Referral<span class="tbl">dbo.referral</span></div>
+        <div class="module">Auth Service<span class="tbl">dbo.authservice</span></div>
+        <div class="module">Auth Service Detail<span class="tbl">dbo.authservicedetail</span></div>
+        <div class="module">Auth Diag<span class="tbl">dbo.authdiag</span></div>
+      </div>
+      <div class="module-row" style="margin-top:6px;">
+        <div class="module">Auth Service Reason<span class="tbl">dbo.authservicereason</span></div>
+        <div class="module">Reason Group Dtl<span class="tbl">dbo.reasongroupdtl</span></div>
+        <div class="module">Auth Reason<span class="tbl">dbo.authreason</span></div>
+        <div class="module">Auth Code<span class="tbl">dbo.authcode</span></div>
+      </div>
+    </div>
+
+    <div class="system-box qnxt-ref">
+      <span class="sys-label">QNXT Reference Data</span>
+      <div class="module-row">
+        <div class="module">Provider<span class="tbl">dbo.provider</span></div>
+        <div class="module">DiagCode<span class="tbl">dbo.diagcode</span></div>
+        <div class="module">Service Codes<span class="tbl">dbo.svccode</span></div>
+        <div class="module">Rev Codes<span class="tbl">dbo.revcode</span></div>
+      </div>
+      <div class="module-row" style="margin-top:6px;">
+        <div class="module">Entity<span class="tbl">dbo.entity<br>(Med Director)</span></div>
+        <div class="module">Language<span class="tbl">dbo.language</span></div>
+        <div class="module">Enroll Keys<span class="tbl">dbo.enrollkeys</span></div>
+        <div class="module">Referral Text<span class="tbl">dbo.referraltext</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="source-row">
+    <div class="system-box qnxt-attrib">
+      <span class="sys-label">QNXT Referral Attributes (Misc. Tab)</span>
+      <div class="module-row">
+        <div class="module">Modified Attribute<span class="tbl">qattribute +<br>referralattribute</span></div>
+        <div class="module">Extension Letter Sent<span class="tbl">#authextension</span></div>
+        <div class="module">Auth Notification Sent<span class="tbl">#authnotification</span></div>
+        <div class="module">Threshold Letter<span class="tbl">#auththreshold</span></div>
+      </div>
+    </div>
+
+    <div class="system-box qcsi">
+      <span class="sys-label">QCSI (HMOPROD_QCSIDB)</span>
+      <div class="module-row">
+        <div class="module">QUser<span class="tbl">dbo.quser<br>(Decision Maker)</span></div>
+      </div>
+    </div>
+
+    <div class="system-box enrollment-mgr">
+      <span class="sys-label">Enrollment Manager</span>
+      <div class="module-row">
+        <div class="module">SPD Flag / Aid Code<span class="tbl">udf_MediCalwSPDFlag<br>+ healthcoverage</span></div>
+      </div>
+    </div>
+
+    <div class="system-box informatics">
+      <span class="sys-label">INFORMATICS Views</span>
+      <div class="module-row">
+        <div class="module">Line of Business<span class="tbl">uvw_LINE_OF_BUSINESS</span></div>
+        <div class="module">Baseline Membership<span class="tbl">uvw_BASELINE_MEMBERSHIP</span></div>
+        <div class="module">PCP<span class="tbl">uvw_PCP</span></div>
+        <div class="module">Provider ISO<span class="tbl">uvw_PROVISO</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROW 2: PROCESSING PIPELINE ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="pipeline-section">
+    <div class="pipeline-label">Processing Pipeline</div>
+    <div class="pipeline-row">
+      <div class="pipeline-step">
+        CTE: SETAUTHREF
+        <span class="step-sub">Referral + EnrollKeys<br>LOB Filter (Medi-Cal)<br>Decision Date Range</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step exclusion">
+        Auto-Auth Exclusion
+        <span class="step-sub">NOT servicecode<br>LIKE '%AUTO%'<br>(C010)</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        DETAIL Table
+        <span class="step-sub">AUDIT_DHCS_PRIORAUTH<br>_MCAL_DETAIL<br>Full Join + Shell Fields</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        UPDATE Enrichment
+        <span class="step-sub">Dx Code • CPT/Rev Code<br>Modified • Extended<br>TAT • SPD • Language<br>PCP • Aid Code</span>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        Final OUTPUT
+        <span class="step-sub">AUDIT_DHCS_PRIORAUTH<br>_MCAL<br>Cols A – AC</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROW 3: ATTRIBUTE ENRICHMENT DETAIL ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="attrib-section">
+    <div class="pipeline-label">UPDATE Enrichment Passes (10+)</div>
+    <div class="attrib-row">
+      <div class="attrib-block">
+        <div class="ab-title">Diagnosis Code</div>
+        <div class="ab-detail">authdiag → diagcode<br>ICD-10 + Description</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">CPT / Rev Code</div>
+        <div class="ab-detail">authservice → svccode<br>Fallback: revcode (C008)</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">TAT Calculation</div>
+        <div class="ab-detail">Business Days / Hours<br>date_calendarISO<br>Threshold Comparison</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">Modified Status</div>
+        <div class="ab-detail">#authmodified<br>referralattribute<br>(C001 CAP)</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">Extension / Notification</div>
+        <div class="ab-detail">#authextension<br>#authnotification<br>#auththreshold</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">SPD / Aid Code</div>
+        <div class="ab-detail">udf_MediCalwSPDFlag<br>+ healthcoverage<br>(EnrollmentManager)</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">Language / PCP</div>
+        <div class="ab-detail">dbo.language<br>uvw_PCP<br>IPA/PPG Delegate</div>
+      </div>
+      <div class="attrib-block">
+        <div class="ab-title">Decision Maker</div>
+        <div class="ab-detail">entity (Med Dir)<br>quser (C004/C005)<br>Credentials</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ROW 4: OUTPUT DATA ELEMENTS ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="data-elements-row">
+    <div class="data-element"><strong>Member Info</strong>First/Last Name,<br>CIN, DOB, Language</div>
+    <div class="data-element"><strong>Aid Code / SPD</strong>Medi-Cal Aid Code,<br>NONSPD / SPD Flag,<br>County (hardcode NA)</div>
+    <div class="data-element"><strong>PA Identification</strong>Auth Number,<br>Product Line,<br>Routine vs Urgent</div>
+    <div class="data-element"><strong>Service Requested</strong>CPT/Rev Code +<br>Description,<br>Specialty of Provider</div>
+    <div class="data-element"><strong>Clinical</strong>ICD-10 Diagnosis +<br>Description,<br>Template Name</div>
+    <div class="data-element"><strong>Dates &amp; TAT</strong>Date Received,<br>Date of PA / Action,<br>TAT, Timely (Y/N)</div>
+    <div class="data-element"><strong>Disposition</strong>Action (Approved /<br>Modified / Denied),<br>Decision Maker,<br>Reason to Deny</div>
+    <div class="data-element"><strong>Indicators</strong>CoC Indicator,<br>OON Indicator,<br>Extension / Notification<br>/ Threshold Letters</div>
+    <div class="data-element"><strong>Delegate</strong>IPA / PPG /<br>Clinics Delegate<br>Entity (PCP Pay-To)</div>
+  </div>
+
+  <!-- ===== ROW 5: OUTPUT ===== -->
+  <div class="flow-arrows">
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+  </div>
+
+  <div class="output-section">
+    <div class="report-box">
+      <span class="sys-label">1.2 UM Medical PA Log &nbsp;→&nbsp; INFORMATICS.dbo.AUDIT_DHCS_PRIORAUTH_MCAL</span>
+      <div class="report-modules">
+        <div class="report-module">A–B<br>Member Name</div>
+        <div class="report-module">C–D<br>CIN &amp; DOB</div>
+        <div class="report-module">E<br>Aid Code</div>
+        <div class="report-module">F<br>County</div>
+        <div class="report-module">G<br>PA Number</div>
+        <div class="report-module">H<br>Product Line</div>
+        <div class="report-module">I<br>Request Type</div>
+        <div class="report-module">J<br>Date of PA</div>
+        <div class="report-module">K–L<br>CPT &amp; Descr</div>
+        <div class="report-module">M<br>Specialty</div>
+        <div class="report-module">N<br>Diagnosis</div>
+        <div class="report-module">O–P<br>Received / Action</div>
+        <div class="report-module">Q<br>TAT</div>
+        <div class="report-module">R<br>Disposition</div>
+        <div class="report-module">S–T<br>Decision / Reason</div>
+        <div class="report-module">U<br>Language</div>
+        <div class="report-module">V<br>IPA/PPG</div>
+        <div class="report-module">W<br>SPD Flag</div>
+        <div class="report-module">X<br>Template</div>
+        <div class="report-module">Y–Z<br>CoC / OON</div>
+        <div class="report-module">AA–AC<br>Letters</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== LEGEND ===== -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch sw-auth"></div>QNXT Auth / UM Tables</div>
+  <div class="legend-item"><div class="legend-swatch sw-ref"></div>QNXT Reference Data</div>
+  <div class="legend-item"><div class="legend-swatch sw-attrib"></div>Referral Attributes (Misc. Tab)</div>
+  <div class="legend-item"><div class="legend-swatch sw-qcsi"></div>QCSI (Decision Maker)</div>
+  <div class="legend-item"><div class="legend-swatch sw-enroll"></div>Enrollment Manager</div>
+  <div class="legend-item"><div class="legend-swatch sw-info"></div>INFORMATICS Views</div>
+  <div class="legend-item"><div class="legend-swatch sw-excl"></div>Auto-Auth Exclusion (C010)</div>
+  <div class="legend-item"><div class="legend-swatch sw-output"></div>PA Log Output (Cols A–AC)</div>
+</div>
+
+</body>
+</html>

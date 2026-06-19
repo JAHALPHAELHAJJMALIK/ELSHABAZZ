@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PartCClaims — 2027 MA Bid Data Flow Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 24px 48px;
+  }
+
+  /* ===== TITLE BAR ===== */
+  .title-bar {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .title-bar h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #bde0ff;
+    letter-spacing: 0.3px;
+  }
+  .title-bar .subtitle {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+  }
+
+  .diagram {
+    width: 1540px;
+    min-height: 200px;
+  }
+
+  /* ===== SOURCE SYSTEM CONTAINERS ===== */
+  .source-row {
+    display: flex;
+    justify-content: center;
+    gap: 22px;
+    margin-bottom: 0;
+  }
+
+  .system-box {
+    border: 2px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 18px 20px 20px;
+    position: relative;
+  }
+
+  .system-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+
+  /* QNXT — red tint */
+  .system-box.qnxt {
+    background: rgba(255, 140, 140, 0.10);
+    border-color: rgba(255, 140, 140, 0.35);
+    width: 800px;
+  }
+
+  /* INFORMATICS Reference — blue tint */
+  .system-box.informatics {
+    background: rgba(140, 200, 255, 0.10);
+    border-color: rgba(140, 200, 255, 0.35);
+    width: 420px;
+  }
+
+  /* Excel Crosswalks — amber tint */
+  .system-box.excel {
+    background: rgba(255, 200, 100, 0.10);
+    border-color: rgba(255, 200, 100, 0.35);
+    width: 250px;
+  }
+
+  .module-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .module {
+    background: #2a2a2a;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 115px;
+    color: #f0f0f0;
+    line-height: 1.4;
+  }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin: 18px 0 8px;
+  }
+
+  /* ===== FLOW ARROWS ===== */
+  .flow-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    margin: 12px 0 10px;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0.3;
+  }
+  .flow-arrow .shaft { width: 2px; height: 20px; background: #ccc; }
+  .flow-arrow .head {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 6px solid #ccc;
+  }
+
+  /* ===== STEP SEQUENCE ===== */
+  .step-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+
+  .step-box {
+    background: rgba(100, 180, 255, 0.13);
+    border: 1px solid rgba(100, 180, 255, 0.38);
+    border-radius: 6px;
+    padding: 12px 14px 12px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.48;
+    color: #cde8ff;
+    min-width: 160px;
+    max-width: 195px;
+    position: relative;
+  }
+  .step-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .step-box .step-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 180, 255, 0.85);
+    letter-spacing: 0.5px;
+  }
+
+  /* SP execution — orange accent */
+  .step-box.sp {
+    background: rgba(255, 160, 60, 0.13);
+    border-color: rgba(255, 160, 60, 0.40);
+    color: #ffe0b0;
+  }
+  .step-box.sp .step-num { color: rgba(255, 160, 60, 0.9); }
+  .step-box.sp strong { color: #ffd090; }
+
+  /* Python export — green accent */
+  .step-box.py {
+    background: rgba(100, 220, 160, 0.13);
+    border-color: rgba(100, 220, 160, 0.38);
+    color: #c0ffd8;
+  }
+  .step-box.py .step-num { color: rgba(100, 220, 160, 0.9); }
+  .step-box.py strong { color: #a0ffcc; }
+
+  /* ===== DERIVED DATA ELEMENTS ===== */
+  .data-elements-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .data-element {
+    background: rgba(80, 80, 80, 0.65);
+    border-radius: 5px;
+    padding: 10px 13px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd;
+    min-width: 140px;
+    max-width: 186px;
+  }
+  .data-element strong {
+    display: block;
+    font-size: 11.5px;
+    color: #fff;
+    margin-bottom: 3px;
+  }
+
+  /* ===== NETWORK INDICATOR (special row) ===== */
+  .network-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .net-box {
+    background: rgba(255, 200, 100, 0.10);
+    border: 1px solid rgba(255, 200, 100, 0.35);
+    border-radius: 5px;
+    padding: 10px 13px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ffe9b0;
+    min-width: 170px;
+    max-width: 210px;
+    position: relative;
+  }
+  .net-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #ffd070;
+    margin-bottom: 3px;
+  }
+  .net-box .net-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 200, 80, 0.9);
+    letter-spacing: 0.3px;
+  }
+
+  /* ===== EXCLUSION / FILTER BOXES ===== */
+  .filter-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .filter-box {
+    background: rgba(255, 90, 90, 0.10);
+    border: 1px dashed rgba(255, 90, 90, 0.45);
+    border-radius: 5px;
+    padding: 8px 13px;
+    font-size: 10.5px;
+    text-align: center;
+    line-height: 1.4;
+    color: #ffb0b0;
+    min-width: 130px;
+    max-width: 175px;
+  }
+  .filter-box strong {
+    display: block;
+    font-size: 11px;
+    color: #ff9090;
+    margin-bottom: 2px;
+  }
+
+  /* ===== MBI RESOLUTION ROW ===== */
+  .mbi-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 6px 0;
+    flex-wrap: wrap;
+  }
+  .mbi-box {
+    background: rgba(180, 140, 255, 0.12);
+    border: 1px solid rgba(180, 140, 255, 0.38);
+    border-radius: 5px;
+    padding: 10px 14px;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.45;
+    color: #ddd0ff;
+    min-width: 160px;
+    max-width: 220px;
+    position: relative;
+  }
+  .mbi-box strong {
+    display: block;
+    font-size: 11.5px;
+    color: #c8aaff;
+    margin-bottom: 3px;
+  }
+  .mbi-box .mbi-num {
+    position: absolute;
+    top: -9px;
+    left: 10px;
+    background: #1a1a1a;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(180, 140, 255, 0.9);
+    letter-spacing: 0.3px;
+  }
+
+  /* ===== OUTPUT — STAGING TABLE ===== */
+  .report-box {
+    background: rgba(160, 140, 220, 0.12);
+    border: 2px solid rgba(160, 140, 220, 0.38);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1380px;
+    margin: 0 auto;
+  }
+  .report-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+  .report-modules {
+    display: flex;
+    gap: 11px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .report-module {
+    background: rgba(160, 140, 220, 0.25);
+    border: 1px solid rgba(160, 140, 220, 0.48);
+    border-radius: 6px;
+    padding: 10px 13px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 118px;
+    color: #e8e0ff;
+    line-height: 1.4;
+  }
+
+  /* ===== OUTPUT — CSV / MILLIMAN FILE ===== */
+  .universe-box {
+    background: rgba(100, 220, 160, 0.10);
+    border: 2px solid rgba(100, 220, 160, 0.38);
+    border-radius: 10px;
+    padding: 20px 28px 22px;
+    position: relative;
+    width: 1380px;
+    margin: 0 auto;
+  }
+  .universe-box .sys-label {
+    position: absolute;
+    top: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    padding: 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    color: #ddd;
+  }
+  .universe-modules {
+    display: flex;
+    gap: 11px;
+    justify-content: center;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .universe-module {
+    background: rgba(100, 220, 160, 0.22);
+    border: 1px solid rgba(100, 220, 160, 0.45);
+    border-radius: 6px;
+    padding: 10px 13px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    min-width: 118px;
+    color: #d0ffe0;
+    line-height: 1.4;
+  }
+
+  .output-section { margin-top: 20px; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aaa;
+  }
+  .legend-swatch {
+    width: 14px; height: 14px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .swatch-qnxt      { background: rgba(255,140,140,0.35); }
+  .swatch-informatics { background: rgba(140,200,255,0.35); }
+  .swatch-excel     { background: rgba(255,200,100,0.35); }
+  .swatch-sp        { background: rgba(255,160,60,0.35); }
+  .swatch-py        { background: rgba(100,220,160,0.35); }
+  .swatch-exclusion { background: rgba(255,90,90,0.25); border-style: dashed; }
+  .swatch-staging   { background: rgba(160,140,220,0.35); }
+  .swatch-milliman  { background: rgba(100,220,160,0.35); }
+</style>
+</head>
+<body>
+
+  <!-- ===== TITLE ===== -->
+  <div class="title-bar">
+    <h2>PartCClaims &#8212; 2027 Medicare Advantage Bid Development &nbsp;&#8212;&nbsp; Data Flow Diagram</h2>
+    <div class="subtitle">
+      LOB: D-SNP (H4733) &nbsp;|&nbsp; C-SNP (H6248) &nbsp;|&nbsp; DOS: 01/01/2023 &#8211; 12/31/2025 &nbsp;|&nbsp;
+      Paid Cutoff: 03/25/2026 &nbsp;|&nbsp; Actuarial Vendor: Milliman &nbsp;|&nbsp; Generated: 04/10/2026
+    </div>
+  </div>
+
+  <div class="diagram">
+
+    <!-- =========================================================== -->
+    <!-- ROW 1 — SOURCE SYSTEMS                                      -->
+    <!-- =========================================================== -->
+    <div class="source-row">
+
+      <!-- QNXT -->
+      <div class="system-box qnxt">
+        <span class="sys-label">QNXT / HMOPROD_PlanData (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">Claims<br><span style="font-size:10px;color:#aaa;">dbo.claim<br>dbo.claimdetail</span></div>
+          <div class="module">Members<br><span style="font-size:10px;color:#aaa;">dbo.member<br>dbo.enrollkeys</span></div>
+          <div class="module">Diagnoses<br><span style="font-size:10px;color:#aaa;">dbo.claimdiag<br>dbo.DiagCode</span></div>
+          <div class="module">Providers<br><span style="font-size:10px;color:#aaa;">dbo.provider<br>dbo.affiliation</span></div>
+          <div class="module">Contracts<br><span style="font-size:10px;color:#aaa;">dbo.contractinfo<br>dbo.claimdetail</span></div>
+          <div class="module">MBI / HIC<br><span style="font-size:10px;color:#aaa;">MemberCmsHic<br>membercmsfactor</span></div>
+        </div>
+      </div>
+
+      <!-- INFORMATICS Reference -->
+      <div class="system-box informatics">
+        <span class="sys-label">INFORMATICS Reference Views (SQLPROD02)</span>
+        <div class="module-row">
+          <div class="module">LOB View<br><span style="font-size:10px;color:#aaa;">uvw_LINE_OF_<br>BUSINESS</span></div>
+          <div class="module">Relaxed OON<br><span style="font-size:10px;color:#aaa;">uvw_RELAXED_<br>NETWORK_OON</span></div>
+          <div class="module">False PAR<br><span style="font-size:10px;color:#aaa;">uvw_FALSE_<br>PROVIDER_PAR</span></div>
+          <div class="module">274 PAR Repo<br><span style="font-size:10px;color:#aaa;">uvw_Provider<br>Repository274_PAR</span></div>
+        </div>
+      </div>
+
+      <!-- Excel Crosswalks -->
+      <div class="system-box excel">
+        <span class="sys-label">Excel Crosswalks (Loaded to INFORMATICS.dbo)</span>
+        <div class="module-row">
+          <div class="module">Milliman Specialty<br>Crosswalk<br><span style="font-size:10px;color:#aaa;">_20260213.xlsx</span></div>
+          <div class="module">QNXT→Milliman<br>Crosswalk v2<br><span style="font-size:10px;color:#aaa;">_20260213_v2.xlsx</span></div>
+        </div>
+      </div>
+
+    </div><!-- /source-row -->
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Execution Sequence — [spPartCClaims] on INFORMATICS2.dbo (SQLPROD02)</div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 2 — EXECUTION STEPS                                     -->
+    <!-- =========================================================== -->
+    <div class="step-row">
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 01 — SP INIT</span>
+        <strong>spPartCClaims Execute</strong>
+        @StartDate = 1/1/2023<br>@EndDate = 12/31/2025<br>@LimitONPaidDate = 01/31/2026<br>@LOB = D-SNP, C-SNP
+      </div>
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 02 — LOB FILTER</span>
+        <strong>Benefit Plan Validation</strong>
+        STRING_SPLIT(@LOB, ',')<br>uvw_LINE_OF_BUSINESS<br>H4733 · H6248 contract #
+      </div>
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 03 — CLAIMS CTE</span>
+        <strong>claimdata CTE Build</strong>
+        claim + claimdetail join<br>DOS / Paid Date filter<br>Billed · Allowed · Paid<br>ICD Dx (15) · ICD Px (25)
+      </div>
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 04 — STAGING</span>
+        <strong>DROP + INSERT</strong>
+        DROP TABLE IF EXISTS<br>INFORMATICS.dbo.PartCClaims<br>Fresh insert from CTE<br>SequenceNumber keyed
+      </div>
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 05 — SPECIALTY</span>
+        <strong>Milliman Specialty XWalk</strong>
+        UPDATE via uvw_PROVISO<br>NPI → QNXT SPECdescr<br>→ MILLIMAN_SPECIALTY_<br>CROSSWALK mapping
+      </div>
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 06 — MBI</span>
+        <strong>MBI 2-Pass Resolution</strong>
+        PASS 1: MemberCmsHic<br>by DOS effective range<br>PASS 2: #hic_codes_eff_term<br>tblEDICMSDTRR chain
+      </div>
+
+      <div class="step-box sp">
+        <span class="step-num">STEP 07 — NETWORK</span>
+        <strong>4-Step Hybrid Network Indicator</strong>
+        RESET → X placeholder<br>Step1: Relaxed Contracted<br>Step2: PAR Status P/O<br>Step3: 274 PAR NPI match<br>Step4: Default → N
+      </div>
+
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Derived Data Elements</div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 3 — DERIVED DATA ELEMENTS                               -->
+    <!-- =========================================================== -->
+    <div class="data-elements-row">
+      <div class="data-element">
+        <strong>Member / Eligibility</strong>
+        Member ID, MBI, DOB,<br>Gender, HealthPlan ID,<br>Contract #, PBP Number
+      </div>
+      <div class="data-element">
+        <strong>Claim Header</strong>
+        Claim Control #,<br>DOS, Paid Date,<br>Bill Type, Claim Type,<br>DRG Code, Disch. Status
+      </div>
+      <div class="data-element">
+        <strong>Claim Financials</strong>
+        Amt Billed, Allowed,<br>Amt Paid, COB Amt,<br>Copay, Deductible,<br>Withhold
+      </div>
+      <div class="data-element">
+        <strong>Diagnosis Codes</strong>
+        ICD-10-CM Dx01–Dx15<br>POA flags per code<br>(claimdiag · DiagCode)
+      </div>
+      <div class="data-element">
+        <strong>Procedure Codes</strong>
+        ICD-10-PCS Px01–Px25<br>CPT / HCPCS<br>(claimdetail)
+      </div>
+      <div class="data-element">
+        <strong>Provider Identity</strong>
+        Rendering NPI,<br>Billing NPI,<br>Provider Name,<br>Place of Service
+      </div>
+      <div class="data-element">
+        <strong>Specialty Crosswalk</strong>
+        QNXT SPECdescr<br>→ Milliman Specialty Code<br>(2-table crosswalk)
+      </div>
+      <div class="data-element">
+        <strong>LOB Assignment</strong>
+        D-SNP / C-SNP flag,<br>Program ID,<br>Plan ID, FileTableName
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Network Indicator — 4-Step Hybrid Adjudication (C007)</div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 4 — NETWORK INDICATOR LOGIC                             -->
+    <!-- =========================================================== -->
+    <div class="network-row">
+      <div class="net-box">
+        <span class="net-num">STEP 1 — RESET</span>
+        <strong>Initialize Placeholder</strong>
+        SET [Network Indicator] = 'X'<br>SET [False Provider Par Logic] = NULL<br>SET [Contract Contracted Value] = NULL
+      </div>
+      <div class="net-box">
+        <span class="net-num">STEP 2 — RELAXED</span>
+        <strong>Contracted Value (Relaxed)</strong>
+        uvw_RELAXED_NETWORK_OON<br>JOIN: Affiliation ID + Contract ID<br>+ Network ID<br>'Y' → Y &nbsp;|&nbsp; 'N' → N
+      </div>
+      <div class="net-box">
+        <span class="net-num">STEP 3 — PAR STATUS</span>
+        <strong>ProviderParStatus Fallback</strong>
+        QNXT ProviderParStatus<br>'P' (Participating) = Y<br>'O' (Out-of-Area) = Y<br>(per Sir Evan / C005)
+      </div>
+      <div class="net-box">
+        <span class="net-num">STEP 4 — 274 PAR</span>
+        <strong>PAR Repository Cross-Match</strong>
+        uvw_ProviderRepository274_PAR<br>Active 274 listed NPI = Y<br>Residual 'X' → NPI peer match<br>Y-peer = Y &nbsp;|&nbsp; N-peer = N
+      </div>
+      <div class="net-box">
+        <span class="net-num">STEP 5 — DEFAULT</span>
+        <strong>Final Default</strong>
+        Any remaining 'X'<br>placeholder → SET = 'N'<br>Ensures no orphaned<br>records in Milliman file
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; MBI Resolution — 2-Pass Logic (Phil / C003)</div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 5 — MBI RESOLUTION                                      -->
+    <!-- =========================================================== -->
+    <div class="mbi-row">
+      <div class="mbi-box">
+        <span class="mbi-num">PASS 1 — ACTIVE HIC</span>
+        <strong>MemberCmsHic (DOS-bounded)</strong>
+        HMOPROD_PlanData.dbo.MemberCmsHic<br>JOIN on MemID<br>DOS BETWEEN EffDate AND TermDate<br>UPPER / TRIM normalized
+      </div>
+      <div class="mbi-box">
+        <span class="mbi-num">PASS 2 — HIC CHAIN</span>
+        <strong>#hic_codes_eff_term (DTRR)</strong>
+        CHGAPP_PROD.dbo.tblEDICMSDTRR<br>NEW BENE ID transactions<br>Full-outer join: terminated + effective<br>Default term = 2078-12-31
+      </div>
+      <div class="mbi-box">
+        <span class="mbi-num">PASS 2 — CHAIN MATCH</span>
+        <strong>MemberCmsHic × HIC Chain</strong>
+        MemberCmsHic JOIN #hic_codes_eff_term<br>on hic_number (COLLATE matched)<br>DOS BETWEEN chain eff/term<br>Resolves transitioned MBIs
+      </div>
+      <div class="mbi-box">
+        <span class="mbi-num">HOSPICE FLAG</span>
+        <strong>Hospice Indicator</strong>
+        membercmsfactor (preferred)<br>factor = 'HOSP' · active range<br>DTRR-driven — Medicare reserved<br>(per Sir Adam, 20250220)
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Quality Assurance / Validation Checks</div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 6 — QA / EXCLUSION FLAGS                                -->
+    <!-- =========================================================== -->
+    <div class="filter-row">
+      <div class="filter-box">
+        <strong>LOB Param Check</strong>
+        RANGE NOTE(s) print<br>@StartDate / @EndDate<br>validated on exec
+      </div>
+      <div class="filter-box">
+        <strong>DataType Guard (C002)</strong>
+        TRY_CONVERT on<br>[POS] / [DischStatus]<br>int error trapped
+      </div>
+      <div class="filter-box">
+        <strong>OON Distribution QA</strong>
+        Network Indicator<br>Y / N / X count by<br>Claim Count + %
+      </div>
+      <div class="filter-box">
+        <strong>Contract Value QA</strong>
+        Contract Contracted Value<br>Y / N / NULL count<br>vs. total claims
+      </div>
+      <div class="filter-box">
+        <strong>False PAR Logic QA</strong>
+        uvw_FALSE_PROVIDER_PAR<br>contracted Y/N<br>vs. NPI lookup
+      </div>
+      <div class="filter-box">
+        <strong>ProviderParStatus QA</strong>
+        P / O / N distribution<br>by provider + Place<br>of Service Code
+      </div>
+      <div class="filter-box">
+        <strong>Financial Summary QA</strong>
+        SUM Billed · Allowed · Paid<br>by LOB + MIN/MAX DOS<br>Record count validation
+      </div>
+      <div class="filter-box">
+        <strong>FileTableName Assert</strong>
+        Auto-generates:<br>PartCClaims2023to2025<br>PaidThru202601.csv
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 7 — STAGING TABLE OUTPUT                                -->
+    <!-- =========================================================== -->
+    <div class="output-section">
+      <div class="report-box">
+        <span class="sys-label">INFORMATICS.dbo.PartCClaims — Staging Table &nbsp;&#8594;&nbsp; [spPartCClaims] Final Output (SQLPROD02)</span>
+        <div class="report-modules">
+          <div class="report-module">Contract #<br><span style="font-size:10px;opacity:0.8;">H4733 / H6248</span></div>
+          <div class="report-module">Member ID &amp; MBI<br><span style="font-size:10px;opacity:0.8;">2-Pass Resolved</span></div>
+          <div class="report-module">Claim Control #<br><span style="font-size:10px;opacity:0.8;">+ Line Number</span></div>
+          <div class="report-module">DOS &amp; Paid Date<br><span style="font-size:10px;opacity:0.8;">MM/DD/YYYY</span></div>
+          <div class="report-module">ICD Dx01–Dx15<br><span style="font-size:10px;opacity:0.8;">+ POA Flags</span></div>
+          <div class="report-module">ICD Px01–Px25<br><span style="font-size:10px;opacity:0.8;">CPT / HCPCS</span></div>
+          <div class="report-module">Billed · Allowed<br>Paid · COB<br><span style="font-size:10px;opacity:0.8;">Copay · Ded · Withhold</span></div>
+          <div class="report-module">Rendering &amp; Billing<br>Provider NPI<br><span style="font-size:10px;opacity:0.8;">+ Provider Name</span></div>
+          <div class="report-module">Milliman Specialty<br><span style="font-size:10px;opacity:0.8;">QNXT → Crosswalk</span></div>
+          <div class="report-module">Network Indicator<br><span style="font-size:10px;opacity:0.8;">4-Step Hybrid Y/N</span></div>
+          <div class="report-module">Hospice Indicator<br><span style="font-size:10px;opacity:0.8;">membercmsfactor</span></div>
+          <div class="report-module">DRG / Bill Type<br>Claim Type<br><span style="font-size:10px;opacity:0.8;">Disch. Status</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <div class="section-label">&#9660; Step 02 — Python Export (PartCClaims_EXPORT_TO_CSV) &nbsp;|&nbsp; VS Code / Notepad++</div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 8 — PYTHON EXPORT STEPS                                 -->
+    <!-- =========================================================== -->
+    <div class="step-row">
+      <div class="step-box py">
+        <span class="step-num">PY — ENGINE</span>
+        <strong>SQLAlchemy Engine</strong>
+        SQLPROD02 · INFORMATICS<br>Windows Auth (Trusted)<br>mssql+pyodbc driver
+      </div>
+      <div class="step-box py">
+        <span class="step-num">PY — ROW COUNT</span>
+        <strong>Total Row Fetch</strong>
+        SELECT COUNT(*)<br>FROM INFORMATICS.dbo<br>.PartCClaims<br>tqdm progress bar init
+      </div>
+      <div class="step-box py">
+        <span class="step-num">PY — FILENAME</span>
+        <strong>Dynamic Filename</strong>
+        SELECT DISTINCT<br>FileTableName FROM<br>PartCClaims<br>→ .csv suffix appended
+      </div>
+      <div class="step-box py">
+        <span class="step-num">PY — CHUNK LOOP</span>
+        <strong>Chunked Export (100K rows)</strong>
+        ORDER BY [SequenceNumber]<br>OFFSET / FETCH NEXT<br>pandas.read_sql per chunk<br>Append mode after chunk 1
+      </div>
+      <div class="step-box py">
+        <span class="step-num">PY — OUTPUT</span>
+        <strong>CSV File Write</strong>
+        C:\Users\wcarr\Desktop\<br>PartCClaims2023to2025<br>PaidThru202601.csv<br>File size (MB) logged
+      </div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ARROW ROW                                                    -->
+    <!-- =========================================================== -->
+    <div class="flow-arrows">
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+    </div>
+
+    <!-- =========================================================== -->
+    <!-- ROW 9 — MILLIMAN FILE OUTPUT                                -->
+    <!-- =========================================================== -->
+    <div class="output-section">
+      <div class="universe-box">
+        <span class="sys-label">
+          Milliman Actuarial Deliverable &nbsp;&#8594;&nbsp; 2027 MA Bid First Pass
+          &nbsp;|&nbsp; CHG_2027_MA_Bid_Data_Request — IS Deliverables.xlsx
+        </span>
+        <div class="universe-modules">
+          <div class="universe-module">Contract #<br><span style="font-size:10px;opacity:0.75;">H4733 / H6248</span></div>
+          <div class="universe-module">Member ID · MBI<br><span style="font-size:10px;opacity:0.75;">Medicare Beneficiary ID</span></div>
+          <div class="universe-module">DOS Range<br><span style="font-size:10px;opacity:0.75;">2023–2025 · Paid ≤ 01/31/26</span></div>
+          <div class="universe-module">Claim Financials<br><span style="font-size:10px;opacity:0.75;">Billed · Allowed · Paid</span></div>
+          <div class="universe-module">ICD-10 Dx/Px<br><span style="font-size:10px;opacity:0.75;">Dx01–15 · Px01–25</span></div>
+          <div class="universe-module">Milliman Specialty<br><span style="font-size:10px;opacity:0.75;">QNXT XWalk applied</span></div>
+          <div class="universe-module">Network Indicator<br><span style="font-size:10px;opacity:0.75;">4-Step Hybrid Y / N</span></div>
+          <div class="universe-module">Hospice Indicator<br><span style="font-size:10px;opacity:0.75;">membercmsfactor</span></div>
+          <div class="universe-module">DRG · Bill Type<br>Claim Type<br><span style="font-size:10px;opacity:0.75;">Discharge Status</span></div>
+          <div class="universe-module">Provider NPI<br>Name · POS<br><span style="font-size:10px;opacity:0.75;">Rendering + Billing</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /diagram -->
+
+  <!-- ===== LEGEND ===== -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch swatch-qnxt"></div>QNXT / HMOPROD_PlanData</div>
+    <div class="legend-item"><div class="legend-swatch swatch-informatics"></div>INFORMATICS Reference Views</div>
+    <div class="legend-item"><div class="legend-swatch swatch-excel"></div>Excel Crosswalk Reference Tables</div>
+    <div class="legend-item"><div class="legend-swatch swatch-sp"></div>spPartCClaims Execution Steps</div>
+    <div class="legend-item"><div class="legend-swatch swatch-py"></div>Python Export (SQLAlchemy / pandas)</div>
+    <div class="legend-item"><div class="legend-swatch swatch-exclusion"></div>QA / Validation Checks</div>
+    <div class="legend-item"><div class="legend-swatch swatch-staging"></div>INFORMATICS Staging Table</div>
+    <div class="legend-item"><div class="legend-swatch swatch-milliman"></div>Milliman Actuarial Deliverable</div>
+  </div>
+
+</body>
+</html>

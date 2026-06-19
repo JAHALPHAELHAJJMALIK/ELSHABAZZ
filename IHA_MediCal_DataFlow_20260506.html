@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IHA Medi-Cal Data Flow | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35); --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38); --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38); --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40); --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36); --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38); --orangeFill:rgba(255,170,80,.13);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:22px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:8px 13px;cursor:pointer;font-size:13px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ── Hero layout ── */
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:34px;line-height:1.08;margin:10px 0 12px}.subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* ── DFD diagram ── */
+  .section-label{text-align:center;font-size:12px;font-weight:700;color:#888;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row,.output-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+  .system-box,.step-box,.data-element,.filter-box,.output-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover{transform:translateY(-4px);filter:brightness(1.13)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:20px 22px 18px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:13px;font-weight:700;white-space:nowrap;color:#eee}
+  .sql{width:440px;background:var(--blueFill);border-color:var(--blue)}
+  .enrolldb{width:400px;background:var(--purpleFill);border-color:var(--purple)}
+  .provdb{width:340px;background:var(--cyanFill);border-color:var(--cyan)}
+  .emailout{width:340px;background:var(--goldFill);border-color:var(--gold)}
+
+  .module-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:10px 12px;font-size:12.5px;font-weight:700;text-align:center;min-width:118px;color:#f1f1f1}
+  .module span{display:block;font-size:10.5px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+
+  .flow-arrows{display:flex;justify-content:center;gap:80px;margin:15px 0 9px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.25}50%{opacity:.78}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* Step boxes */
+  .step-row{gap:14px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:16px 14px 14px;text-align:center;width:210px;font-size:13px;line-height:1.4}
+  .step-box strong{display:block;font-size:15px;margin-bottom:5px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+
+  /* Data elements */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:195px;font-size:12.5px;line-height:1.4}
+  .data-element strong{display:block;font-size:13.5px;margin-bottom:5px}
+
+  /* Filter / checkpoint boxes */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:13px 14px;text-align:center;width:195px;font-size:12.5px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13.5px;margin-bottom:4px}
+
+  /* Output box */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:22px 24px 18px;margin:8px auto;max-width:1200px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:12px 16px;flex:1;min-width:160px;font-size:13px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  /* Detail panel */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:18px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:14px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:4px 10px;font-size:11.5px;color:#9dd6ff}
+
+  /* Legend */
+  .legend{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:13px}
+  .swatch{width:24px;height:16px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:12px;color:#666;margin-top:14px}
+
+  /* Timeline slide */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* Table slide */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+
+  /* Params slide */
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+  .param-card{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:10px;padding:14px}
+  .param-card .pname{font-size:12px;color:#9dd6ff;font-weight:700;letter-spacing:.5px;margin-bottom:5px}
+  .param-card .pval{font-size:13.5px;color:#eee;font-family:'Courier New',monospace}
+  .param-card .pdesc{font-size:11.5px;color:#888;margin-top:4px;line-height:1.4}
+
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- ═══ TOP BAR ═══ -->
+  <div class="topbar">
+    <div class="brand">
+      <h1>IHA — Initial Health Assessment (Medi-Cal)</h1>
+      <div>CHGSD · INFORMATICS · sp_IHA_MEDI_CAL · Data Flow Diagram · As of 05/06/2026</div>
+    </div>
+    <div class="nav">
+      <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+      <button onclick="showSlide(1,this)">② Runbook</button>
+      <button onclick="showSlide(2,this)">③ Analyst Controls</button>
+      <button onclick="showSlide(3,this)">④ SP Parameters</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       SLIDE 0 — MAIN DFD
+  ════════════════════════════════════════════════ -->
+  <div class="slide active">
+
+    <!-- Hero cards -->
+    <div class="hero">
+      <div class="card">
+        <div class="kicker">Report Purpose</div>
+        <div class="title">IHA Medi-Cal<br>Completion Tracking</div>
+        <div class="subtitle">Measures the rate at which newly enrolled Medi-Cal members (age ≥ 20, continuous enrollment ≥ 3 months) receive their Initial Health Assessment (IHA / Preventive Visit) within each enrollment cohort quarter. Produced monthly via automated stored procedure and distributed by SSRS email to clinical and operations leadership.</div>
+        <div class="metric-grid">
+          <div class="metric"><strong>51,112</strong><span>Positive IHA Hits (latest run 5/3/2026)</span></div>
+          <div class="metric"><strong>149,842</strong><span>Total Eligible IHA Population</span></div>
+          <div class="metric"><strong>34.34%</strong><span>Positive IHA Completion Rate</span></div>
+          <div class="metric"><strong>1/1/2020 → GETDATE()</strong><span>Report date range (@ClockStart / @ClockStop)</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Report Distribution</div>
+        <div class="subtitle" style="margin-bottom:14px">Executed automatically by SSRS on a scheduled cadence. Distributed by <strong>ssrsprod@chgsd.com</strong> to the following stakeholders:</div>
+        <div class="module-row" style="flex-direction:column;gap:9px;align-items:flex-start">
+          <div class="module" style="min-width:100%;text-align:left">Ms. Gabriela Rubalcava<span>Primary recipient — Clinical / Population Health lead</span></div>
+          <div class="module" style="min-width:100%;text-align:left">Mr. Adrian Arce<span>CC recipient</span></div>
+          <div class="module" style="min-width:100%;text-align:left">Mr. Yousaf Farook<span>CC recipient — Informatics</span></div>
+          <div class="module" style="min-width:100%;text-align:left">Ms. Francisca Chavez, BS, MS, MBA<span>CC recipient</span></div>
+          <div class="module" style="min-width:100%;text-align:left">Mr. Christopher Duenas<span>CC recipient</span></div>
+          <div class="module" style="min-width:100%;text-align:left">Ms. Daphne Cheney &amp; Ms. Noreen Koizumi, PharmD<span>CC recipients</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DFD proper -->
+    <div class="card">
+      <div class="kicker">Interactive Data Flow Diagram — click any node for details</div>
+      <div class="diagram">
+
+        <!-- ROW A: Source databases -->
+        <div class="section-label">Source Databases / Systems</div>
+        <div class="source-row">
+
+          <div class="system-box sql node"
+            data-title="INFORMATICS — dbo.IHA_MEDI_CAL (Staging Table)"
+            data-body="The primary production staging table. Populated upstream by the sp_IHA_MEDI_CAL stored procedure. Drives both the Quarterly by Initial Enroll Year view and the Annual Assessment summary. Key fields: memid, Initial Enroll Year, QTRref, PAYTÖNM, IHA completed (Y/N), IHEBA performed (Y/N)."
+            data-tags="INFORMATICS|IHA_MEDI_CAL|Staging|SQL Server">
+            <span class="sys-label">INFORMATICS · SQL Server (SQLPRODAPP01)</span>
+            <div class="module-row">
+              <div class="module">dbo.IHA_MEDI_CAL<span>Primary staging table<br>IHA completion records</span></div>
+              <div class="module">dbo.uvw_LINE_OF_BUSINESS<span>LOB / plan filter view<br>@lob = 'MEDI-CAL'</span></div>
+              <div class="module">dbo.date_calendarISO<span>50-year ISO calendar<br>Continuous enroll basis</span></div>
+            </div>
+          </div>
+
+          <div class="system-box enrolldb node"
+            data-title="EnrollmentManager — Member Eligibility"
+            data-body="Source of member eligibility records. The stored procedure queries EnrollmentManager for HcpCode membership (CHG HcpCode + CHPIV HcpCode '533' added C001 as of 20260319) and builds continuous enrollment windows using a parameterized gap tolerance (@GAPOF=1, @MAXGAP=1) and a 3-month minimum (@ContinuousMonths=3)."
+            data-tags="EnrollmentManager|HcpCode|Eligibility|Continuous Enrollment">
+            <span class="sys-label">EnrollmentManager · Eligibility</span>
+            <div class="module-row">
+              <div class="module">HcpCode Filter<span>CHG + CHPIV '533'<br>(C001: added 20260319)</span></div>
+              <div class="module">Continuous Enroll<span>≥ 3 months<br>gap ≤ 1</span></div>
+              <div class="module">Age Cutoff<span>@AgeCutoff = 20<br>members ≥ 20 yrs old</span></div>
+            </div>
+          </div>
+
+          <div class="system-box provdb node"
+            data-title="ProviderRepository — PCP Assignment"
+            data-body="Supplies PCP attribution data. The SP uses DENSE_RANK() OVER (PARTITION BY ek.memid ORDER BY CAST(ek.effdate AS datetime) DESC) to retrieve the most current PCP record per member (@PCPrecordRANK = 1). This is used in IHA attribution and completion matching."
+            data-tags="ProviderRepository|PCP|Attribution|DENSE_RANK">
+            <span class="sys-label">ProviderRepository · PCP Attribution</span>
+            <div class="module-row">
+              <div class="module">PCP Record<span>DENSE_RANK() DESC<br>Most current only</span></div>
+              <div class="module">effdate logic<span>@PCPrecordRANK=1<br>Single record/member</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- arrows -->
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ROW B: SP Processing Steps -->
+        <div class="section-label">Stored Procedure Processing — sp_IHA_MEDI_CAL</div>
+        <div class="step-row">
+
+          <div class="step-box s-blue node"
+            data-title="STEP 01 — Parameter Initialization"
+            data-body="All runtime parameters are declared and SET at the top of the SP. Key values: @ClockStart = '01/01/2020' (per Ms. Gabby email 20211215), @ClockStop = GETDATE(), @lob = 'MEDI-CAL', @ContinuousMonths = 3, @AgeCutoff = 20, @lag/lagyrs/lagdays = 0, @GAPOF = 1, @MAXGAP = 1, @PCPrecordRANK = 1, @ExecDate = GETDATE()."
+            data-tags="Parameters|@ClockStart|@lob|@AgeCutoff|MEDI-CAL">
+            <span class="step-num">Step 01</span>
+            <strong>Parameters</strong>
+            Set all @parameters<br>@ClockStart 1/1/2020<br>@lob = MEDI-CAL
+          </div>
+
+          <div class="step-box s-purple node"
+            data-title="STEP 02 — LOB &amp; Eligibility Filter"
+            data-body="Filters EnrollmentManager records using uvw_LINE_OF_BUSINESS joined to date_calendarISO. Applies @lob = 'MEDI-CAL' on LINE_OF_BUSINESS column (LIKE ISNULL('%' + @lob + '%', '%')). Members must have active MEDI-CAL plan enrollment within the ClockStart–ClockStop range."
+            data-tags="LOB Filter|uvw_LINE_OF_BUSINESS|MEDI-CAL|date_calendarISO">
+            <span class="step-num">Step 02</span>
+            <strong>LOB Filter</strong>
+            uvw_LINE_OF_BUSINESS<br>@lob MEDI-CAL LIKE<br>date_calendarISO join
+          </div>
+
+          <div class="step-box s-cyan node"
+            data-title="STEP 03 — Continuous Enrollment Window"
+            data-body="Builds continuous enrollment spans using the ISO calendar. Gap tolerance is parameterized: @GAPOF=1, @MAXGAP=1. A member must have ≥ 3 consecutive months (@ContinuousMonths=3) of eligibility. Members with gaps exceeding @MAXGAP=1 month are excluded from the eligible IHA population denominator."
+            data-tags="Continuous Enrollment|@GAPOF|@MAXGAP|3 months|Gap tolerance">
+            <span class="step-num">Step 03</span>
+            <strong>Continuous Enroll</strong>
+            ≥ 3 months required<br>@GAPOF = 1<br>@MAXGAP = 1
+          </div>
+
+          <div class="step-box s-green node"
+            data-title="STEP 04 — Age &amp; PCP Attribution"
+            data-body="Applies @AgeCutoff = 20 to restrict the population to members aged 20 or older. PCP attribution is derived from ProviderRepository using DENSE_RANK() OVER (PARTITION BY ek.memid ORDER BY effdate DESC) = 1 to pull only the most current PCP assignment per member."
+            data-tags="Age Filter|@AgeCutoff=20|PCP|DENSE_RANK|ProviderRepository">
+            <span class="step-num">Step 04</span>
+            <strong>Age + PCP</strong>
+            Age ≥ 20 filter<br>DENSE_RANK PCP<br>Most current only
+          </div>
+
+          <div class="step-box s-gold node"
+            data-title="STEP 05 — IHA Completion Logic"
+            data-body="Joins the eligible population to IHA_MEDI_CAL staging table. Splits on [IHA completed (Y/N)] = 'Y' for positive IHA hits and [IHEBA performed (Y/N)] for preventive visit flag. Counts are computed using COUNT(DISTINCT memid) grouped by PAYTÖNM, Initial Enroll Year, and QTRref."
+            data-tags="IHA completed Y/N|IHEBA performed|COUNT DISTINCT|QTRref|Initial Enroll Year">
+            <span class="step-num">Step 05</span>
+            <strong>IHA Completion</strong>
+            Y/N split + IHEBA<br>COUNT(DISTINCT memid)<br>by QTRref / Enroll Yr
+          </div>
+
+          <div class="step-box s-orange node"
+            data-title="STEP 06 — Completion Rate Calculation"
+            data-body="Calculates Completion Rate as: ISNULL(CAST(CAST(affirmativeIHA.[Member Count]*100.0 AS money) / CAST(gt.[Member Count]*1.0 AS money) AS nvarchar(MAX)), 0) + '%'. The grand total (gt) subquery and affirmativeIHA subquery are LEFT JOINed on [Initial Enroll Year], QTRref, and PAYTÖNM, then ordered by PAYTÖNM, Enroll Year, QTRref."
+            data-tags="Completion Rate|LEFT JOIN|affirmativeIHA|gt subquery|PAYTÖNM">
+            <span class="step-num">Step 06</span>
+            <strong>Rate Calc</strong>
+            affirmativeIHA / gt<br>× 100.0 → nvarchar<br>LEFT JOIN + ORDER
+          </div>
+
+        </div>
+
+        <!-- arrows -->
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ROW C: Derived / Controlled Data Elements -->
+        <div class="section-label">Derived / Controlled Data Elements</div>
+        <div class="data-elements-row">
+
+          <div class="data-element node"
+            data-title="Eligible IHA Population (Denominator)"
+            data-body="Total Medi-Cal members age ≥ 20 with ≥ 3 months continuous enrollment within the ClockStart–ClockStop window, grouped by Initial Enroll Year and QTRref. Latest run: 149,842 eligible members."
+            data-tags="Denominator|Eligible|149,842|Medi-Cal|QTRref">
+            <strong>Eligible Pop.</strong>
+            Grand total (gt)<br>denominator<br>149,842 members
+          </div>
+
+          <div class="data-element node"
+            data-title="Positive IHA Hit Members (Numerator)"
+            data-body="Members where [IHA completed (Y/N)] = 'Y' or [IHEBA performed (Y/N)] = 'Y', grouped by PAYTÖNM, Initial Enroll Year, QTRref. Latest run: 51,112 positive IHA hits. Used as the numerator for all Completion Rate calculations."
+            data-tags="Numerator|Positive|51,112|IHA completed|IHEBA">
+            <strong>Positive IHA Hits</strong>
+            affirmativeIHA<br>numerator<br>51,112 members
+          </div>
+
+          <div class="data-element node"
+            data-title="IHA Completion Rate by Cohort Quarter"
+            data-body="Per-quarter completion rate expressed as a percentage string (nvarchar). Computed per PAYTÖNM + Initial Enroll Year + QTRref cell. Range observed in the report: 68–84% completion across 2020–2023 cohort quarters. Overall 34.34% on 5/3/2026 run."
+            data-tags="Completion Rate|QTRref|Cohort|34.34%|nvarchar">
+            <strong>Completion Rate</strong>
+            % per cohort Qtr<br>34.34% overall<br>68–84% by Qtr
+          </div>
+
+          <div class="data-element node"
+            data-title="Annual IHA Summary by Initial Enroll Year"
+            data-body="A second result set aggregated only by [Initial Enroll Year] (no QTRref). LEFT JOINs on ciha (Y) and niha (N) to show annual Y / N / Grand Total / Completion Rate. Supports year-over-year trend reporting."
+            data-tags="Annual|Initial Enroll Year|ciha|niha|Year-over-year">
+            <strong>Annual Summary</strong>
+            By Enroll Year only<br>ciha / niha / gt<br>Y-o-Y trend
+          </div>
+
+          <div class="data-element node"
+            data-title="SSRS Email Metadata / Run Control"
+            data-body="The SSRS job captures execution metadata: @ExecDate = GETDATE(), file path (\\fileserver01\Corporate\…\IHA_MEDI-CAL.xlsx), range [1/1/2020 → 5/3/2026], positive IHA count, eligible population, and completion rate. These are surfaced in the email header table (RESULT row) upon job completion."
+            data-tags="SSRS|ExecDate|Run control|Email header|File path">
+            <strong>Run Metadata</strong>
+            @ExecDate + path<br>SSRS email header<br>DONE status + counts
+          </div>
+
+        </div>
+
+        <!-- arrows -->
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ROW D: Analyst Controls / Checkpoints -->
+        <div class="section-label">Analyst Controls / Quality Checkpoints</div>
+        <div class="filter-row">
+
+          <div class="filter-box node"
+            data-title="Checkpoint — LOB Lock Verified?"
+            data-body="Confirm @lob = 'MEDI-CAL' is correctly set before execution. Valid LOB values include: 'DSNP MEDI-CAL PLAN', 'MEDI-CAL BENEFIT PLAN', 'COMMUNITY Y MAS (HMO C-SNP)'. Setting @lob = NULL returns all LOBs — not appropriate for the IHA Medi-Cal report. Analyst must confirm lock before running."
+            data-tags="Control|@lob|MEDI-CAL lock|LOB verification">
+            <strong>LOB Lock?</strong>
+            @lob = 'MEDI-CAL'<br>confirm before exec
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — HcpCode '533' Active?"
+            data-body="As of C001 (20260319), CHPIV HcpCode '533' was added to the enrollment filter. Confirm this code remains active and producing expected enrollment records. If CHPIV volumes look unexpectedly low, verify this HcpCode is not expiring or being remapped."
+            data-tags="Control|HcpCode 533|CHPIV|C001|20260319">
+            <strong>HcpCode '533'?</strong>
+            CHPIV added 20260319<br>confirm still active
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — Staging Table Refreshed?"
+            data-body="INFORMATICS.dbo.IHA_MEDI_CAL must be current before the summary queries execute. If the staging table has not been refreshed this month, the report will reflect stale data. Validate row counts and max date in the table before distribution."
+            data-tags="Control|IHA_MEDI_CAL|Staging refresh|Row count|Stale data">
+            <strong>Staging Fresh?</strong>
+            IHA_MEDI_CAL current<br>validate row counts
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — File Path Accessible?"
+            data-body="SSRS writes output to \\fileserver01\Corporate Shared Drive\Information Systems\Informatics\WCarr\IHA\IHA_MEDI-CAL.xlsx. Confirm UNC path is accessible and the file is not locked by another process before executing and distributing."
+            data-tags="Control|File path|UNC|xlsx|SSRS output">
+            <strong>File Path OK?</strong>
+            \\fileserver01\…<br>IHA_MEDI-CAL.xlsx<br>not locked
+          </div>
+
+          <div class="filter-box node"
+            data-title="Checkpoint — Completion Rate Sanity?"
+            data-body="Overall completion rate should fall within a historically expected range (approximately 30–45% for the Medi-Cal IHA population given long cohort lookback). If the rate deviates sharply (e.g., < 20% or > 60%), investigate denominator inflation or numerator undercounting before distribution."
+            data-tags="Control|Sanity check|Completion Rate|Denominator|Numerator">
+            <strong>Rate Sanity?</strong>
+            Expected ~30–45%<br>flag outliers before<br>distribution
+          </div>
+
+        </div>
+
+        <!-- arrows -->
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- ROW E: Final Output -->
+        <div class="output-box node"
+          data-title="Final Output — SSRS IHA Medi-Cal Email Report + Excel File"
+          data-body="The SSRS scheduled job sends an automated email from ssrsprod@chgsd.com with an embedded summary table (RESULT row: Positive IHA Hit Members, Out of Total Eligible IHA Population, Positive Completion Rate, Date Range) and attaches or references the refreshed IHA_MEDI-CAL.xlsx. Two result sets are available: (1) Quarterly by PAYTÖNM / Initial Enroll Year / QTRref with Completion Rate, and (2) Annual Assessment by Initial Enroll Year."
+          data-tags="Final output|SSRS|Email|IHA_MEDI-CAL.xlsx|Quarterly + Annual">
+          <span class="sys-label">Final Presentation / Operational Output</span>
+          <div class="out-modules">
+            <div class="out-module">SSRS Email Summary<span>RESULT row: hits, eligible, rate, range. Sent to Gabi, Adrian, Yousaf, Francisca, Christopher, Daphne, Noreen</span></div>
+            <div class="out-module">IHA_MEDI-CAL.xlsx<span>\\fileserver01\...\WCarr\IHA\<br>Refreshed quarterly + annual tabs</span></div>
+            <div class="out-module">Quarterly Result Set<span>By PAYTÖNM / Initial Enroll Year / QTRref — IHA Y, N, Grand Total, Completion Rate</span></div>
+            <div class="out-module">Annual Result Set<span>By Initial Enroll Year only — Y / N / Grand Total / Completion Rate (Y-o-Y trend)</span></div>
+            <div class="out-module">CLAIMS Review Companion<span>Raw claims file path referenced in email for drill-down: \IHA\CLAIMS\IHA_MEDI-CAL.xlsx</span></div>
+          </div>
+        </div>
+
+      </div><!-- /diagram -->
+
+      <!-- Detail + Legend -->
+      <div class="detail">
+        <div class="card detail-panel">
+          <div class="kicker">Selected Node</div>
+          <h3 id="detailTitle">Click any node in the diagram above</h3>
+          <p id="detailBody">The details panel will show data sources, logic, business context, and analyst notes for the selected element.</p>
+          <div class="badge-row" id="detailTags">
+            <span class="badge">Interactive</span>
+            <span class="badge">DFD</span>
+            <span class="badge">IHA Medi-Cal</span>
+            <span class="badge">Dark Mode</span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="kicker">Legend</div>
+          <div class="legend">
+            <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>SQL / INFORMATICS staging</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>EnrollmentManager / LOB filter</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>ProviderRepository / PCP</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>Age / derived population logic</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>IHA completion + IHEBA logic</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--orangeFill);border-color:var(--orange)"></div>Rate calculation / output</div>
+            <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Manual analyst checkpoint</div>
+          </div>
+          <p class="print-note">Tip: use browser print → Save as PDF to export. Navigation buttons are hidden in print mode.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /Slide 0 -->
+
+  <!-- ════════════════════════════════════════════════
+       SLIDE 1 — RUNBOOK
+  ════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="card">
+      <div class="kicker">IHA Medi-Cal — Runbook Sequence</div>
+      <div class="timeline">
+        <div class="tl"><strong>00 · Parameter Setup</strong><p>Open sp_IHA_MEDI_CAL in SSMS on SQLPRODAPP01 · INFORMATICS. Confirm @lob = 'MEDI-CAL', @ClockStart = '01/01/2020', @ClockStop = GETDATE(), @ContinuousMonths = 3, @AgeCutoff = 20, all @lag values = 0.</p></div>
+        <div class="tl"><strong>01 · HcpCode Verification</strong><p>Confirm CHG HcpCode (primary) and CHPIV HcpCode '533' (added C001 as of 20260319) are both active in EnrollmentManager. Run a quick COUNT on each to validate expected volumes before the full SP execution.</p></div>
+        <div class="tl"><strong>02 · Staging Table Refresh</strong><p>Verify INFORMATICS.dbo.IHA_MEDI_CAL has been refreshed for the current month cycle. Review max row date and total row count. If stale, escalate to data engineering before proceeding.</p></div>
+        <div class="tl"><strong>03 · SP Execution</strong><p>Execute EXEC dbo.sp_IHA_MEDI_CAL on SQLPRODAPP01 · INFORMATICS. The SP runs SET NOCOUNT ON; — monitor Messages tab for any errors. Expected result sets: (1) Quarterly by PAYTÖNM / QTRref, (2) Annual by Enroll Year.</p></div>
+        <div class="tl"><strong>04 · Output Validation</strong><p>Review overall Completion Rate in the RESULT header row. As of 5/3/2026: 51,112 hits / 149,842 eligible = 34.34%. Validate that quarterly completion rates fall within expected 68–84% range for recent cohorts. Flag any quarter below 60% for investigation.</p></div>
+        <div class="tl"><strong>05 · Excel File Refresh</strong><p>Open IHA_MEDI-CAL.xlsx at \\fileserver01\Corporate Shared Drive\...\WCarr\IHA\. Refresh all connections and pivot caches. Confirm row counts match SQL output. Also confirm CLAIMS companion file at the CLAIMS subfolder path is current.</p></div>
+        <div class="tl"><strong>06 · SSRS Distribution</strong><p>SSRS automated job triggers the email from ssrsprod@chgsd.com. Confirm delivery to: Ms. Gabriela Rubalcava (To), with CC to Adrian Arce, Yousaf Farook, Francisca Chavez, Christopher Duenas, Daphne Cheney, Noreen Koizumi. Validate email header RESULT row matches validated SP output.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       SLIDE 2 — ANALYST CONTROLS
+  ════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="card">
+      <div class="kicker">Analyst Controls &amp; Quality Gates</div>
+      <table class="mini-table">
+        <tr><th>Control</th><th>Recommended Validation</th><th>Failure Symptom</th></tr>
+        <tr><td>LOB lock</td><td>Confirm @lob = 'MEDI-CAL' is explicitly SET before execution. Never run with @lob = NULL for this report.</td><td>All LOBs returned — denominator and numerator inflated; completion rate meaningless.</td></tr>
+        <tr><td>HcpCode coverage</td><td>Confirm both CHG and CHPIV '533' HcpCodes are returning enrollment records. Quick COUNT per HcpCode before full run.</td><td>Missing CHPIV population; denominator understated for Imperial Valley members.</td></tr>
+        <tr><td>Continuous enrollment</td><td>Validate @GAPOF = 1 and @MAXGAP = 1 are not changed. The 3-month minimum must remain @ContinuousMonths = 3.</td><td>Incorrect enrollment window; ineligible short-term members included in denominator.</td></tr>
+        <tr><td>Age cutoff</td><td>Confirm @AgeCutoff = 20. IHA reporting targets adult Medi-Cal members aged 20 and older.</td><td>Pediatric population included in eligible denominator; completion rate understated.</td></tr>
+        <tr><td>Staging table currency</td><td>Check max date in INFORMATICS.dbo.IHA_MEDI_CAL. Should reflect current month's data load before SP execution.</td><td>Report distributes with prior-month data; stakeholders receive stale results.</td></tr>
+        <tr><td>File path accessibility</td><td>Confirm \\fileserver01\Corporate\...\IHA\IHA_MEDI-CAL.xlsx is accessible, not locked, and writable by SSRS service account.</td><td>SSRS job fails or overwrites a locked file; email references an inaccessible path.</td></tr>
+        <tr><td>Completion rate sanity</td><td>Overall rate should fall ~30–45% given the long cohort lookback from 2020. Quarterly rates for recent cohorts expected 68–84%.</td><td>Rate outside expected range signals a denominator or numerator integrity issue — do not distribute until resolved.</td></tr>
+        <tr><td>PCP attribution</td><td>Confirm DENSE_RANK @PCPrecordRANK = 1 logic is returning a single, most-current PCP row per member. Sample 10 members for manual verification.</td><td>Fan-trap on PCP records; member counts inflated; IHA attribution double-counted.</td></tr>
+      </table>
+      <div class="callout"><b>Senior Analyst Note (WCARR):</b> The IHA Medi-Cal report is driven by a mature stored procedure with a long history (original creation predates 2018; last material change C001 on 20260319 adding CHPIV HcpCode '533'). The primary risk area is denominator integrity — confirm enrollment filter parameters and staging table currency on each cycle. Distribution to non-technical stakeholders (Ms. Noreen, Ms. Gabi, Ms. Daphne) means the email header RESULT row is the primary communication vehicle; any anomaly in the completion rate will generate immediate questions. Validate before distributing.</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       SLIDE 3 — SP PARAMETERS
+  ════════════════════════════════════════════════ -->
+  <div class="slide">
+    <div class="card">
+      <div class="kicker">Stored Procedure Parameters — sp_IHA_MEDI_CAL</div>
+      <div class="subtitle" style="margin-bottom:4px">All parameters are declared at the top of the SP and control report scope. Any change must be documented in the SP COMMENT(S) / CHANGE.LOG section with a C### reference.</div>
+      <div class="param-grid">
+        <div class="param-card"><div class="pname">@ClockStart</div><div class="pval">date = '01/01/2020'</div><div class="pdesc">Report start date. Set per Ms. Gabby email 20211215. Anchors the enrollment and IHA lookback window.</div></div>
+        <div class="param-card"><div class="pname">@ClockStop</div><div class="pval">date = GETDATE()</div><div class="pdesc">Report end date. Dynamic — resolves to today's date at execution. Ensures report always reflects current-day eligibility cutoff.</div></div>
+        <div class="param-card"><div class="pname">@lob</div><div class="pval">nvarchar(255) = 'MEDI-CAL'</div><div class="pdesc">Line of business filter applied to LINE_OF_BUSINESS via LIKE. Valid options: MEDI-CAL, DSNP MEDI-CAL PLAN, COMMUNITY Y MAS, etc. NULL = all LOBs.</div></div>
+        <div class="param-card"><div class="pname">@ContinuousMonths</div><div class="pval">decimal(9,0) = 3</div><div class="pdesc">Minimum consecutive months of enrollment required for a member to qualify as eligible for IHA. Do not reduce below 3.</div></div>
+        <div class="param-card"><div class="pname">@AgeCutoff</div><div class="pval">decimal(9,0) = 20</div><div class="pdesc">Members must be age ≥ 20 to be included in the IHA eligible population. Targets adult Medi-Cal members.</div></div>
+        <div class="param-card"><div class="pname">@GAPOF / @MAXGAP</div><div class="pval">int = 1 / int = 1</div><div class="pdesc">Enrollment gap tolerance parameters. A gap of 1 month is allowable; gaps exceeding @MAXGAP=1 break the continuous enrollment window.</div></div>
+        <div class="param-card"><div class="pname">@lag / @lagyrs / @lagdays</div><div class="pval">int = 0 / 0 / 0</div><div class="pdesc">Date offset parameters for @when calculation. Currently all zero — no lag applied. Adjust +/- to shift the effective period reference date if needed for retrospective analysis.</div></div>
+        <div class="param-card"><div class="pname">@PCPrecordRANK</div><div class="pval">int = 1</div><div class="pdesc">Controls PCP attribution rank. SET = 1 returns only the most current PCP record per member via DENSE_RANK() OVER (PARTITION BY memid ORDER BY effdate DESC).</div></div>
+        <div class="param-card"><div class="pname">@CCIIndicator</div><div class="pval">varchar(4) = DATEPART(yyyy,…)</div><div class="pdesc">CCI year indicator derived from @lag-adjusted GETDATE(). Per Ms. Maryanne 834. Dynamic year unless overridden with a hard-coded year value.</div></div>
+        <div class="param-card"><div class="pname">@isoday</div><div class="pval">int = 1</div><div class="pdesc">Calendar ISO day — controls which day of the month is used as the effective date for eligibility determination. Default = 1 (first of month).</div></div>
+        <div class="param-card"><div class="pname">@isomem</div><div class="pval">nvarchar(25) = NULL</div><div class="pdesc">Sample/test member ID filter. NULL = all members. Set to a specific memid (e.g., '%1083184%') for targeted QA of an individual member's IHA record.</div></div>
+        <div class="param-card"><div class="pname">@ExecDate</div><div class="pval">datetime = GETDATE()</div><div class="pdesc">Execution timestamp captured at run time. Surfaced in the SSRS email RESULT header row to document when the report was generated.</div></div>
+      </div>
+      <div class="callout" style="margin-top:18px"><b>Change Log:</b> C001 (20260319) — Added EnrollmentManager CHPIV HcpCode '533' to the enrollment filter. This ensures Community Health Plan of Imperial Valley members enrolled under HcpCode '533' are included in the Medi-Cal IHA eligible population. Author: WCARR.</div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft') buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+</body>
+</html>

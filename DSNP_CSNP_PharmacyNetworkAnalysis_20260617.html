@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Network Analysis – DSNP/CSNP | CHGSD Informatics</title>
+<style>
+:root{
+  --bg:#151515;--panel:#202020;--panel2:#2a2a2a;--text:#eee;--muted:#aaa;
+  --blue:rgba(100,180,255,.35);  --blueFill:rgba(100,180,255,.14);
+  --gold:rgba(255,200,100,.38);  --goldFill:rgba(255,200,100,.13);
+  --green:rgba(100,220,160,.38); --greenFill:rgba(100,220,160,.13);
+  --purple:rgba(160,140,220,.40);--purpleFill:rgba(160,140,220,.14);
+  --red:rgba(255,100,100,.40);   --redFill:rgba(255,100,100,.12);
+  --shadow:0 18px 60px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);
+     color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;
+     min-height:100vh;padding-bottom:60px}
+.deck{max-width:1200px;margin:0 auto;padding:34px 28px}
+
+/* TOPBAR */
+.topbar{
+  position:sticky;top:0;z-index:30;
+  background:rgba(18,18,18,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  padding:14px 28px;margin-bottom:28px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+.brand h1{font-size:18px;color:#fff;font-weight:700;letter-spacing:.3px}
+.brand div{font-size:11.5px;color:var(--muted);margin-top:3px}
+.badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 10px;font-size:10.5px;color:#9dd6ff}
+.badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+.badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+.topbadges{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+
+/* CARDS */
+.card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;
+      box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden;margin-bottom:22px}
+.card:before{content:"";position:absolute;inset:-1px;
+  background:linear-gradient(120deg,rgba(100,180,255,.08),transparent 40%,rgba(160,140,220,.08));
+  pointer-events:none}
+.card>*{position:relative}
+.kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:11.5px;font-weight:700;margin-bottom:8px}
+.section-title{font-size:10px;font-weight:700;color:#9dd6ff;text-transform:uppercase;letter-spacing:1px;
+  margin:22px 0 10px;padding-bottom:5px;border-bottom:1px solid rgba(100,180,255,.18)}
+
+/* CALLOUTS */
+.callout{background:rgba(100,220,160,.07);border-left:3px solid rgba(100,220,160,.55);
+  border-radius:6px;padding:13px 16px;font-size:13px;color:#bbb;line-height:1.65;margin-bottom:14px}
+.callout b,.callout strong{color:#7de0b2}
+.callout-warn{background:rgba(255,200,100,.07);border-left:3px solid rgba(255,200,100,.50);
+  border-radius:6px;padding:13px 16px;font-size:13px;color:#bbb;line-height:1.65;margin-bottom:14px}
+.callout-warn b,.callout-warn strong{color:#ffe08a}
+.callout-red{background:rgba(255,100,100,.07);border-left:3px solid rgba(255,100,100,.45);
+  border-radius:6px;padding:13px 16px;font-size:13px;color:#bbb;line-height:1.65;margin-bottom:14px}
+.callout-red b,.callout-red strong{color:#ff9090}
+.callout-title{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;color:#7de0b2}
+.callout-warn-title{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;color:#ffe08a}
+.callout-red-title{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;color:#ff9090}
+
+/* METRIC GRID */
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px 16px}
+.metric strong{display:block;font-size:22px;color:#fff;line-height:1.1;margin-bottom:2px}
+.metric span{font-size:11px;color:#aaa}
+.metric .kpi-lbl{font-size:9.5px;color:#9dd6ff;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.metric.m-blue strong{color:#9dd6ff}
+.metric.m-purple strong{color:#c4b8f0}
+.metric.m-red strong{color:#ff9090}
+.metric.m-green strong{color:#7de0b2}
+
+/* HERO COMPARISON */
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+
+/* NETWORK TABLE */
+.mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:10.5px;
+  text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+.mini-table td{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:middle}
+.mini-table tr:hover td{background:rgba(255,255,255,.025)}
+.mini-table .lob-d{color:#9dd6ff;font-weight:700}
+.mini-table .lob-c{color:#c4b8f0;font-weight:700}
+.pct-hi{color:#7de0b2;font-weight:700}
+.pct-lo{color:#ff9090;font-weight:700}
+.pct-mid{color:#ffe08a;font-weight:700}
+.pill{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 8px;border-radius:999px}
+.pill-blue{background:rgba(100,180,255,.13);border:1px solid rgba(100,180,255,.30);color:#9dd6ff}
+.pill-purple{background:rgba(160,140,220,.13);border:1px solid rgba(160,140,220,.30);color:#c4b8f0}
+.pill-green{background:rgba(100,220,160,.12);border:1px solid rgba(100,220,160,.28);color:#7de0b2}
+.pill-red{background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.28);color:#ff9090}
+.pill-gold{background:rgba(255,200,100,.11);border:1px solid rgba(255,200,100,.28);color:#ffe08a}
+
+/* STATS */
+.stat-row{display:flex;gap:18px;flex-wrap:wrap;margin:10px 0}
+.stat{background:#252525;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 16px;flex:1;min-width:150px}
+.stat .sv{font-size:17px;font-weight:700;color:#fff}
+.stat .sl{font-size:10px;color:#888;margin-top:3px}
+
+/* TIMELINE */
+.tl-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+.tl-item{flex:1;min-width:160px;background:#252525;border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:11px 14px;font-size:11.5px}
+.tl-item .tl-label{font-size:9.5px;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.tl-item .tl-val{color:#eee;font-weight:700}
+
+@media(max-width:900px){.metric-grid{grid-template-columns:1fr 1fr}.hero-grid{grid-template-columns:1fr}}
+@media print{.topbar{position:relative;backdrop-filter:none;background:#1a1a1a}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <h1>Pharmacy Network Analysis &mdash; D-SNP / C-SNP</h1>
+    <div>CHGSD &middot; Contract Administration &middot; Quest Analytics Suite v2025.2 &middot; June 17, 2026</div>
+  </div>
+  <div class="topbadges">
+    <span class="badge">PharmacyGeo-mapping-20260617</span>
+    <span class="badge gold">10 mi / 30 min Standard</span>
+    <span class="badge green">&#10003; Non-CVS = Full Network Access</span>
+  </div>
+</div>
+
+<div class="deck">
+
+<!-- ── EXECUTIVE SUMMARY ───────────────────────────────────── -->
+<div class="card">
+  <div class="kicker">Executive Summary &mdash; Answer to Sir Salim&#8217;s Question</div>
+
+  <div class="callout" style="margin-top:10px">
+    <div class="callout-title">&#10003; Finding: CHG Can Meet All Member Pharmacy Needs Without CVS</div>
+    <strong>Non-CVS retail pharmacy access is identical to the Full Network for both D-SNP and C-SNP.</strong>
+    The Quest Analytics access analysis (10 miles / 30 minutes, estimated driving distance) shows that removing CVS from the network does <em>not reduce member access</em> &mdash;
+    the 216 Non-CVS pharmacies serve exactly the same members the full 316-pharmacy network serves.
+    The 1,454 D-SNP and 69 C-SNP locations that lack CVS access are <strong>also served by non-CVS providers</strong>, confirming no dependency.
+  </div>
+
+  <div class="callout-warn">
+    <div class="callout-warn-title">&#9888; CVS-Only Coverage Is Materially Lower</div>
+    With <strong>CVS as the sole source</strong>, D-SNP access falls to <strong>81.5%</strong> (6,399 / 7,853) and C-SNP to <strong>73.6%</strong> (192 / 261).
+    This confirms CVS cannot serve the full network independently &mdash; but the inverse question (can non-CVS serve the full network?) answers <strong>Yes</strong>.
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric m-blue">
+      <div class="kpi-lbl">D-SNP Member Locations</div>
+      <strong>7,853</strong>
+      <span>Geocoded (QAS run 6/17/26)</span>
+    </div>
+    <div class="metric m-purple">
+      <div class="kpi-lbl">C-SNP Member Locations</div>
+      <strong>261</strong>
+      <span>Geocoded (QAS run 6/17/26)</span>
+    </div>
+    <div class="metric m-green">
+      <div class="kpi-lbl">Non-CVS Retail Access &mdash; D-SNP</div>
+      <strong>98.2%</strong>
+      <span>7,710 / 7,853 (same as full network)</span>
+    </div>
+    <div class="metric m-green">
+      <div class="kpi-lbl">Non-CVS Retail Access &mdash; C-SNP</div>
+      <strong>98.9%</strong>
+      <span>258 / 261 (same as full network)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── D-SNP / C-SNP COMPARISON ───────────────────────────── -->
+<div class="hero-grid">
+
+  <!-- D-SNP -->
+  <div class="card">
+    <div class="kicker">D-SNP Network Access Summary</div>
+    <div style="font-size:12px;color:#888;margin-bottom:14px">7,853 member locations &bull; CHPIV-DSNP &bull; San Diego County</div>
+    <table class="mini-table">
+      <thead>
+        <tr>
+          <th>Provider Group</th>
+          <th style="text-align:center">Providers</th>
+          <th style="text-align:center">With Access</th>
+          <th style="text-align:center">Access %</th>
+          <th style="text-align:center">Without</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pharmacy (Full)</td>
+          <td style="text-align:center">316</td>
+          <td style="text-align:center">7,710</td>
+          <td style="text-align:center"><span class="pct-hi">98.2%</span></td>
+          <td style="text-align:center;color:#aaa">143</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-red">CVS Only</span> Pharmacy – CVS</td>
+          <td style="text-align:center">100</td>
+          <td style="text-align:center">6,399</td>
+          <td style="text-align:center"><span class="pct-lo">81.5%</span></td>
+          <td style="text-align:center;color:#ff9090">1,454</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">&#10003;</span> Pharmacy – NON CVS</td>
+          <td style="text-align:center">216</td>
+          <td style="text-align:center">7,710</td>
+          <td style="text-align:center"><span class="pct-hi">98.2%</span></td>
+          <td style="text-align:center;color:#aaa">143</td>
+        </tr>
+        <tr style="border-top:1px solid rgba(255,255,255,.10)">
+          <td>Retail Chain (Full)</td>
+          <td style="text-align:center">301</td>
+          <td style="text-align:center">7,710</td>
+          <td style="text-align:center"><span class="pct-hi">98.2%</span></td>
+          <td style="text-align:center;color:#aaa">143</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-red">CVS Only</span> Retail Chain CVS</td>
+          <td style="text-align:center">100</td>
+          <td style="text-align:center">6,399</td>
+          <td style="text-align:center"><span class="pct-lo">81.5%</span></td>
+          <td style="text-align:center;color:#ff9090">1,454</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">&#10003;</span> Retail Chain NON CVS</td>
+          <td style="text-align:center">201</td>
+          <td style="text-align:center">7,710</td>
+          <td style="text-align:center"><span class="pct-hi">98.2%</span></td>
+          <td style="text-align:center;color:#aaa">143</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:14px;font-size:12px">
+      <strong>Key:</strong> The 143 D-SNP members without access lack it under <em>all</em> scenarios &mdash; full, CVS, and non-CVS networks alike.
+      They are in areas with no in-network pharmacy within 10 miles / 30 minutes, regardless of CVS inclusion.
+    </div>
+  </div>
+
+  <!-- C-SNP -->
+  <div class="card">
+    <div class="kicker">C-SNP Network Access Summary</div>
+    <div style="font-size:12px;color:#888;margin-bottom:14px">261 member locations &bull; CSNP &bull; San Diego County</div>
+    <table class="mini-table">
+      <thead>
+        <tr>
+          <th>Provider Group</th>
+          <th style="text-align:center">Providers</th>
+          <th style="text-align:center">With Access</th>
+          <th style="text-align:center">Access %</th>
+          <th style="text-align:center">Without</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pharmacy (Full)</td>
+          <td style="text-align:center">316</td>
+          <td style="text-align:center">258</td>
+          <td style="text-align:center"><span class="pct-hi">98.9%</span></td>
+          <td style="text-align:center;color:#aaa">3</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-red">CVS Only</span> Pharmacy – CVS</td>
+          <td style="text-align:center">100</td>
+          <td style="text-align:center">192</td>
+          <td style="text-align:center"><span class="pct-lo">73.6%</span></td>
+          <td style="text-align:center;color:#ff9090">69</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">&#10003;</span> Pharmacy – NON CVS</td>
+          <td style="text-align:center">216</td>
+          <td style="text-align:center">258</td>
+          <td style="text-align:center"><span class="pct-hi">98.9%</span></td>
+          <td style="text-align:center;color:#aaa">3</td>
+        </tr>
+        <tr style="border-top:1px solid rgba(255,255,255,.10)">
+          <td>Retail Chain (Full)</td>
+          <td style="text-align:center">301</td>
+          <td style="text-align:center">258</td>
+          <td style="text-align:center"><span class="pct-hi">98.9%</span></td>
+          <td style="text-align:center;color:#aaa">3</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-red">CVS Only</span> Retail Chain CVS</td>
+          <td style="text-align:center">100</td>
+          <td style="text-align:center">192</td>
+          <td style="text-align:center"><span class="pct-lo">73.6%</span></td>
+          <td style="text-align:center;color:#ff9090">69</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-green">&#10003;</span> Retail Chain NON CVS</td>
+          <td style="text-align:center">201</td>
+          <td style="text-align:center">258</td>
+          <td style="text-align:center"><span class="pct-hi">98.9%</span></td>
+          <td style="text-align:center;color:#aaa">3</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout" style="margin-top:14px;font-size:12px">
+      <strong>Key:</strong> The 3 C-SNP members without access lack it under <em>all</em> scenarios. The 69 C-SNP members who cannot reach CVS <em>can</em> reach non-CVS retail &mdash; confirming zero unique CVS dependency.
+    </div>
+  </div>
+</div>
+
+<!-- ── COMBINED COMPARISON TABLE ─────────────────────────── -->
+<div class="card">
+  <div class="kicker">Side-by-Side Access Rate Comparison &mdash; CVS vs. Non-CVS vs. Full Network</div>
+  <table class="mini-table" style="margin-top:14px">
+    <thead>
+      <tr>
+        <th>LOB</th>
+        <th>Member Locations</th>
+        <th style="text-align:center">Full Network</th>
+        <th style="text-align:center">CVS Only</th>
+        <th style="text-align:center">Non-CVS Only</th>
+        <th style="text-align:center">CVS Access Gap</th>
+        <th style="text-align:center">Non-CVS = Full?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="lob-d">D-SNP</td>
+        <td>7,853</td>
+        <td style="text-align:center"><span class="pct-hi">98.2%</span> <span style="font-size:10px;color:#666">(7,710)</span></td>
+        <td style="text-align:center"><span class="pct-lo">81.5%</span> <span style="font-size:10px;color:#666">(6,399)</span></td>
+        <td style="text-align:center"><span class="pct-hi">98.2%</span> <span style="font-size:10px;color:#666">(7,710)</span></td>
+        <td style="text-align:center"><span class="pct-lo">&minus;16.7 pp</span></td>
+        <td style="text-align:center"><span class="pill pill-green">&#10003; Yes</span></td>
+      </tr>
+      <tr>
+        <td class="lob-c">C-SNP</td>
+        <td>261</td>
+        <td style="text-align:center"><span class="pct-hi">98.9%</span> <span style="font-size:10px;color:#666">(258)</span></td>
+        <td style="text-align:center"><span class="pct-lo">73.6%</span> <span style="font-size:10px;color:#666">(192)</span></td>
+        <td style="text-align:center"><span class="pct-hi">98.9%</span> <span style="font-size:10px;color:#666">(258)</span></td>
+        <td style="text-align:center"><span class="pct-lo">&minus;25.3 pp</span></td>
+        <td style="text-align:center"><span class="pill pill-green">&#10003; Yes</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout-warn" style="margin-top:16px">
+    <div class="callout-warn-title">&#9432; Note on Retail Chain Subcategory</div>
+    Retail Chain CVS (100 providers) and Retail Chain NON CVS (201 providers) produce the same access rates as the full CVS and Non-CVS groups respectively.
+    The Retail Chain classification aligns with the <code>Pharmacy Type(s) LIKE 'R%'</code> filter applied in the geo-map analysis &mdash; confirming analytical consistency.
+  </div>
+</div>
+
+<!-- ── QAS STATISTICS ─────────────────────────────────────── -->
+<div class="card">
+  <div class="kicker">QuestAnalytics Run Statistics &mdash; Page 13–14</div>
+  <div class="section-title">Geocoding Results</div>
+  <table class="mini-table">
+    <thead>
+      <tr>
+        <th>Resource</th>
+        <th style="text-align:center">Address Geocoded</th>
+        <th style="text-align:center">Distributive Point</th>
+        <th style="text-align:center">ZIP Level</th>
+        <th style="text-align:center">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="lob-d">MEMBERSHIP D-SNP <span style="font-size:10px;color:#666">(EMPLOYEEGROUP_members @ INFORMATICS / SQLPROD02)</span></td>
+        <td style="text-align:center">7,747</td>
+        <td style="text-align:center">39</td>
+        <td style="text-align:center">67</td>
+        <td style="text-align:center;font-weight:700">7,853</td>
+      </tr>
+      <tr>
+        <td class="lob-c">MEMBERSHIP C-SNP <span style="font-size:10px;color:#666">(EMPLOYEEGROUP_members @ INFORMATICS / SQLPROD02)</span></td>
+        <td style="text-align:center">254</td>
+        <td style="text-align:center">6</td>
+        <td style="text-align:center">1</td>
+        <td style="text-align:center;font-weight:700">261</td>
+      </tr>
+      <tr style="border-top:1px solid rgba(255,255,255,.10)">
+        <td>Pharmacy (Full) <span style="font-size:10px;color:#666">PROVDIR_PHARM$ @ PharmacyGeo-mapping-20260617.xlsx</span></td>
+        <td style="text-align:center">57</td>
+        <td style="text-align:center">261</td>
+        <td style="text-align:center">0</td>
+        <td style="text-align:center;font-weight:700">318</td>
+      </tr>
+      <tr>
+        <td>Pharmacy – CVS</td>
+        <td style="text-align:center">14</td>
+        <td style="text-align:center">86</td>
+        <td style="text-align:center">0</td>
+        <td style="text-align:center;font-weight:700">100</td>
+      </tr>
+      <tr>
+        <td>Pharmacy – NON CVS</td>
+        <td style="text-align:center">43</td>
+        <td style="text-align:center">175</td>
+        <td style="text-align:center">0</td>
+        <td style="text-align:center;font-weight:700">218</td>
+      </tr>
+      <tr>
+        <td>Pharmacy – Retail Chain</td>
+        <td style="text-align:center">54</td>
+        <td style="text-align:center">248</td>
+        <td style="text-align:center">0</td>
+        <td style="text-align:center;font-weight:700">302</td>
+      </tr>
+      <tr>
+        <td>Pharmacy – Retail Chain CVS</td>
+        <td style="text-align:center">14</td>
+        <td style="text-align:center">86</td>
+        <td style="text-align:center">0</td>
+        <td style="text-align:center;font-weight:700">100</td>
+      </tr>
+      <tr>
+        <td>Pharmacy – Retail Chain NON CVS</td>
+        <td style="text-align:center">40</td>
+        <td style="text-align:center">162</td>
+        <td style="text-align:center">0</td>
+        <td style="text-align:center;font-weight:700">202</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Run Metadata</div>
+  <div class="tl-row">
+    <div class="tl-item"><div class="tl-label">Software</div><div class="tl-val">Quest Analytics Suite (QAS) v2025.2</div></div>
+    <div class="tl-item"><div class="tl-label">Distance Method</div><div class="tl-val">Estimated Driving Distance</div></div>
+    <div class="tl-item"><div class="tl-label">Access Standard</div><div class="tl-val">1 provider in 10 miles OR 30 minutes</div></div>
+    <div class="tl-item"><div class="tl-label">Run Date</div><div class="tl-val">June 17, 2026</div></div>
+    <div class="tl-item"><div class="tl-label">Source QPX</div><div class="tl-val">PharmacyGeo-mapping-20260617.qpx</div></div>
+    <div class="tl-item"><div class="tl-label">Total Runtime</div><div class="tl-val">00:00:54.643</div></div>
+  </div>
+</div>
+
+<!-- ── CONCLUSIONS ────────────────────────────────────────── -->
+<div class="card">
+  <div class="kicker">Conclusions &amp; Recommendations for Contract Administration</div>
+
+  <div class="callout" style="margin-top:10px">
+    <div class="callout-title">1. No Material Member Access Impact from CVS Removal</div>
+    Both D-SNP (98.2%) and C-SNP (98.9%) achieve <strong>identical access rates</strong> whether using the full pharmacy network or the non-CVS-only subset.
+    The 143 D-SNP and 3 C-SNP members who lack access do so under <em>all</em> scenarios &mdash; their gap is geographic, not CVS-specific.
+  </div>
+
+  <div class="callout" style="margin-top:0">
+    <div class="callout-title">2. Non-CVS Network Is Sufficient and Self-Standing</div>
+    With 201 Retail Chain Non-CVS providers and 216 total Non-CVS pharmacies,
+    the non-CVS network independently meets the 10-mile / 30-minute CMS access standard for 98%+ of D-SNP and C-SNP populations.
+  </div>
+
+  <div class="callout-warn" style="margin-top:0">
+    <div class="callout-warn-title">3. Noteworthy: CVS Cannot Stand Alone</div>
+    If CVS were the <em>only</em> pharmacy source, 1,454 D-SNP members (18.5%) and 69 C-SNP members (26.4%) would lose access.
+    This data may be useful context for contract negotiation positioning.
+  </div>
+
+  <div class="callout-red" style="margin-top:0">
+    <div class="callout-red-title">4. Residual 1.1–1.8% Access Gap Exists Independent of CVS</div>
+    143 D-SNP and 3 C-SNP member locations lack any pharmacy within 10 miles / 30 minutes under <em>all</em> provider configurations.
+    These are likely rural/fringe ZIP areas. A separate geographic access remediation strategy (e.g., mail-order pharmacy, 90-day supply) may be warranted.
+  </div>
+</div>
+
+</div><!-- /deck -->
+</body>
+</html>

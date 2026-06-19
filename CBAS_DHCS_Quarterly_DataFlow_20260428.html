@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CBAS DHCS Quarterly Data Flow</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35); --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38); --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38); --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40); --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36); --cyanFill:rgba(120,230,240,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px}
+  .brand h1{font-size:22px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.nav button,.pill{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:8px 13px;cursor:pointer;font-size:13px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;margin-bottom:26px}.card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden}.card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}.card>*{position:relative}.kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}.title{font-size:34px;line-height:1.08;margin:10px 0 12px}.subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}.metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}.metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+  .section-label{text-align:center;font-size:12px;font-weight:700;color:#888;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}.diagram{position:relative;width:100%;min-height:650px}.source-row,.step-row,.data-elements-row,.filter-row,.output-row{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}.system-box,.step-box,.data-element,.filter-box,.output-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}.system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover{transform:translateY(-4px);filter:brightness(1.13)}.system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:20px 22px 18px}.system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:13px;font-weight:700;white-space:nowrap;color:#eee}.sql{width:460px;background:var(--blueFill);border-color:var(--blue)}.sharepoint{width:380px;background:var(--goldFill);border-color:var(--gold)}.files{width:360px;background:var(--cyanFill);border-color:var(--cyan)}.excel{width:320px;background:var(--greenFill);border-color:var(--green)}
+  .module-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:10px 12px;font-size:12.5px;font-weight:700;text-align:center;min-width:118px;color:#f1f1f1}.module span{display:block;font-size:10.5px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}.flow-arrows{display:flex;justify-content:center;gap:96px;margin:15px 0 9px}.flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}.flow-arrow:nth-child(even){animation-delay:.45s}@keyframes pulse{0%,100%{opacity:.25}50%{opacity:.78}}.shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+  .step-box{background:var(--purpleFill);border:1px solid var(--purple);padding:15px 13px 14px;font-size:11px;text-align:center;line-height:1.35;color:#e8e0ff;min-width:178px;max-width:196px}.step-box strong,.data-element strong,.filter-box strong{display:block;font-size:12px;color:#fff;margin-bottom:4px}.step-num{position:absolute;top:-10px;left:12px;background:#151515;padding:0 7px;font-size:10px;font-weight:700;color:#c9bbff;letter-spacing:.5px}
+  .data-element{background:rgba(80,80,80,.75);border:1px solid rgba(255,255,255,.12);padding:12px 12px;font-size:11px;text-align:center;line-height:1.4;color:#ddd;min-width:155px;max-width:180px}.filter-box{background:var(--redFill);border:1px dashed var(--red);padding:10px 12px;font-size:10.8px;text-align:center;line-height:1.35;color:#ffb6b6;min-width:150px;max-width:174px}.filter-box strong{color:#ff9696}.output-box{width:min(1400px,100%);margin:0 auto;background:var(--greenFill);border:2px solid var(--green);padding:22px 28px}.out-modules{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}.out-module{background:rgba(100,220,160,.22);border:1px solid rgba(100,220,160,.43);border-radius:7px;padding:11px 14px;font-size:12px;font-weight:700;text-align:center;min-width:135px;color:#d5ffe6}.out-module span{display:block;font-size:10.5px;color:#b8dec8;font-weight:400;margin-top:3px}.detail{margin-top:24px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.detail-panel{min-height:190px}.detail h3{font-size:22px;margin:8px 0}.detail p,.detail li{color:#cfcfcf;font-size:14px;line-height:1.55}.detail ul{margin:10px 0 0 20px}.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.badge{font-size:12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:#252525;color:#ccc;padding:6px 10px}.timeline{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-top:18px}.tl{border:1px solid rgba(255,255,255,.14);background:#242424;border-radius:13px;padding:14px;min-height:145px}.tl strong{display:block;color:#fff;margin-bottom:8px}.tl p{font-size:12.5px;color:#bbb;line-height:1.42}.callout{border-left:4px solid rgba(100,180,255,.7);padding:14px 16px;background:rgba(100,180,255,.09);border-radius:0 12px 12px 0;margin-top:16px;color:#d7ecff}.legend{display:flex;gap:20px;justify-content:center;margin-top:24px;flex-wrap:wrap}.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#aaa}.swatch{width:14px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.15)}
+  .print-note{font-size:12px;color:#888;text-align:center;margin-top:18px}.mini-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}.mini-table th,.mini-table td{border:1px solid rgba(255,255,255,.12);padding:10px;text-align:left;vertical-align:top}.mini-table th{color:#fff;background:#282828}.mini-table td{color:#cfcfcf}.progress{height:8px;background:#242424;border-radius:999px;overflow:hidden;border:1px solid rgba(255,255,255,.1);margin-top:15px}.bar{height:100%;width:0;background:linear-gradient(90deg,#7fbfff,#c8b6ff);animation:load 2.6s ease forwards}@keyframes load{to{width:100%}}
+  /* C002 change badge — amber pill shown on header */
+  .change-pill{background:rgba(255,200,100,.18);border:1px solid rgba(255,200,100,.45);border-radius:999px;padding:5px 12px;font-size:11.5px;color:#ffe0a0;font-weight:700;letter-spacing:.4px;white-space:nowrap}
+  @media print{.topbar{display:none}.slide{display:block;page-break-after:always}.card{box-shadow:none}.deck{width:100%;padding:20px}body{background:#151515}.diagram{transform:scale(.65);transform-origin:top left;height:650px}}
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="topbar">
+    <div class="brand">
+      <h1>CBAS DHCS Quarterly Data Flow</h1>
+      <div>HMOPROD_PLANDATA · INFORMATICS · Medi-Cal Only · Business Owner: Barbara Vargas RN · Due: 04/30/2026</div>
+    </div>
+    <div class="nav">
+      <span class="change-pill">C002-A/B/C/D/E Applied 04-28-2026</span>
+      <button class="active" onclick="showSlide(0,this)">Overview</button>
+      <button onclick="showSlide(1,this)">Interactive DFD</button>
+      <button onclick="showSlide(2,this)">Run Sequence</button>
+      <button onclick="showSlide(3,this)">Controls</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════ SLIDE 0: OVERVIEW -->
+  <section class="slide active">
+    <div class="hero">
+      <div class="card">
+        <div class="kicker">Animated Interactive HTML Infographic Presentation</div>
+        <div class="title">CBAS Performance Measures<br>DHCS Quarterly Reporting Workflow</div>
+        <div class="subtitle">This presentation maps the T1023-anchored denominator universe, the revised two-quarter / three-code deduplication rule, the same-auth TAT calculation for Column I, the retirement of H2000 from Column L, and the Column J = Column M structural alignment — per narrative revision dated 04-28-2026.</div>
+        <div class="callout">
+          <b>Regulatory scope:</b> Medi-Cal Only — Plan Code 029 · Community Health Group · San Diego County<br>
+          <b>Reporting quarters:</b> Q1 2025 through Q1 2026 (5 quarters) · <b>Deadline:</b> <span style="color:#ffe3a0">04/30/2026</span><br>
+          <b>Narrative revision:</b> CBAS_Narrative_Final_4_22_26_BV_YF_ZA_RL_04-28-2026.docx
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Reporting Configuration</div>
+        <div class="metric-grid">
+          <div class="metric"><strong>T1023</strong><span>New anchor code (Col G denominator) — C002-A</span></div>
+          <div class="metric"><strong>3 Codes</strong><span>T1023 · S5102 · H2000 all excluded in dedup — C002-B</span></div>
+          <div class="metric"><strong>2 Quarters</strong><span>Prior-quarter lookback window — C002-B</span></div>
+          <div class="metric"><strong>J = M</strong><span>Col J denominator now equals Col M — C002-C</span></div>
+        </div>
+        <div class="progress"><div class="bar"></div></div>
+        <p class="subtitle" style="margin-top:14px">CPT / HCPCS in scope: T1023 (F2F Assessment), S5102 (CBAS Services), H2000 (In-Facility Assessment). H2000 retired from Column L numerator per C002-D. TAT now same-auth per C002-E.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Executive Summary — C002 Change Impact by Column</div>
+      <table class="mini-table">
+        <tr><th>Column</th><th>Role</th><th>Pre-C002 (Original)</th><th>Post-C002 (Revised)</th><th>Change Tag</th></tr>
+        <tr><td>G</td><td>Denominator for E</td><td>S5102 universe (all statuses)</td><td>T1023 universe (all statuses)</td><td>C002-A</td></tr>
+        <tr><td>F</td><td>Numerator for E</td><td>Approved + Denied S5102</td><td>Approved + Denied T1023 (from G)</td><td>C002-A</td></tr>
+        <tr><td>E</td><td>% Eligibility Determinations</td><td>F / G — S5102 basis</td><td>F / G — T1023 basis (unchanged formula)</td><td>C002-A</td></tr>
+        <tr><td>M</td><td>Denominator for K</td><td>Approved + Denied S5102</td><td>Approved + Denied T1023 (same as F)</td><td>C002-A / C002-C</td></tr>
+        <tr><td>J</td><td>Denominator for H</td><td>All initial S5102 (same as G)</td><td>Approved + Denied T1023 (same as M)</td><td>C002-C</td></tr>
+        <tr><td>I</td><td>Numerator for H</td><td>TAT: T1023 receipt → S5102 decision ≤ 30 days</td><td>TAT: T1023 receipt → T1023 decision ≤ 30 days (same auth)</td><td>C002-E</td></tr>
+        <tr><td>L</td><td>Numerator for K</td><td>Approved + Denied with T1023 OR H2000 present</td><td>Approved + Denied T1023 only (H2000 retired)</td><td>C002-D</td></tr>
+        <tr><td>K</td><td>% After F2F / Clin Review</td><td>L / M — H2000 inclusive</td><td>L / M — T1023 only; L = M by construction (100% expected)</td><td>C002-D</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ SLIDE 1: INTERACTIVE DFD -->
+  <section class="slide">
+    <div class="card">
+      <div class="kicker">Faithful Dark DFD Layout — Click Any Node</div>
+      <div class="diagram">
+
+        <!-- LAYER 1: SOURCE SYSTEMS -->
+        <div class="section-label">Source Systems / Execution Inputs</div>
+        <div class="source-row">
+
+          <div class="system-box sql node"
+            data-title="SQL Server — HMOPROD_PLANDATA + INFORMATICS"
+            data-body="All auth data is sourced from HMOPROD_PLANDATA.dbo.referral joined via authservice.codeid (C001 correction). The T1023 universe is built into INFORMATICS.dbo.CBAS_T1023_UNIVERSE. Enrollkeys and uvw_LINE_OF_BUSINESS drive the Medi-Cal / CHGSD filter. Servers: SQLPROD02 (execution), SQLPRODAPP01 (linked)."
+            data-tags="HMOPROD_PLANDATA|INFORMATICS|SQLPROD02|authservice.codeid|referral">
+            <span class="sys-label">SQL Server Environment</span>
+            <div class="module-row">
+              <div class="module">HMOPROD_PLANDATA<span>referral · authservice · enrollkeys</span></div>
+              <div class="module">INFORMATICS<span>uvw_LINE_OF_BUSINESS · uvw_BASELINE_MEMBERSHIP</span></div>
+              <div class="module">SQLPROD02<span>Script execution host</span></div>
+            </div>
+          </div>
+
+          <div class="system-box files node"
+            data-title="CPT / HCPCS Code Universe"
+            data-body="Three codes are in scope. T1023 (SCR IND PARTICIP SPEC PROG PROJ/TX) is the new anchor for the denominator universe (C002-A). S5102 (DAY CARE SERVICES ADULT; PER DIEM) and H2000 (COMP MULTIDISCIPLINARY EVALUATION) appear only in the dedup exclusion rule (C002-B). H2000 is retired from Column L (C002-D)."
+            data-tags="T1023 anchor|S5102 dedup-only|H2000 dedup-only|C002-A|C002-D">
+            <span class="sys-label">CPT / HCPCS Codes In Scope</span>
+            <div class="module-row">
+              <div class="module">T1023<span>F2F Assessment — ANCHOR (C002-A)</span></div>
+              <div class="module">S5102<span>CBAS Services — dedup exclusion only (C002-B)</span></div>
+              <div class="module">H2000<span>In-Facility Assess — dedup exclusion only (C002-B/D)</span></div>
+            </div>
+          </div>
+
+          <div class="system-box excel node"
+            data-title="Parameter + Filter Layer"
+            data-body="@ClockStart = 01/01/2025, @ClockStop = 03/31/2026 (5 quarters). @Authlob = MEDI-CAL. @BRAND = CHGSD. Status filter: Approved, Denied, Closed, Pend (universe); Approved + Denied only (F, J, L, M numerators and denominators)."
+            data-tags="@ClockStart|@ClockStop|MEDI-CAL|CHGSD|Appr+Den filter">
+            <span class="sys-label">Parameters / Filters</span>
+            <div class="module-row">
+              <div class="module">Date Range<span>Q1 2025 – Q1 2026</span></div>
+              <div class="module">LOB<span>Medi-Cal only</span></div>
+              <div class="module">Brand<span>CHGSD only</span></div>
+            </div>
+          </div>
+
+          <div class="system-box sharepoint node"
+            data-title="DHCS Reporting Template"
+            data-body="Source template: 20260424_CBAS_Performance_Measures_Reporting_Template_Final_April_2026.xlsx. Narrative: CBAS_Narrative_Final_4_22_26_BV_YF_ZA_RL_04-28-2026.docx. Output table: INFORMATICS.dbo.DHCS_CBAS_T1023_UNIVERSE_OUTPUT. Submission deadline: 04/30/2026."
+            data-tags="DHCS template|04/30/2026|Barbara Vargas RN|Tab 1 CBAS Services and Assessment">
+            <span class="sys-label">DHCS Submission Context</span>
+            <div class="module-row">
+              <div class="module">Tab 1<span>CBAS Services &amp; Assessment Reporting</span></div>
+              <div class="module">Tab 2<span>PM Comments</span></div>
+            </div>
+          </div>
+
+        </div><!-- /source-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- LAYER 2: EXECUTION STEPS -->
+        <div class="section-label">Execution Sequence (CBAS_DHCS_Quarterly_20260428.sql)</div>
+        <div class="step-row">
+
+          <div class="step-box node"
+            data-title="STEP 00 — Parameter Declaration"
+            data-body="Declare and SET all query parameters: @ClockStart = 01/01/2025, @ClockStop = 03/31/2026, @Authlob = MEDI-CAL, @BRAND = CHGSD. Advisory SELECT against uvw_LINE_OF_BUSINESS confirms LOB filter scope. CPT advisory check confirms T1023, S5102, H2000 descriptions in svccode."
+            data-tags="Parameters|LOB advisory|CPT advisory|@ClockStart|@ClockStop">
+            <span class="step-num">STEP 00</span>
+            <strong>Parameters</strong>
+            Declare range<br>LOB + brand filter<br>advisory CPT check
+          </div>
+
+          <div class="step-box node"
+            data-title="STEP 01 — Build T1023 Universe (C002-A)"
+            data-body="C002-A: T1023 is now the denominator anchor. SELECT INTO INFORMATICS.dbo.CBAS_T1023_UNIVERSE joining referral → enrollkeys → uvw_LINE_OF_BUSINESS → uvw_BASELINE_MEMBERSHIP → authservice subquery isolating codeid = T1023. Status: Approved, Denied, Closed, Pend. Receipt date between @ClockStart and @ClockStop. Replaces the retired S5102 universe."
+            data-tags="C002-A|CBAS_T1023_UNIVERSE|authservice|T1023 anchor|Appr+Den+Closed+Pend">
+            <span class="step-num">STEP 01</span>
+            <strong>T1023 Universe</strong>
+            CBAS_T1023_UNIVERSE<br>all statuses<br>(C002-A anchor)
+          </div>
+
+          <div class="step-box node"
+            data-title="STEP 02 — Apply Initial-Only Filter (C002-B)"
+            data-body="C002-B: NOT EXISTS any prior T1023, S5102, OR H2000 auth (all three codes) in the two full quarters immediately preceding the member's receipt quarter. Window: DATEADD(month,-6, start_of_receipt_quarter) to day before start of receipt quarter. Results written to CBAS_T1023_NEWONLY. Was: S5102 only, rolling 6 months."
+            data-tags="C002-B|CBAS_T1023_NEWONLY|T1023+S5102+H2000 exclusion|Two-quarter lookback|Initial auth only">
+            <span class="step-num">STEP 02</span>
+            <strong>Dedup Filter</strong>
+            Two-quarter / three-code<br>NOT EXISTS<br>(C002-B revised)
+          </div>
+
+          <div class="step-box node"
+            data-title="STEP 03 — Same-Auth TAT (C002-E)"
+            data-body="C002-E: TAT is now calculated within the T1023 auth record itself. DATEDIFF(day, RECEIPT_DATE, Decision_Date) sourced from CBAS_T1023_NEWONLY. Within_30_Days_Flag = 1 where TAT between 0 and 30. Results in #CBAS_T1023_MATCH. Was: cross-auth T1023 receipt → S5102 decision."
+            data-tags="C002-E|#CBAS_T1023_MATCH|Same-auth TAT|30 calendar days|DATEDIFF">
+            <span class="step-num">STEP 03</span>
+            <strong>TAT — Same Auth</strong>
+            T1023 receipt →<br>T1023 decision<br>≤ 30 days (C002-E)
+          </div>
+
+          <div class="step-box node"
+            data-title="STEP 04 — Pre-Rollup Detail Verify"
+            data-body="CHECK 4: Group CBAS_T1023_NEWONLY by Reporting_Quarter and status. Show total T1023 auths, member count, and Within_30_Days_Flag sum. Confirms dedup and TAT results before the final aggregation. Replaces the former CHECK 5 that included H2000 join."
+            data-tags="CHECK 4|Pre-rollup QA|Reporting_Quarter|Status breakdown|Member count">
+            <span class="step-num">STEP 04</span>
+            <strong>Pre-Rollup Verify</strong>
+            CHECK 4 — quarter<br>+ status breakdown<br>before aggregation
+          </div>
+
+          <div class="step-box node"
+            data-title="STEP 05 — Final Rollup &amp; Column Output"
+            data-body="SELECT INTO #CBAS_OUTPUT computing all 8 template columns. G = all T1023 statuses; F = Appr+Den; E = F/G*100; M = Appr+Den (same as F); J = M (C002-C); I = TAT flag within J scope (C002-C+E); L = Appr+Den T1023 (= M by construction, C002-D); K = L/M*100. Supplemental: Pend count, Closed count, unique members."
+            data-tags="#CBAS_OUTPUT|Col E through M|J=M|L=M expected|C002-C|C002-D">
+            <span class="step-num">STEP 05</span>
+            <strong>Final Rollup</strong>
+            Columns E – M<br>all 8 measures<br>+ supplemental
+          </div>
+
+          <div class="step-box node"
+            data-title="STEP 06 — DHCS Submission Format + QA"
+            data-body="SELECT INTO INFORMATICS.dbo.DHCS_CBAS_T1023_UNIVERSE_OUTPUT with friendly column labels matching DHCS template columns A–M. QA cross-check confirms E_Check (F ≤ G), H_Check (I ≤ J), K_Check (L = M expected), and J_equals_M_Check structural assertion (C002-C validation)."
+            data-tags="DHCS_CBAS_T1023_UNIVERSE_OUTPUT|QA assertions|J=M check|K check L=M|Submission-ready">
+            <span class="step-num">STEP 06</span>
+            <strong>Output + QA</strong>
+            DHCS format<br>4 QA assertions<br>J=M structural check
+          </div>
+
+        </div><!-- /step-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- LAYER 3: DATA ELEMENTS -->
+        <div class="section-label">Derived / Controlled Data Elements</div>
+        <div class="data-elements-row">
+
+          <div class="data-element node"
+            data-title="CBAS_T1023_UNIVERSE (Permanent)"
+            data-body="Permanent table in INFORMATICS. All T1023 auths (Appr+Den+Closed+Pend) for Medi-Cal / CHGSD with receipt date in Q1 2025 – Q1 2026. Indexed on (memid, RECEIPT_DATE, status) and (authorizationid, referralid). Replaces retired CBAS_S5102_UNIVERSE."
+            data-tags="INFORMATICS|T1023 universe|Permanent table|C002-A|5 quarters">
+            <strong>T1023 Universe</strong>
+            CBAS_T1023_UNIVERSE<br>all statuses<br>permanent table
+          </div>
+
+          <div class="data-element node"
+            data-title="CBAS_T1023_NEWONLY (Permanent)"
+            data-body="Deduped to initial-only members per C002-B. NOT EXISTS any T1023, S5102, or H2000 auth in the two prior quarters. This is the base for all column computations (G, F, E, J, M, I, L, K). Replaces retired CBAS_S5102_NEWONLY."
+            data-tags="CBAS_T1023_NEWONLY|C002-B dedup|Three-code exclusion|Two-quarter window|All columns base">
+            <strong>T1023 New-Only</strong>
+            CBAS_T1023_NEWONLY<br>initial auths only<br>dedup applied
+          </div>
+
+          <div class="data-element node"
+            data-title="#CBAS_T1023_MATCH (Temp)"
+            data-body="Temp table holding same-auth TAT result per C002-E. Columns: T1023_referralid, T1023_Receipt_Date, T1023_Decision_Date, T1023_TAT_Days, Within_30_Days_Flag, status. Used by final rollup for Column I computation within the Column J (Appr+Den) scope."
+            data-tags="#CBAS_T1023_MATCH|C002-E|Same-auth TAT|Within_30_Days_Flag|Column I">
+            <strong>TAT Match</strong>
+            #CBAS_T1023_MATCH<br>same-auth receipt<br>→ decision ≤ 30 days
+          </div>
+
+          <div class="data-element node"
+            data-title="#CBAS_OUTPUT (Temp)"
+            data-body="Aggregated temp table holding all 8 column values grouped by Reporting_Quarter. Sources: CBAS_T1023_NEWONLY LEFT JOIN #CBAS_T1023_MATCH. Col L = Col M by construction since all NEWONLY records are T1023. Col J = Col M per C002-C."
+            data-tags="#CBAS_OUTPUT|8 columns|Col L=M|Col J=M|Rollup by quarter">
+            <strong>Rollup Output</strong>
+            #CBAS_OUTPUT<br>all 8 measures<br>by quarter
+          </div>
+
+          <div class="data-element node"
+            data-title="DHCS_CBAS_T1023_UNIVERSE_OUTPUT (Permanent)"
+            data-body="Final submission-ready permanent table in INFORMATICS. Friendly column labels match DHCS template (Col A through Supplemental). Consumed by analyst for direct paste into DHCS reporting template Tab 1."
+            data-tags="DHCS_CBAS_T1023_UNIVERSE_OUTPUT|Submission-ready|INFORMATICS|Tab 1 input|Permanent">
+            <strong>Submission Output</strong>
+            DHCS_CBAS_T1023<br>_UNIVERSE_OUTPUT<br>permanent
+          </div>
+
+        </div><!-- /data-elements-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- LAYER 4: CHECKPOINTS -->
+        <div class="section-label">Manual QA Checkpoints</div>
+        <div class="filter-row">
+
+          <div class="filter-box node"
+            data-title="CHECK 1 — T1023 Universe Pre-Dedup"
+            data-body="Verify total auth records, unique members, and quarters covered in CBAS_T1023_UNIVERSE before the dedup filter is applied. Confirms T1023 authservice.codeid join is returning expected volume."
+            data-tags="CHECK 1|Pre-dedup volume|T1023 universe|Auth count|Quarters covered">
+            <strong>CHECK 1</strong>
+            T1023 universe<br>pre-dedup volume<br>verify
+          </div>
+
+          <div class="filter-box node"
+            data-title="CHECK 2 — Dedup Result by Quarter + Status"
+            data-body="Verify CBAS_T1023_NEWONLY grouped by Reporting_Quarter and status. Confirms two-quarter / three-code dedup (C002-B) reduced the population as expected. Compare Pend + Closed volumes to prior run for reasonableness."
+            data-tags="CHECK 2|C002-B confirm|Dedup result|Quarter + status|Pend vs Closed">
+            <strong>CHECK 2</strong>
+            Dedup result<br>by quarter + status<br>(C002-B confirm)
+          </div>
+
+          <div class="filter-box node"
+            data-title="CHECK 3 — TAT Results by Quarter + Status"
+            data-body="Verify #CBAS_T1023_MATCH grouped by Reporting_Quarter and status. Shows total T1023 auths, within-30-days count, and average TAT days. C002-E confirm: TAT is same-auth (no S5102 cross-join). Avg TAT days is a new visibility field added for QA transparency."
+            data-tags="CHECK 3|C002-E confirm|Same-auth TAT|Avg TAT days|Within_30_Days_Flag">
+            <strong>CHECK 3</strong>
+            TAT result<br>same-auth ≤ 30 days<br>(C002-E confirm)
+          </div>
+
+          <div class="filter-box node"
+            data-title="CHECK 4 — Pre-Rollup Detail by Quarter + Status"
+            data-body="Verify the join of CBAS_T1023_NEWONLY and #CBAS_T1023_MATCH before final aggregation. Shows T1023 auths, member count, and Within_30_Days candidates by status. Ensures H2000 is absent from this join (C002-D confirmed by absence of any H2000 reference)."
+            data-tags="CHECK 4|Pre-rollup|H2000 absent C002-D|Status breakdown|Member count">
+            <strong>CHECK 4</strong>
+            Pre-rollup detail<br>H2000 absent<br>(C002-D confirm)
+          </div>
+
+          <div class="filter-box node"
+            data-title="QA — Column Math Verification"
+            data-body="Four assertions in final QA block: E_Check (F ≤ G → OK), H_Check (I ≤ J → OK), K_Check (L = M expected — result of C002-D T1023-only universe), J_equals_M_Check (J = M structural assertion — C002-C). Any deviation triggers INVESTIGATE flag."
+            data-tags="E_Check|H_Check|K_Check|J=M assertion|INVESTIGATE flag">
+            <strong>QA Assertions</strong>
+            4 column math<br>checks including<br>J=M structural
+          </div>
+
+        </div><!-- /filter-row -->
+
+        <div class="flow-arrows">
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+          <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        </div>
+
+        <!-- LAYER 5: OUTPUT -->
+        <div class="output-box node"
+          data-title="Final Output — DHCS CBAS Quarterly Submission"
+          data-body="INFORMATICS.dbo.DHCS_CBAS_T1023_UNIVERSE_OUTPUT is the submission-ready artifact. Five rows (one per quarter Q1 2025 – Q1 2026). Columns A–M match DHCS template Tab 1. Supplemental fields (Pend count, Closed count, unique members) support QA but are not submitted. Col K anticipated at 100% (L = M). Business Owner: Barbara Vargas RN. Deadline: 04/30/2026."
+          data-tags="Submission-ready|5 quarters|Tab 1|Barbara Vargas RN|04/30/2026">
+          <span class="sys-label">Final Submission Output — DHCS Tab 1</span>
+          <div class="out-modules">
+            <div class="out-module">Col E — % Eligibility Det.<span>F / G × 100 · T1023 basis</span></div>
+            <div class="out-module">Col H — % Timely Reviews<span>I / J × 100 · same-auth TAT</span></div>
+            <div class="out-module">Col K — % After F2F Review<span>L / M × 100 · 100% expected</span></div>
+            <div class="out-module">5 Quarters<span>Q1 2025 → Q1 2026</span></div>
+            <div class="out-module">Supplemental QA<span>Pend · Closed · Unique Members</span></div>
+            <div class="out-module">Plan 029 / CHG / SD<span>Medi-Cal only · CHGSD brand</span></div>
+          </div>
+        </div>
+
+      </div><!-- /diagram -->
+    </div><!-- /card -->
+
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click a node in the diagram</h3>
+        <p id="detailBody">The details panel will show data movement, column impact, controls, and C002 change context for the selected step.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span><span class="badge">DFD</span><span class="badge">Dark Mode</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>SQL / HMOPROD_PLANDATA</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>CPT / code scope</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>Parameters / output</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>DHCS submission context</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>Execution steps</div>
+          <div class="legend-item"><div class="swatch" style="background:rgba(80,80,80,.75);border-color:rgba(255,255,255,.12)"></div>Derived data elements</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>QA checkpoint</div>
+        </div>
+        <p class="print-note">Tip: use browser print to export to PDF. Navigation buttons are hidden in print mode.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ SLIDE 2: RUN SEQUENCE -->
+  <section class="slide">
+    <div class="card">
+      <div class="kicker">Runbook Sequence — CBAS_DHCS_Quarterly_20260428.sql</div>
+      <div class="timeline">
+        <div class="tl"><strong>00 · Params</strong><p>Declare @ClockStart, @ClockStop, @Authlob, @BRAND. Advisory SELECT confirms LOB scope. CPT advisory check confirms T1023, S5102, H2000 in svccode.</p></div>
+        <div class="tl"><strong>01 · Universe<br><span style="color:#9dd6ff;font-size:11px">C002-A</span></strong><p>SELECT INTO CBAS_T1023_UNIVERSE. T1023 is now the anchor. All statuses. authservice.codeid join (C001). CHECK 1 verifies volume.</p></div>
+        <div class="tl"><strong>02 · Dedup<br><span style="color:#9dd6ff;font-size:11px">C002-B</span></strong><p>NOT EXISTS T1023 / S5102 / H2000 in prior two quarters. Results → CBAS_T1023_NEWONLY. CHECK 2 by quarter + status.</p></div>
+        <div class="tl"><strong>03 · TAT<br><span style="color:#9dd6ff;font-size:11px">C002-E</span></strong><p>Same-auth TAT: RECEIPT_DATE → Decision_Date within T1023 record. Within_30_Days_Flag → #CBAS_T1023_MATCH. CHECK 3 with avg TAT days.</p></div>
+        <div class="tl"><strong>04 · Pre-Rollup<br><span style="color:#9dd6ff;font-size:11px">CHECK 4</span></strong><p>Detail verify by quarter + status. H2000 join absent (C002-D confirmed). Confirms TAT flag distribution before aggregation.</p></div>
+        <div class="tl"><strong>05 · Rollup<br><span style="color:#9dd6ff;font-size:11px">C002-C/D</span></strong><p>SELECT INTO #CBAS_OUTPUT. All 8 columns computed. J = M (C002-C). L = M by construction (C002-D). Supplemental Pend + Closed added.</p></div>
+        <div class="tl"><strong>06 · Output + QA<br><span style="color:#9dd6ff;font-size:11px">4 assertions</span></strong><p>SELECT INTO DHCS_CBAS_T1023_UNIVERSE_OUTPUT. QA block: E_Check, H_Check, K_Check (L=M), J_equals_M_Check. Submission-ready.</p></div>
+      </div>
+      <div class="callout" style="margin-top:20px">
+        <b>Retired artifacts (C002-A/D):</b> CBAS_S5102_UNIVERSE · CBAS_S5102_NEWONLY · #CBAS_H2000_MATCH · DHCS_CBAS_S5102_UNIVERSE_OUTPUT — all replaced by T1023-anchored equivalents.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ SLIDE 3: CONTROLS -->
+  <section class="slide">
+    <div class="card">
+      <div class="kicker">Analyst Controls — C002 Revision Checklist</div>
+      <table class="mini-table">
+        <tr><th>Control</th><th>Recommended Validation</th><th>Failure Symptom</th><th>C002 Tag</th></tr>
+        <tr><td>T1023 universe volume (CHECK 1)</td><td>Confirm total auth records and unique members are non-zero and span all 5 quarters. Compare to expected T1023 auth activity range.</td><td>Zero rows — authservice.codeid join failure or date range miss.</td><td>C002-A</td></tr>
+        <tr><td>Dedup scope confirmed (CHECK 2)</td><td>Verify CBAS_T1023_NEWONLY is smaller than universe. Confirm both S5102 and H2000 are excluded in the NOT EXISTS (not just T1023).</td><td>NEWONLY = UNIVERSE — dedup not firing. NEWONLY too small — window boundary error.</td><td>C002-B</td></tr>
+        <tr><td>Two-quarter window boundary</td><td>For a Q1 2025 receipt date, lookback should cover Q3 2024 and Q4 2024 (07/01/2024 – 12/31/2024). Spot-check one member at the boundary.</td><td>Members with Q4 2024 S5102 history incorrectly included in Q1 2025 universe.</td><td>C002-B</td></tr>
+        <tr><td>Same-auth TAT (CHECK 3)</td><td>Confirm T1023_Receipt_Date and T1023_Decision_Date both come from the T1023 referralid — no S5102 referralid in the match. Average TAT should be plausible (0–30 range).</td><td>TAT_Days = NULL for all rows — Decision_Date (seendate) not populated on T1023 auths.</td><td>C002-E</td></tr>
+        <tr><td>Column J = Column M (QA assertion)</td><td>J_equals_M_Check in QA block must return "OK — J=M AS EXPECTED (C002-C)" for every quarter. Any other result is a structural failure.</td><td>"INVESTIGATE — J &lt;&gt; M" — status filter mismatch between J and M expressions.</td><td>C002-C</td></tr>
+        <tr><td>Column L = Column M (QA assertion)</td><td>K_Check must return "OK — L=M EXPECTED (C002-D)" for every quarter. Since all NEWONLY records are T1023, L should always equal M.</td><td>"INVESTIGATE — L &lt; M UNEXPECTED" — H2000 records leaked into M but not L, or status filter drift.</td><td>C002-D</td></tr>
+        <tr><td>H2000 fully retired</td><td>Confirm #CBAS_H2000_MATCH does not appear anywhere in the script. Confirm Column L label reads "T1023_Only" not "T1023_or_H2000".</td><td>Old script version used by mistake — check DROP TABLE block and step labels.</td><td>C002-D</td></tr>
+        <tr><td>Output table name</td><td>Confirm permanent output is DHCS_CBAS_T1023_UNIVERSE_OUTPUT (not the retired S5102 variant).</td><td>Submission uses stale C000 table — prior-narrative data sent to DHCS.</td><td>C002-A</td></tr>
+      </table>
+      <div class="callout">
+        <b>Business Owner note (Barbara Vargas RN):</b> All five C002 changes derive from the DHCS narrative revision released 04-27-2026. The single most operationally impactful change is C002-A (universe anchor flip S5102 → T1023) — the T1023 auth count is expected to be materially different from the prior S5102 count. If the new Column G totals appear unexpectedly low, verify that the T1023 authservice.codeid subquery in STEP 01 is binding correctly and that the receipt date range is Pacific Standard Time-adjusted.
+      </div>
+    </div>
+  </section>
+
+</div><!-- /deck -->
+<script>
+function showSlide(idx,btn){
+  document.querySelectorAll('.slide').forEach((s,i)=>s.classList.toggle('active',i===idx));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.node').forEach(n=>{
+  n.addEventListener('click',()=>{
+    document.querySelectorAll('.node').forEach(x=>x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent=n.dataset.title||'Selected node';
+    document.getElementById('detailBody').textContent=n.dataset.body||'';
+    const tags=(n.dataset.tags||'').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML=tags.map(t=>`<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown',e=>{
+  const buttons=[...document.querySelectorAll('.nav button')];
+  let idx=buttons.findIndex(b=>b.classList.contains('active'));
+  if(e.key==='ArrowRight'){buttons[Math.min(buttons.length-1,idx+1)].click();}
+  if(e.key==='ArrowLeft'){buttons[Math.max(0,idx-1)].click();}
+});
+</script>
+</body>
+</html>
