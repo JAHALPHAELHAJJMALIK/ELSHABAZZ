@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ECM POF — Algorithm Disenrollment Impact Analysis · CXO Executive Summary</title>
+<style>
+:root{
+  --bg:#151515;--panel:#202020;--panel2:#2a2a2a;--text:#eee;--muted:#aaa;
+  --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+  --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+  --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+  --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+  --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+  --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+  --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+  --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+  --shadow:0 18px 60px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+body{
+  background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);
+  color:var(--text);
+  font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;
+  min-height:100vh;margin:0;
+}
+.topbar{position:sticky;top:0;z-index:30;
+        background:rgba(15,15,15,.93);backdrop-filter:blur(12px);
+        border-bottom:1px solid rgba(255,255,255,.10);
+        display:flex;align-items:center;justify-content:space-between;
+        padding:14px 26px;flex-wrap:wrap;gap:10px;}
+.topbar .brand{font-size:19px;letter-spacing:.03em}
+.topbar .brand small{display:block;color:var(--muted);font-size:12px;letter-spacing:.08em;margin-top:2px}
+.nav{display:flex;gap:8px;align-items:center}
+.nav button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);
+  color:var(--text);border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit;font-size:13px;transition:.2s}
+.nav button:hover{background:rgba(255,255,255,.13)}
+.nav button.active{background:rgba(100,180,255,.22);border-color:rgba(100,180,255,.45)}
+#playBtn.playing{background:rgba(255,170,80,.22);border-color:rgba(255,170,80,.45)}
+#counter{color:var(--muted);font-size:13px;min-width:52px;text-align:center}
+.wrap{max-width:1180px;margin:0 auto;padding:34px 26px 60px}
+.slide{display:none;animation:fadeIn .42s ease both}
+.slide.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
+.kicker{color:var(--muted);letter-spacing:.14em;text-transform:uppercase;font-size:12px;margin-bottom:8px}
+h1{font-size:32px;margin:0 0 14px;font-weight:600}
+h2{font-size:23px;margin:0 0 10px;font-weight:600}
+.narrative{color:#ddd;font-size:16px;line-height:1.65;max-width:880px;margin-bottom:26px}
+.card{background:rgba(30,30,30,.85);border:1px solid rgba(255,255,255,.11);
+      border-radius:18px;box-shadow:var(--shadow);padding:26px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:-1px;
+  background:linear-gradient(120deg,rgba(100,180,255,.09),transparent 38%,rgba(160,140,220,.09));
+  pointer-events:none;border-radius:18px}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:30px}
+.kpi{padding:20px 22px}
+.kpi .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.kpi .val{font-size:30px;font-weight:600;line-height:1.1}
+.kpi .sub{color:var(--muted);font-size:12.5px;margin-top:8px;line-height:1.5}
+.kpi .delta{font-size:13px;margin-top:6px;font-weight:600}
+.delta-up{color:#ff8a8a}
+.delta-dn{color:#7fe0ac}
+.delta-nc{color:var(--muted)}
+.two-col{display:grid;grid-template-columns:1.05fr .95fr;gap:20px}
+.mini-h{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 14px}
+.change-list{list-style:none;margin:0;padding:0}
+.change-list li{padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);font-size:14px;line-height:1.5}
+.change-list li:last-child{border-bottom:none}
+.change-list b{color:#eee}
+.dfd-outer{position:relative;background:rgba(20,20,20,.7);border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;overflow:hidden;margin-bottom:16px}
+.dfd-toolbar{position:absolute;top:12px;right:12px;z-index:5;display:flex;gap:6px}
+.dfd-toolbar button{background:rgba(20,20,20,.85);border:1px solid rgba(255,255,255,.18);
+  color:#eee;border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:15px}
+.dfd-toolbar button:hover{background:rgba(255,255,255,.14)}
+.dfd-wrap{height:520px;overflow:hidden;cursor:grab;position:relative}
+.dfd-wrap.dragging{cursor:grabbing}
+#dfdCanvas{position:absolute;left:50%;top:24px;transform:translate(-50%,0) scale(1);
+  transform-origin:top center;transition:transform .08s linear;width:1040px}
+.dfd-row{display:flex;justify-content:center;gap:26px;margin-bottom:52px;position:relative}
+.dfd-node{width:210px;border-radius:14px;padding:14px 16px;border:1.5px solid;
+  font-size:12.5px;line-height:1.4;cursor:pointer;position:relative;transition:.15s;backdrop-filter:blur(2px)}
+.dfd-node:hover{transform:translateY(-3px)}
+.dfd-node .t{font-weight:700;font-size:13px;margin-bottom:4px}
+.dfd-node .d{color:#cfcfcf;font-size:11.5px}
+.change-badge{position:absolute;top:-9px;right:-9px;background:rgba(255,170,80,.9);color:#1a1200;
+  font-size:9.5px;font-weight:700;padding:3px 7px;border-radius:20px;letter-spacing:.02em}
+.dfd-arr{position:absolute;left:50%;transform:translateX(-50%);bottom:-40px;color:rgba(255,255,255,.5);
+  font-size:22px;opacity:.35;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:.18}50%{opacity:.72}}
+.legend{display:flex;flex-wrap:wrap;gap:14px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.08);
+  font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+#detailPanel{min-height:64px;padding:16px 20px;font-size:13.5px;color:#ddd;line-height:1.55}
+#detailPanel b{color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-size:11px;
+  padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.14)}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+tr:hover td{background:rgba(255,255,255,.03)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
+.pill.up{background:rgba(255,100,100,.16);color:#ff9d9d}
+.pill.dn{background:rgba(100,220,160,.16);color:#8fe8bd}
+.pill.nc{background:rgba(255,255,255,.08);color:#bbb}
+.callout{background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.40);
+  border-radius:10px;padding:14px 18px;margin-bottom:14px;font-size:13.5px;line-height:1.55}
+.callout.warn{background:rgba(255,200,100,.07);border-left-color:rgba(255,200,100,.42)}
+.callout.danger{background:rgba(255,100,100,.07);border-left-color:rgba(255,100,100,.40)}
+.callout.success{background:rgba(100,220,160,.07);border-left-color:rgba(100,220,160,.40)}
+.callout .k{font-weight:700;display:block;margin-bottom:4px}
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{position:relative;padding:4px 0 16px 22px;font-size:13.5px;line-height:1.55;color:#ddd}
+.timeline li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:50%;
+  background:rgba(100,220,160,.75);box-shadow:0 0 0 3px rgba(100,220,160,.16)}
+.timeline li::after{content:"";position:absolute;left:3px;top:16px;bottom:0;width:1px;background:rgba(255,255,255,.09)}
+.timeline li:last-child::after{display:none}
+.modal{position:fixed;inset:0;background:rgba(5,5,5,.88);z-index:100;display:none;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-box{background:#161616;border:1px solid rgba(255,255,255,.14);border-radius:16px;
+  width:94vw;height:90vh;overflow:auto;padding:30px;position:relative}
+.modal-close{position:absolute;top:16px;right:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);
+  color:#eee;border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:16px;z-index:5}
+footer{color:var(--muted);font-size:11.5px;text-align:center;padding:20px 0 6px}
+@media(max-width:1100px){ .kpi-grid{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:800px) { .two-col{grid-template-columns:1fr} .dfd-wrap{height:400px} }
+@media(max-width:580px) { .kpi-grid{grid-template-columns:1fr 1fr} .topbar{flex-direction:column} }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">ECM POF — Algorithm Disenrollment Impact Analysis
+    <small>CHGSD · INFORMATICS · ECM POF Dream Team · Generated 2026-07-15</small>
+  </div>
+  <div class="nav">
+    <button onclick="goSlide(0)">Overview</button>
+    <button onclick="goSlide(1)">Data Flow</button>
+    <button onclick="goSlide(2)">Full Disenrollment</button>
+    <button onclick="goSlide(3)">Partial Retained</button>
+    <button onclick="goSlide(4)">Insights</button>
+    <button onclick="changeSlide(-1)">‹</button>
+    <span id="counter">1 / 5</span>
+    <button onclick="changeSlide(1)">›</button>
+    <button id="playBtn" onclick="togglePlay()">▶ Play</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- SLIDE 0 — EXECUTIVE OVERVIEW -->
+  <div class="slide active" id="slide0">
+    <div class="kicker">CHGSD · INFORMATICS · ECM POF Dream Team</div>
+    <h1>ECM Enrolled Population Impact — Existing POF Logic vs. Algorithm POF Logic</h1>
+    <p class="narrative">JAG requested a defensible count of ECM Enrolled members who would lose ECM eligibility entirely under the revised algorithm POF logic. The team built and cross-validated a BASELINE ECM Enrolled population of 22,864 members, then compared each member against 16 existing POF tables and 16 algorithm POF tables (ECMPOF_CHILD_HOMELESS confirmed sunset/empty, excluded from both sides for a clean 1:1 comparison). Result: 1,381 members (6.0%) fully lose ECM POF qualification, and a further 831 (3.6%) lose one or more POFs but retain at least one, remaining ECM Enrolled.</p>
+
+    <div class="kpi-grid">
+      <div class="card kpi">
+        <div class="lbl">BASELINE ECM Enrolled</div>
+        <div class="val">22,864</div>
+        <div class="sub">Cross-validated via HMOPROD_PlanData memberattribute AND ProviderPortal.ECM.MembersInformation, both systems agreeing</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">Full Disenrollment Candidates</div>
+        <div class="val">1,381</div>
+        <div class="delta delta-up">6.0% of BASELINE</div>
+        <div class="sub">Zero algorithm POF matches across all 16 tables — the population JAG asked for</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">Partial — Retained, Lost Some POFs</div>
+        <div class="val">831</div>
+        <div class="delta delta-nc">3.6% of BASELINE</div>
+        <div class="sub">Lost 1 or more existing POFs but still qualify under &ge;1 algorithm POF — remain ECM Enrolled</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">Total Members Impacted</div>
+        <div class="val">2,212</div>
+        <div class="delta delta-up">9.7% of BASELINE</div>
+        <div class="sub">Full + Partial combined, any change in POF qualification under the algorithm</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">JAG Expected vs. Actual</div>
+        <div class="val">4,000 → 1,381</div>
+        <div class="delta delta-dn">-65.5% vs. expectation</div>
+        <div class="sub">DUB C 2.0's independent estimate of ~1,000 landed far closer to the validated result</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">Largest Single Driver</div>
+        <div class="val">51.8%</div>
+        <div class="sub">ECMPOF_ADULT_MHSMISUD accounts for 716 of the 1,381 Full Disenrollment candidates, and 662 of 831 Partial cases lose that POF specifically</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="mini-h">What Changed In The Algorithm Logic</div>
+        <ul class="change-list">
+          <li><b>Program Eligibility gate added.</b> SMHS (MHPs) OR DMC-ODS OR DMC eligibility now required as a precondition, not previously enforced in the existing logic.</li>
+          <li><b>Social Complexity gate added (Adult).</b> At least one complex social factor now required in addition to Program Eligibility, per DHCS CalAIM ECM Policy Guide pg. 25.</li>
+          <li><b>Utilization/Risk gate added (Adult).</b> High-risk overdose/suicide or institutionalization, or 2+ ED/hospitalization events in 12 months, now required as a third independent condition.</li>
+          <li><b>Children/Youth exemption not fully applied.</b> DHCS explicitly exempts Children/Youth SMH/SUD from the Social Complexity and Utilization/Risk gates (pg. 25–26). The current Child algorithm script still applies both — an open, documented gap, not corrected per prior explicit decision.</li>
+          <li><b>ECMPOF_CHILD_HOMELESS retired.</b> Table confirmed sunset and empty; excluded from both sides of the comparison rather than silently returning zero rows.</li>
+          <li><b>Comparison scoped to full loss, not partial.</b> "Disenrollment" defined strictly as zero matches across all 16 algorithm tables, not merely absent from one — members who requalify under a different POF are not counted as disenrolled.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="mini-h">Data Quality Checks Passed</div>
+        <ul class="change-list">
+          <li><b>Concurrent provider assignments:</b> 0 members with more than one currently-active MemberProviderAssigment row — Kathryn's "one provider at a time" rule holds against live data.</li>
+          <li><b>Demographic match:</b> 0 BASELINE members failed to resolve to a member record — no orphaned rows in the Excel refresh.</li>
+          <li><b>Duplicate rows:</b> memid + EnrollEffDate deduplication applied via ROWNUMBER_Enrolled = 1 before the final count.</li>
+          <li><b>Delivered:</b> 4-worksheet Excel OLE DB/ODBC workbook (Sanity Summary, BASELINE, Full Disenrollment, Partial Retained) sent to Kathryn Madrid and Yousaf Farook for review.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 1 — DATA FLOW DIAGRAM -->
+  <div class="slide" id="slide1">
+    <div class="kicker">Pipeline</div>
+    <h2>Data Flow — BASELINE through Excel Refresh</h2>
+    <div class="dfd-outer">
+      <div class="dfd-toolbar">
+        <button onclick="dfdZoom(1.2)" title="Zoom in">+</button>
+        <button onclick="dfdZoom(0.8)" title="Zoom out">–</button>
+        <button onclick="dfdReset()" title="Reset">⤾</button>
+        <button onclick="openModal()" title="Full screen">⛶</button>
+      </div>
+      <div class="dfd-wrap" id="dfdWrap">
+        <div id="dfdCanvas">
+          <div class="dfd-row">
+            <div class="dfd-node" style="border-color:var(--blue);background:var(--blueFill)" onclick="showDetail('src1')">
+              <div class="t">HMOPROD_PlanData.memberattribute</div>
+              <div class="d">ECM Enrolled = Y, active window check</div>
+            </div>
+            <div class="dfd-node" style="border-color:var(--blue);background:var(--blueFill)" onclick="showDetail('src2')">
+              <div class="t">ProviderPortal.ECM.MembersInformation</div>
+              <div class="d">IsECM = 1, EnrollmentStatus = 'enrolled'</div>
+            </div>
+            <div class="dfd-arr">↓</div>
+          </div>
+          <div class="dfd-row">
+            <div class="dfd-node" style="border-color:var(--gold);background:var(--goldFill);width:320px">
+              <div class="change-badge">⚡ CROSS-VALIDATED</div>
+              <div class="t" onclick="showDetail('baseline')">BASELINE_QNXT_ProviderPortal_ECM_ENROLLED</div>
+              <div class="d">22,864 unique members, both systems agree, ROWNUMBER dedup applied</div>
+            </div>
+            <div class="dfd-arr">↓</div>
+          </div>
+          <div class="dfd-row">
+            <div class="dfd-node" style="border-color:var(--purple);background:var(--purpleFill)" onclick="showDetail('existing')">
+              <div class="t">16 Existing POF Tables</div>
+              <div class="d">INFORMATICS.dbo.ECMPOF_*, most current RunDate per table</div>
+            </div>
+            <div class="dfd-node" style="border-color:var(--orange);background:var(--orangeFill)" onclick="showDetail('algorithm')">
+              <div class="change-badge">⚡ CHANGED</div>
+              <div class="t">16 Algorithm POF Tables</div>
+              <div class="d">INFORMATICS.dbo.CHATGPT_ECMPOF_*, Program Eligibility + Social Complexity + Utilization/Risk gates</div>
+            </div>
+            <div class="dfd-arr">↓</div>
+          </div>
+          <div class="dfd-row">
+            <div class="dfd-node" style="border-color:var(--red);background:var(--redFill)" onclick="showDetail('full')">
+              <div class="t">STEP2_DISENROLLMENT_CANDIDATES</div>
+              <div class="d">1,381 members — zero algorithm POF matches</div>
+            </div>
+            <div class="dfd-node" style="border-color:var(--cyan);background:var(--cyanFill)" onclick="showDetail('partial')">
+              <div class="t">STEP2_RETAINED_FEWER_POFS</div>
+              <div class="d">831 members — lost some POFs, still &ge;1 active</div>
+            </div>
+            <div class="dfd-arr">↓</div>
+          </div>
+          <div class="dfd-row" style="margin-bottom:24px">
+            <div class="dfd-node" style="border-color:var(--green);background:var(--greenFill);width:320px" onclick="showDetail('excel')">
+              <div class="t">4-Worksheet Excel OLE DB/ODBC Refresh</div>
+              <div class="d">Sanity Summary · BASELINE · Full Disenrollment · Partial Retained — delivered to Kathryn Madrid &amp; Yousaf Farook</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i style="background:rgba(100,180,255,.6)"></i>Source system</span>
+        <span><i style="background:rgba(255,200,100,.6)"></i>Cross-validated / built this cycle</span>
+        <span><i style="background:rgba(160,140,220,.6)"></i>Filter / POF comparison</span>
+        <span><i style="background:rgba(255,170,80,.6)"></i>Changed under algorithm</span>
+        <span><i style="background:rgba(255,100,100,.6)"></i>Full disenrollment output</span>
+        <span><i style="background:rgba(120,230,240,.6)"></i>Partial retention output</span>
+        <span><i style="background:rgba(100,220,160,.6)"></i>Final deliverable</span>
+      </div>
+    </div>
+    <div class="card" id="detailPanel">Click any node above for detail.</div>
+  </div>
+
+  <!-- SLIDE 2 — FULL DISENROLLMENT TABLE -->
+  <div class="slide" id="slide2">
+    <div class="kicker">Full Disenrollment Candidates · 1,381 members</div>
+    <h2>By Existing POF Category</h2>
+    <p class="narrative" style="font-size:14px">Members are attributed to every existing-logic POF category they matched under; 22 members matched 2 categories and 1 member matched 3, so category counts sum to more than 1,381. Algorithm-side membership is 0 for every row by definition — these members hold zero matches across all 16 algorithm tables.</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>POF Category</th><th>Existing Logic (members)</th><th>Algorithm Logic (members)</th><th>Δ</th></tr></thead>
+        <tbody id="tblFull"></tbody>
+      </table>
+    </div>
+    <div class="callout" style="margin-top:16px">ECMPOF_ADULT_MHSMISUD alone accounts for 716 of 1,381 full disenrollment candidates (51.8%) — by a wide margin the single largest driver, directly tied to the new Program Eligibility, Social Complexity, and Utilization/Risk gates built into the Adult algorithm script.</div>
+  </div>
+
+  <!-- SLIDE 3 — PARTIAL RETAINED TABLE -->
+  <div class="slide" id="slide3">
+    <div class="kicker">Partial Disenrollment — Retained · 831 members</div>
+    <h2>Existing vs. Algorithm POF Membership, Same Category</h2>
+    <p class="narrative" style="font-size:14px">These members lose 1 or more POFs under the algorithm but still qualify under at least one — they remain ECM Enrolled. Category counts overlap since most members here match 2 or more POFs (683 of 831 match exactly 2).</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>POF Category</th><th>Existing Logic (members)</th><th>Algorithm Logic (members)</th><th>Δ</th></tr></thead>
+        <tbody id="tblPartial"></tbody>
+      </table>
+    </div>
+    <div class="callout warn" style="margin-top:16px">ECMPOF_ADULT_MHSMISUD collapses from 662 existing-logic matches to 4 under the algorithm within this group — the steepest single-category drop in the entire analysis, and the same gate change driving the Full Disenrollment result on the prior slide.</div>
+  </div>
+
+  <!-- SLIDE 4 — KEY INSIGHTS & ACTION ITEMS -->
+  <div class="slide" id="slide4">
+    <div class="kicker">Summary</div>
+    <h2>Key Insights &amp; Action Items</h2>
+    <div class="two-col">
+      <div class="card">
+        <div class="mini-h">Achievements Tonight</div>
+        <ul class="timeline">
+          <li>Built and cross-validated a BASELINE ECM Enrolled population of 22,864 members against two independent source systems.</li>
+          <li>Compared 16 existing POF tables against 16 algorithm POF tables — a clean 1:1 comparison after confirming ECMPOF_CHILD_HOMELESS is sunset and empty.</li>
+          <li>Classified the population into 1,381 Full Disenrollment candidates and 831 Partial — Retained members, with full per-member POF traceability.</li>
+          <li>Validated two structural data-quality risks against live data: concurrent provider assignments (0 exceptions) and orphaned demographic records (0 exceptions).</li>
+          <li>Delivered a 4-worksheet Excel OLE DB/ODBC refresh to Kathryn Madrid and Yousaf Farook for review.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="callout warn">
+          <span class="k">⚠ JAG's expectation vs. the validated result</span>
+          JAG's working expectation was ~4,000 Full Disenrollment candidates. The validated, cross-checked result is 1,381 — 65.5% below that expectation, and much closer to DUB C 2.0's independent ~1,000 estimate. Recommend leading with the validated methodology and number, not reconciling toward the original expectation.
+        </div>
+        <div class="callout danger">
+          <span class="k">⚠ Priority — Child MHSMISUD gate exceeds DHCS requirement</span>
+          DHCS CalAIM ECM Policy Guide (pg. 25–26) explicitly exempts Children/Youth SMH/SUD from the Social Complexity and Utilization/Risk gates — Program Eligibility alone is required. The current Child algorithm script still applies both gates, a documented, open gap from the 2026-07-10 session, left as-is pending Allan/JAG review. This affects at least 131 children across tonight's result (90 Full Disenrollment + 41 Partial). Recommend resolving or explicitly flagging this before the number goes to Joseph.
+        </div>
+        <div class="callout success">
+          <span class="k">✓ Data quality checks passed clean</span>
+          Both structural risks raised during tonight's build — concurrent provider assignments and orphaned BASELINE records — tested at 0 exceptions against live production data.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>ECM POF STEP 2 · CXO Executive Summary · Generated 2026-07-15 · CHGSD Informatics · Source: BASELINE_QNXT_ProviderPortal_ECM_ENROLLED, STEP2_DISENROLLMENT_CANDIDATES, STEP2_RETAINED_FEWER_POFS, ECM_DISENROLLMENT_CANDIDATES_20260715B.xlsx</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const TOTAL = 5;
+let current = 0, playing = false, playTimer = null;
+const PLAY_INTERVAL = 7500;
+
+function goSlide(n) {
+  document.querySelectorAll('.slide').forEach((s,i) => s.classList.toggle('active', i===n));
+  document.querySelectorAll('.nav button').forEach((b,i) => { if(i<5) b.classList.toggle('active', i===n); });
+  current = n;
+  document.getElementById('counter').textContent = (n+1)+' / '+TOTAL;
+}
+function changeSlide(dir) { goSlide((current+dir+TOTAL)%TOTAL); }
+function togglePlay() {
+  playing = !playing;
+  const btn = document.getElementById('playBtn');
+  btn.innerHTML = playing ? '⏸ Pause' : '▶ Play';
+  btn.classList.toggle('playing', playing);
+  if (playing) playTimer = setInterval(() => changeSlide(1), PLAY_INTERVAL);
+  else clearInterval(playTimer);
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') changeSlide(1);
+  if (e.key === 'ArrowLeft') changeSlide(-1);
+  if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+  if (e.key === 'Escape') closeModal();
+});
+
+// DFD zoom / pan
+let dfdScale=1, dfdX=0, dfdY=0, dragging=false, dragStartX=0, dragStartY=0;
+const dfdCanvas = document.getElementById('dfdCanvas');
+const dfdWrap = document.getElementById('dfdWrap');
+function applyDfd() { dfdCanvas.style.transform = `translate(calc(-50% + ${dfdX}px),${dfdY}px) scale(${dfdScale})`; }
+function dfdZoom(f) { dfdScale = Math.min(Math.max(dfdScale*f,0.28),3.5); applyDfd(); }
+function dfdReset() { dfdScale=1; dfdX=0; dfdY=0; applyDfd(); }
+dfdWrap.addEventListener('mousedown', (e) => { dragging=true; dragStartX=e.clientX-dfdX; dragStartY=e.clientY-dfdY; dfdWrap.classList.add('dragging'); });
+window.addEventListener('mouseup', () => { dragging=false; dfdWrap.classList.remove('dragging'); });
+window.addEventListener('mousemove', (e) => { if(!dragging) return; dfdX=e.clientX-dragStartX; dfdY=e.clientY-dragStartY; applyDfd(); });
+dfdWrap.addEventListener('wheel', (e) => { e.preventDefault(); dfdZoom(e.deltaY<0?1.08:0.93); }, {passive:false});
+
+function openModal() {
+  document.getElementById('modalContent').innerHTML = document.getElementById('dfdCanvas').outerHTML;
+  document.getElementById('modalContent').querySelector('#dfdCanvas') && (document.getElementById('modalContent').querySelector('div').style.transform='none', document.getElementById('modalContent').querySelector('div').style.position='static', document.getElementById('modalContent').querySelector('div').style.left='auto');
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', (e) => { if(e.target.id==='modal') closeModal(); });
+
+// Node detail panel
+const details = {
+  src1: "<b>HMOPROD_PlanData.memberattribute</b> — Source #1 of the BASELINE gate. Filters to AttributeName = 'ECM Enrolled', TheValue LIKE '%Y%', with the attribute's effdate/termdate window active as of today. Free-text governed field; known to carry duplicate entries per member+EnrollEffDate, handled via ROWNUMBER_Enrolled dedup downstream.",
+  src2: "<b>ProviderPortal.ECM.MembersInformation</b> — Source #2 of the BASELINE gate. Filters to IsECM = 1 AND EnrollmentStatus = 'enrolled' (note: distinct from ECM.Member's EnrollmentStatus = 'Assigned', used for the separate provider-assignment gate). Requiring agreement from both this table and memberattribute is what makes BASELINE a cross-validated population rather than a single-source count.",
+  baseline: "<b>BASELINE_QNXT_ProviderPortal_ECM_ENROLLED</b> — 22,864 unique members. Built by requiring both memberattribute AND ProviderPortal.ECM.MembersInformation to agree the member is currently ECM Enrolled. ROWNUMBER_Enrolled = 1 dedup applied after a validation check surfaced real duplicate rows in the raw memberattribute source.",
+  existing: "<b>16 Existing POF Tables</b> — INFORMATICS.dbo.ECMPOF_*, filtered to each table's most current RunDate. Originally 17 tables; ECMPOF_CHILD_HOMELESS confirmed sunset and empty this session, excluded to keep the comparison a clean 1:1 against the 16 algorithm tables.",
+  algorithm: "<b>16 Algorithm POF Tables</b> — INFORMATICS.dbo.CHATGPT_ECMPOF_*, the JAG-endorsed revised logic. Adds a Program Eligibility gate (SMHS/DMC-ODS/DMC), a Social Complexity gate, and a Utilization/Risk gate to the Adult MHSMISUD criteria not present in the existing logic — the single largest driver of tonight's result. Children/Youth are supposed to be exempt from the latter two gates per DHCS, but the current Child script does not yet reflect that exemption.",
+  full: "<b>STEP2_DISENROLLMENT_CANDIDATES</b> — 1,381 members. Defined as BASELINE members who match 1 or more existing POF tables but match ZERO of the 16 algorithm tables — full loss of ECM POF qualification under the revised logic.",
+  partial: "<b>STEP2_RETAINED_FEWER_POFS</b> — 831 members. BASELINE members who lose 1 or more existing POFs under the algorithm but still match at least 1 algorithm POF table. Not a disenrollment — these members remain ECM Enrolled, just under fewer qualifying POFs.",
+  excel: "<b>4-Worksheet Excel OLE DB/ODBC Refresh</b> — Sanity Summary, BASELINE ECM Enrolled Membership, Full Disenrollment Candidates, and Partial Disenrollment Candidates, each joined to demographic (uvw_BASELINE_MEMBERSHIP) and current Provider Assignment (MemberProviderAssigment, currently-assigned window) detail. Delivered to Kathryn Madrid and Yousaf Farook for review ahead of Allan's 8AM send to Joseph."
+};
+function showDetail(key) { document.getElementById('detailPanel').innerHTML = details[key] || 'Click any node above for detail.'; }
+
+// Table builders
+function buildTable(data, tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  let rows = '';
+  data.forEach(([name, pre, post]) => {
+    const d = post - pre;
+    const pct = pre===0 ? '—' : ((d/pre)*100).toFixed(1)+'%';
+    const cls = d>0 ? 'up' : d<0 ? 'dn' : 'nc';
+    rows += `<tr><td>${name}</td><td>${pre.toLocaleString()}</td><td>${post.toLocaleString()}</td><td><span class="pill ${cls}">${d>0?'+':''}${d.toLocaleString()} (${pct})</span></td></tr>`;
+  });
+  tbody.innerHTML = rows;
+}
+
+buildTable([
+  ["ECMPOF_ADULT_MHSMISUD",716,0],
+  ["ECMPOF_CHILDWITHFAMILY_HOMELESS",222,0],
+  ["ECMPOF_CHILD_CCS",177,0],
+  ["ECMPOF_CHILD_MHSMISUD",90,0],
+  ["ECMPOF_ADULT_INSTITUTIONALIZATION",74,0],
+  ["ECMPOF_CHILD_IPSNFED_HIGHUTIL",35,0],
+  ["ECMPOF_ADULTWITHOUTFAMILY_HOMELESS",30,0],
+  ["ECMPOF_ADULT_IPSNFED_HIGHUTIL",29,0],
+  ["ECMPOF_ADULTWITHFAMILY_HOMELESS",27,0],
+  ["ECMPOF_CHILDWITHOUTFAMILY_HOMELESS",4,0],
+  ["ECMPOF_CHILD_WELFARE",1,0]
+], 'tblFull');
+
+buildTable([
+  ["ECMPOF_ADULT_MHSMISUD",662,4],
+  ["ECMPOF_ADULT_INSTITUTIONALIZATION",250,199],
+  ["ECMPOF_CHILD_MHSMISUD",41,0],
+  ["ECMPOF_CHILDWITHFAMILY_HOMELESS",29,0],
+  ["ECMPOF_CHILD_CCS",27,0],
+  ["ECMPOF_ADULT_IPSNFED_HIGHUTIL",183,156],
+  ["ECMPOF_ADULTWITHOUTFAMILY_HOMELESS",368,355],
+  ["ECMPOF_ADULTWITHFAMILY_HOMELESS",142,141],
+  ["ECMPOF_CHILD_IPSNFED_HIGHUTIL",78,77],
+  ["ECMPOF_CHILDWITHOUTFAMILY_HOMELESS",21,20],
+  ["ECMPOF_ADULT_BIRTH_EQUITY",7,6],
+  ["ECMPOF_CHILD_BIRTH_EQUITY",2,1],
+  ["ECMPOF_ADULT_NURSING_TRANSITION",6,6],
+  ["ECMPOF_CHILD_WELFARE",4,4]
+], 'tblPartial');
+</script>
+</body>
+</html>

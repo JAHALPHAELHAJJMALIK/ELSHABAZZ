@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0127)file:///C:/Users/wcarr/AppData/Local/Microsoft/Windows/INetCache/Content.Outlook/C0PYQ1MB/IHA_MediCal_DataFlow_v2_20260506.html -->
+<!-- saved from url=(0048)file:///F:/IHA_MediCal_DataFlow_v2_20260506.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -196,9 +196,9 @@
     <div>CHGSD · INFORMATICS · sp_IHA_MEDI_CAL · Updated 05/06/2026 · includes CHGAPP_PROD / APCD / Code Set Breakdown</div>
   </div>
   <div class="nav">
-    <button class="" onclick="showSlide(0,this)">① Data Flow</button>
-    <button onclick="showSlide(1,this)" class="">② Code Sets</button>
-    <button onclick="showSlide(2,this)" class="active">③ Source Tables</button>
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Code Sets</button>
+    <button onclick="showSlide(2,this)">③ Source Tables</button>
     <button onclick="showSlide(3,this)">④ Runbook</button>
     <button onclick="showSlide(4,this)">⑤ Controls</button>
     <button onclick="showSlide(5,this)">⑥ Parameters</button>
@@ -208,13 +208,13 @@
 <!-- ══════════════════════════════════════════
      SLIDE 0 — MAIN DFD
 ══════════════════════════════════════════ -->
-<div class="slide">
+<div class="slide active">
 
   <div class="hero">
     <div class="card">
       <div class="kicker">Report Purpose</div>
       <div class="title">IHA Medi-Cal Completion Tracking</div>
-      <div class="subtitle">Measures the rate at which newly enrolled Medi-Cal members receive their Initial Health Assessment within each enrollment cohort quarter. IHA credit is sourced from <strong>four independent pathways</strong>: QNXT preventive visit claims, QNXT IHEBA claims, QNXT CHDP module (SQLPROD01), and DHCS Care Coordination files (CHGAPP_PROD / APCD). Distributed monthly by SSRS email.</div>
+      <div class="subtitle">Measures the rate at which newly enrolled Medi-Cal members (age ≥ 20, continuous enrollment ≥ 3 months) receive their Initial Health Assessment within each enrollment cohort quarter. IHA credit is sourced from <strong>four independent pathways</strong>: QNXT preventive visit claims, QNXT IHEBA claims, QNXT CHDP module (SQLPROD01), and DHCS Care Coordination files (CHGAPP_PROD / APCD). Distributed monthly by SSRS email.</div>
       <div class="metric-grid">
         <div class="metric"><strong>51,112</strong><span>Positive IHA Hits (run 5/3/2026)</span></div>
         <div class="metric"><strong>149,842</strong><span>Total Eligible IHA Population</span></div>
@@ -319,9 +319,9 @@
       <div class="section-label">Stored Procedure Processing — sp_IHA_MEDI_CAL (7 Steps)</div>
       <div class="step-row">
 
-        <div class="step-box s-blue node" data-title="STEP 01 — Parameter Initialization" data-body="All runtime parameters are declared and SET. Key values: @ClockStart = &#39;01/01/2020&#39;, @ClockStop = GETDATE(), @lob = &#39;MEDI-CAL&#39;, @PCPrecordRANK = 1, all @lag values = 0." data-tags="Parameters|@ClockStart|@lob|@PCPrecordRANK">
+        <div class="step-box s-blue node" data-title="STEP 01 — Parameter Initialization" data-body="All runtime parameters are declared and SET. Key values: @ClockStart = &#39;01/01/2020&#39;, @ClockStop = GETDATE(), @lob = &#39;MEDI-CAL&#39;, @ContinuousMonths = 3, @AgeCutoff = 20, @GAPOF = 1, @MAXGAP = 1, @PCPrecordRANK = 1, all @lag values = 0." data-tags="Parameters|@ClockStart|@lob|@AgeCutoff|@PCPrecordRANK">
           <span class="step-num">Step 01</span><strong>Parameters</strong>
-          @lob = MEDI-CAL<br>@ClockStart 1/1/2020
+          @lob = MEDI-CAL<br>@ClockStart 1/1/2020<br>@AgeCutoff = 20
         </div>
 
         <div class="step-box s-purple node" data-title="STEP 02 — LOB &amp; Eligibility Filter" data-body="Filters EnrollmentManager records using uvw_LINE_OF_BUSINESS joined to date_calendarISO. Applies @lob = &#39;MEDI-CAL&#39; (LIKE pattern) on LINE_OF_BUSINESS column. Program ID lock: QMXHPQ0842. Members must have active Medi-Cal enrollment within ClockStart–ClockStop." data-tags="LOB Filter|uvw_LINE_OF_BUSINESS|QMXHPQ0842|date_calendarISO">
@@ -334,7 +334,7 @@
           LAG / LEAD gaps<br>≥ 3 months<br>@MAXGAP = 1
         </div>
 
-        <div class="step-box s-green node" data-title="STEP 04 — PCP &amp; Population Rules" data-body="Two population rules applied in sequence: (1) PCP attribution from uvw_PCP using DENSE_RANK @PCPrecordRANK = 1. (2) Newborn exclusion — members with QNXT relationship code C00498102 (dependent of mother) are flagged &#39;DELETE&#39; and removed. (3) Medicare-primary exclusion — enrollstatus.primarystatus must = &#39;P&#39;; all others deleted per Ms. Gabriela 20210604." data-tags="Age ≥ 20|PCP DENSE_RANK|Newborn Exclusion|Medicare Exclusion|C00498102|primarystatus P">
+        <div class="step-box s-green node" data-title="STEP 04 — Age, PCP &amp; Population Rules" data-body="Three population rules applied in sequence: (1) Age ≥ 20 filter via @AgeCutoff = 20. (2) PCP attribution from uvw_PCP using DENSE_RANK @PCPrecordRANK = 1. (3) Newborn exclusion — members with QNXT relationship code C00498102 (dependent of mother) are flagged &#39;DELETE&#39; and removed. (4) Medicare-primary exclusion — enrollstatus.primarystatus must = &#39;P&#39;; all others deleted per Ms. Gabriela 20210604." data-tags="Age ≥ 20|PCP DENSE_RANK|Newborn Exclusion|Medicare Exclusion|C00498102|primarystatus P">
           <span class="step-num">Step 04</span><strong>Pop. Rules</strong>
           Age ≥ 20 · PCP rank<br>Newborn exclusion<br>Medicare-primary excl.
         </div>
@@ -601,7 +601,7 @@
         <div class="code-pill-row">
           <span class="code-pill field">primarystatus = 'P'</span>
         </div>
-        <div class="cs-note"><b>Change log C001:</b> HcpCode '533' added for CHPIV as of 20260319.</div>
+        <div class="cs-note"><b>Age cutoff:</b> @AgeCutoff = 20 (members must be ≥ 20 years old). <b>Change log C001:</b> HcpCode '533' added for CHPIV as of 20260319.</div>
       </div>
 
     </div><!-- /codeset-grid -->
@@ -612,7 +612,7 @@
 <!-- ══════════════════════════════════════════
      SLIDE 2 — SOURCE TABLES
 ══════════════════════════════════════════ -->
-<div class="slide active">
+<div class="slide">
   <div class="card">
     <div class="kicker">Source Tables Reference — All Tables Touched by sp_IHA_MEDI_CAL</div>
     <div class="subtitle" style="margin-bottom:18px">Six databases / servers contribute to this report. Work tables are created and dropped each run (session-scoped). Permanent INFORMATICS tables are dropped and recreated each run. QNXT and external tables are read-only sources.</div>
@@ -694,6 +694,7 @@
   <div class="card">
     <div class="kicker">Runbook Sequence — sp_IHA_MEDI_CAL</div>
     <div class="timeline">
+      <div class="tl"><strong>00 · Parameter Verification</strong><p>Open sp_IHA_MEDI_CAL in SSMS on SQLPRODAPP01 · INFORMATICS. Confirm @lob = 'MEDI-CAL', @ClockStart = '01/01/2020', @ClockStop = GETDATE(), @ContinuousMonths = 3, @AgeCutoff = 20. All @lag values = 0.</p></div>
       <div class="tl"><strong>01 · HcpCode Check</strong><p>Confirm CHG HcpCode (primary) and CHPIV HcpCode '533' (C001, added 20260319) are both returning active enrollment records in EnrollmentManager. Quick COUNT per HcpCode before full run.</p></div>
       <div class="tl"><strong>02 · CHGAPP_PROD Linked Server Check</strong><p>Verify linked server connectivity to CHGAPP_PROD. Confirm both dbo.tblEDIDHCSCareCoordinationHeader (old format) and [APCD].[Medical] (new format eff. 7/1/22) are accessible and returning rows for the current monthly DHCS data load.</p></div>
       <div class="tl"><strong>03 · CHDP Linked Server Check</strong><p>Verify SQLPROD01.QPROD.dbo.CHDP_CLAIM_HEADER is accessible. Confirm with Mr. A. Hancock if needed that the table is actively being updated. Row count check for current period.</p></div>
@@ -718,6 +719,7 @@
       <tr><td>CHGAPP_PROD linked server</td><td>Test SELECT TOP 1 from both tblEDIDHCSCareCoordinationHeader and [APCD].[Medical] before full run.</td><td>MINdhcs = 0 rows; DHCS pathway contributes no credit, suppressing completion rate.</td></tr>
       <tr><td>APCD format switchover</td><td>Confirm [APCD].[Medical] is being populated for dates ≥ 7/1/2022 and tblEDI covers pre-7/1/22 dates.</td><td>Gap in DHCS coverage if one format returns no rows for its expected date range.</td></tr>
       <tr><td>Continuous enrollment</td><td>@GAPOF = 1, @MAXGAP = 1, @ContinuousMonths = 3 must not be changed.</td><td>Incorrect enrollment windows — ineligible short-term members in denominator.</td></tr>
+      <tr><td>Age cutoff</td><td>@AgeCutoff = 20. IHA targets adult Medi-Cal members ≥ 20.</td><td>Pediatric population included — completion rate understated.</td></tr>
       <tr><td>Newborn exclusion</td><td>Confirm memberrelation JOIN on C00498102 is running and producing DELETEs in DaysEnrolled.</td><td>Newborns under Mom counted in eligible population — DHCS audit risk.</td></tr>
       <tr><td>Medicare primary exclusion</td><td>Confirm enrollstatus.primarystatus = 'P' filter is deleting non-primary members from DaysEnrolled.</td><td>Dual-eligible Medicare members included — compliance violation per Gabi 20210604.</td></tr>
       <tr><td>Staging table currency</td><td>Check max date in INFORMATICS.dbo.IHA_MEDI_CAL after run. Should reflect GETDATE().</td><td>Distribution with stale data from prior cycle.</td></tr>
@@ -740,6 +742,7 @@
       <div class="param-card"><div class="pname">@ClockStop</div><div class="pval">date = GETDATE()</div><div class="pdesc">Dynamic end date. Resolves to today. Ensures current-day eligibility cutoff each run.</div></div>
       <div class="param-card"><div class="pname">@lob</div><div class="pval">nvarchar = 'MEDI-CAL'</div><div class="pdesc">LOB filter via LIKE on LINE_OF_BUSINESS. NULL = all LOBs — never appropriate for this report.</div></div>
       <div class="param-card"><div class="pname">@ContinuousMonths</div><div class="pval">decimal = 3</div><div class="pdesc">Minimum consecutive enrollment months required. Do not reduce below 3.</div></div>
+      <div class="param-card"><div class="pname">@AgeCutoff</div><div class="pval">decimal = 20</div><div class="pdesc">Members must be ≥ 20 years old. Targets adult Medi-Cal population.</div></div>
       <div class="param-card"><div class="pname">@GAPOF / @MAXGAP</div><div class="pval">int = 1 / int = 1</div><div class="pdesc">Enrollment gap tolerance. A 1-month gap is allowed; gaps &gt; 1 break the continuous window.</div></div>
       <div class="param-card"><div class="pname">@lag / @lagyrs / @lagdays</div><div class="pval">int = 0 / 0 / 0</div><div class="pdesc">Date offset parameters. All zero = no lag. Adjust +/- for retrospective analysis only.</div></div>
       <div class="param-card"><div class="pname">@PCPrecordRANK</div><div class="pval">int = 1</div><div class="pdesc">PCP attribution rank. = 1 returns most current PCP via DENSE_RANK(PARTITION BY memid ORDER BY effdate DESC).</div></div>

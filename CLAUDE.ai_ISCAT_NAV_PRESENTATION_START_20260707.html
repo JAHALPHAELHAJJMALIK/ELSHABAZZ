@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISCAT NAV Audit Readiness — Data Flow Diagram | CHGSD Informatics</title>
+<style>
+  :root{
+    --bg:#151515; --panel:#202020; --panel2:#2a2a2a; --text:#eee; --muted:#aaa;
+    --blue:rgba(100,180,255,.35);   --blueFill:rgba(100,180,255,.14);
+    --gold:rgba(255,200,100,.38);   --goldFill:rgba(255,200,100,.13);
+    --green:rgba(100,220,160,.38);  --greenFill:rgba(100,220,160,.13);
+    --purple:rgba(160,140,220,.40); --purpleFill:rgba(160,140,220,.14);
+    --red:rgba(255,100,100,.40);    --redFill:rgba(255,100,100,.12);
+    --cyan:rgba(120,230,240,.36);   --cyanFill:rgba(120,230,240,.12);
+    --orange:rgba(255,170,80,.38);  --orangeFill:rgba(255,170,80,.13);
+    --pink:rgba(255,140,200,.38);   --pinkFill:rgba(255,140,200,.12);
+    --shadow:0 18px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:radial-gradient(circle at top,#242424 0,#151515 55%,#0f0f0f 100%);color:var(--text);font-family:'Book Antiqua',Palatino,'Palatino Linotype',Georgia,serif;min-height:100vh;overflow-x:auto}
+  .deck{width:1680px;margin:0 auto;padding:34px 24px 60px}
+
+  /* TOP BAR */
+  .topbar{position:sticky;top:0;z-index:30;margin:-34px -24px 26px;padding:16px 28px;background:rgba(18,18,18,.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.10);display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .brand h1{font-size:21px;letter-spacing:.3px;color:#fff;font-weight:700}.brand div{font-size:13px;color:var(--muted);margin-top:4px}
+  .nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.nav button{font-family:inherit;color:#ddd;background:#252525;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:7px 13px;cursor:pointer;font-size:12.5px;transition:.25s}.nav button:hover,.nav button.active{background:rgba(100,180,255,.18);border-color:rgba(100,180,255,.55);color:#fff;transform:translateY(-1px)}
+
+  /* SLIDES */
+  .slide{display:none;animation:fadeIn .45s ease both}.slide.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  /* CARDS */
+  .card{background:rgba(32,32,32,.82);border:1px solid rgba(255,255,255,.11);border-radius:18px;box-shadow:var(--shadow);padding:24px;position:relative;overflow:hidden;margin-bottom:22px}
+  .card:before{content:"";position:absolute;inset:-1px;background:linear-gradient(120deg,rgba(100,180,255,.10),transparent 35%,rgba(160,140,220,.10));pointer-events:none}
+  .card>*{position:relative}
+  .kicker{color:#9dd6ff;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;font-weight:700}
+  .title{font-size:32px;line-height:1.08;margin:10px 0 12px}
+  .subtitle{color:#bdbdbd;font-size:15px;line-height:1.55}
+  .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:16px}
+  .metric{background:#252525;border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px}
+  .metric strong{display:block;font-size:20px;color:#fff}.metric span{font-size:12px;color:#aaa}
+
+  /* HERO */
+  .hero{display:grid;grid-template-columns:1.3fr .7fr;gap:22px;margin-bottom:0}
+
+  /* DFD STRUCTURE */
+  .section-label{text-align:center;font-size:11.5px;font-weight:700;color:#777;letter-spacing:1.8px;text-transform:uppercase;margin:22px 0 10px}
+  .diagram{position:relative;width:100%}
+  .source-row,.step-row,.data-elements-row,.filter-row{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+
+  /* INTERACTIVE NODES */
+  .system-box,.step-box,.data-element,.filter-box,.output-box{border-radius:10px;position:relative;transition:.25s;cursor:pointer}
+  .system-box:hover,.step-box:hover,.data-element:hover,.filter-box:hover,.output-box:hover{transform:translateY(-4px);filter:brightness(1.15)}
+  .system-box.selected,.step-box.selected,.data-element.selected,.filter-box.selected,.output-box.selected{outline:2px solid #9dd6ff;box-shadow:0 0 0 6px rgba(100,180,255,.10)}
+
+  /* SOURCE SYSTEM BOXES */
+  .system-box{border:2px solid rgba(255,255,255,.15);padding:18px 20px 16px}
+  .system-box .sys-label,.output-box .sys-label{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#151515;padding:0 12px;font-size:12.5px;font-weight:700;white-space:nowrap;color:#eee}
+  .evips{width:400px;background:var(--blueFill);border-color:var(--blue)}
+  .qnxtdb{width:400px;background:var(--purpleFill);border-color:var(--purple)}
+  .npidb{width:340px;background:var(--cyanFill);border-color:var(--cyan)}
+  .dhcsfeed{width:400px;background:var(--goldFill);border-color:var(--gold)}
+
+  .module-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .module{background:#2b2b2b;border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;font-size:12px;font-weight:700;text-align:center;min-width:110px;color:#f1f1f1}
+  .module span{display:block;font-size:10px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.25}
+  .module.code{background:rgba(255,200,100,.08);border-color:rgba(255,200,100,.30);color:#ffe08a}
+  .module.code span{color:#c9a84c}
+
+  /* FLOW ARROWS */
+  .flow-arrows{display:flex;justify-content:center;gap:70px;margin:14px 0 8px}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;opacity:.35;animation:pulse 1.8s infinite}
+  .flow-arrow:nth-child(even){animation-delay:.45s}
+  @keyframes pulse{0%,100%{opacity:.22}50%{opacity:.75}}
+  .shaft{width:2px;height:22px;background:#ccc}.head{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid #ccc}
+
+  /* STEP BOXES */
+  .step-row{gap:12px;margin:8px 0}
+  .step-box{border:2px solid rgba(255,255,255,.16);padding:15px 13px 13px;text-align:center;width:205px;font-size:12.5px;line-height:1.4}
+  .step-box strong{display:block;font-size:14.5px;margin-bottom:4px}
+  .step-num{display:block;font-size:10px;color:#9dd6ff;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+  .s-blue{background:var(--blueFill);border-color:var(--blue)}
+  .s-purple{background:var(--purpleFill);border-color:var(--purple)}
+  .s-cyan{background:var(--cyanFill);border-color:var(--cyan)}
+  .s-green{background:var(--greenFill);border-color:var(--green)}
+  .s-gold{background:var(--goldFill);border-color:var(--gold)}
+  .s-orange{background:var(--orangeFill);border-color:var(--orange)}
+  .s-pink{background:var(--pinkFill);border-color:var(--pink)}
+
+  /* DATA ELEMENTS */
+  .data-element{border:1.5px solid rgba(255,255,255,.13);background:#252525;padding:13px 14px;text-align:center;width:200px;font-size:12px;line-height:1.4}
+  .data-element strong{display:block;font-size:13px;margin-bottom:4px}
+
+  /* FILTER/CHECKPOINT BOXES */
+  .filter-box{border:2px dashed var(--red);background:var(--redFill);padding:12px 13px;text-align:center;width:200px;font-size:12px;line-height:1.4}
+  .filter-box strong{display:block;font-size:13px;margin-bottom:3px}
+
+  /* OUTPUT BOX */
+  .output-box{border:2px solid rgba(255,255,255,.18);background:rgba(40,40,40,.9);padding:20px 22px 16px;margin:8px auto;max-width:1300px;width:100%}
+  .out-modules{display:flex;flex-wrap:wrap;gap:11px;margin-top:13px}
+  .out-module{background:#2a2a2a;border:1px solid rgba(255,255,255,.13);border-radius:8px;padding:11px 15px;flex:1;min-width:190px;font-size:12.5px;font-weight:700}
+  .out-module span{display:block;font-size:11px;color:#aaa;font-weight:400;margin-top:3px;line-height:1.3}
+
+  /* DETAIL + LEGEND */
+  .detail{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+  .detail-panel{min-height:130px}
+  .detail-panel h3{font-size:17px;margin:10px 0 8px;color:#fff}
+  .detail-panel p{font-size:13.5px;color:#bbb;line-height:1.55}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+  .badge{background:rgba(100,180,255,.15);border:1px solid rgba(100,180,255,.35);border-radius:999px;padding:3px 9px;font-size:11px;color:#9dd6ff}
+  .badge.gold{background:rgba(255,200,100,.12);border-color:rgba(255,200,100,.35);color:#ffe08a}
+  .badge.green{background:rgba(100,220,160,.12);border-color:rgba(100,220,160,.35);color:#7de0b2}
+  .badge.pink{background:rgba(255,140,200,.12);border-color:rgba(255,140,200,.35);color:#ffacd8}
+  .badge.red{background:rgba(255,100,100,.12);border-color:rgba(255,100,100,.35);color:#ff9090}
+  .legend{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .legend-item{display:flex;align-items:center;gap:10px;font-size:12.5px}
+  .swatch{width:22px;height:14px;border-radius:4px;border:1.5px solid}
+  .print-note{font-size:11.5px;color:#555;margin-top:14px}
+
+  /* GOVERNANCE / NAMING TABLE */
+  .mini-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+  .mini-table th{background:#252525;padding:10px 14px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:#9dd6ff;border-bottom:1px solid rgba(255,255,255,.12)}
+  .mini-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:#ccc;vertical-align:top;line-height:1.45;font-family:'Courier New',monospace;font-size:12.5px}
+  .mini-table tr:hover td{background:rgba(255,255,255,.03)}
+  .callout{margin-top:18px;background:rgba(100,180,255,.07);border-left:3px solid rgba(100,180,255,.45);border-radius:6px;padding:14px 16px;font-size:13px;color:#bbb;line-height:1.6}
+  .callout b{color:#9dd6ff}
+  .callout.gold{background:rgba(255,200,100,.07);border-left-color:rgba(255,200,100,.42)}
+  .callout.green{background:rgba(100,220,160,.07);border-left-color:rgba(100,220,160,.40)}
+
+  /* TIMELINE */
+  .timeline{display:flex;flex-direction:column;gap:0}
+  .tl{border-left:2px solid rgba(100,180,255,.30);padding:14px 20px;position:relative}
+  .tl:before{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;border-radius:50%;background:#9dd6ff}
+  .tl strong{font-size:15px;color:#fff;display:block;margin-bottom:4px}
+  .tl p{font-size:13.5px;color:#bbb;line-height:1.5}
+
+  /* RESOURCE LINK CARDS */
+  .link-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+  .link-card{background:#232323;border:1px solid rgba(255,255,255,.13);border-radius:12px;padding:20px;text-decoration:none;color:#eee;display:block;transition:.25s}
+  .link-card:hover{transform:translateY(-4px);border-color:rgba(100,180,255,.5);background:#262626}
+  .link-card .lk{color:#9dd6ff;text-transform:uppercase;font-size:11px;letter-spacing:1px;font-weight:700}
+  .link-card .lt{font-size:16.5px;font-weight:700;margin:8px 0 6px;color:#fff}
+  .link-card .ld{font-size:12.5px;color:#aaa;line-height:1.5}
+  .link-card .la{display:inline-block;margin-top:12px;font-size:12px;color:#9dd6ff;font-weight:700}
+
+  @media(max-width:1100px){ .metric-grid{grid-template-columns:repeat(2,1fr)} .link-grid{grid-template-columns:1fr} }
+  @media(max-width:800px){ .hero,.detail{grid-template-columns:1fr} }
+  @media print{.topbar .nav{display:none}}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ═══ TOP BAR ═══ -->
+<div class="topbar">
+  <div class="brand">
+    <h1>ISCAT NAV Audit Readiness — Data Flow Diagram</h1>
+    <div>CHGSD · INFORMATICS · 2026 DHCS Network Adequacy Validation (NAV) · Community Health Group Partnership Plan</div>
+  </div>
+  <div class="nav">
+    <button class="active" onclick="showSlide(0,this)">① Data Flow</button>
+    <button onclick="showSlide(1,this)">② Governance &amp; Storage</button>
+    <button onclick="showSlide(2,this)">③ Walkthrough &amp; Resources</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLIDE 0 — MAIN DFD
+══════════════════════════════════════════ -->
+<div class="slide active">
+
+  <div class="hero">
+    <div class="card">
+      <div class="kicker">Audit Scope</div>
+      <div class="title">Network Adequacy Data Reconciliation, Preproduction &amp; Integration</div>
+      <div class="subtitle">Traces provider, membership, and 274/EDI data from source system entry (eVIPS by Simplyr, QNXT/HMOPROD_PlanData) through taxonomy crosswalk, DHCS reconciliation, and Quest Analytics GeoAccess processing, to final SQIC/CQIC network adequacy indicator reporting and DHCS regulatory submission. Prepared in support of the ISCAT (Information Systems Capabilities Assessment Tool) for NAV.</div>
+      <div class="metric-grid">
+        <div class="metric"><strong>SQL Server</strong><span>SSMS · INFORMATICS / ProviderRepository / CHGAPP_PROD</span></div>
+        <div class="metric"><strong>eVIPS</strong><span>Simplyr credentialing &amp; provider repository</span></div>
+        <div class="metric"><strong>274 EDI</strong><span>Type 274 Provider Specialty Transaction</span></div>
+        <div class="metric"><strong>QuestAnalytics</strong><span>GeoAccess time/distance &amp; GMENAC ratio</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">ISCAT Reference</div>
+      <div class="subtitle" style="margin-bottom:12px">Responds to ISCAT Section I.E (data process flow / DFD attachment) and Section VI (file consolidation &amp; integration controls).</div>
+      <div class="module-row" style="flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="module" style="min-width:100%;text-align:left">Centralized Structure<span>Plan-performed IS functions; QuestAnalytics as licensed reporting tool</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Three Informatics Programmers<span>SQL / QuestAnalytics API trained &amp; version-control capable</span></div>
+        <div class="module" style="min-width:100%;text-align:left">Source doc<span>2024 ISCAT NAV Readiness Prep, Att. 2 (F2 20240412)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Interactive Data Flow — click any node for details</div>
+    <div class="diagram">
+
+      <!-- ROW A: SOURCE SYSTEMS -->
+      <div class="section-label">Source Systems — Provider, Membership &amp; Regulator Feeds</div>
+      <div class="source-row">
+
+        <div class="system-box evips node" data-title="eVIPS by Simplyr — Credentialing &amp; Provider Repository" data-body="Primary provider data management system. Credentialing Department receives the application; a Data Entry Specialist keys Provider Name, Type, License/CA license #, languages, billing vendor, address, age restrictions, and specialty into eVIPS. Once the Credentialing field flags 'Y', Verification data is entered and validated by the Credentialing Department. Providers re-attest quarterly via roster review / data confirmation calls. Snapshot-based (SnapshotID = MAX from [Snapshot] table) so every taxonomy/roster pull is versioned to a point-in-time extract." data-tags="eVIPS|Simplyr|Credentialing|SnapshotID|Provider Repository|Quarterly Attestation">
+          <span class="sys-label">eVIPS · Simplyr (Credentialing)</span>
+          <div class="module-row">
+            <div class="module">Providers / Groups / Sites<span>Core roster tables<br>keyed by SnapshotID</span></div>
+            <div class="module">Credentialing Verification<span>Application + PSV<br>flag 'Y' triggers load</span></div>
+            <div class="module code">Quarterly Attestation<span>Provider roster review<br>&amp; data confirmation calls</span></div>
+          </div>
+        </div>
+
+        <div class="system-box qnxtdb node" data-title="HMOPROD_PlanData · QNXT (Membership &amp; Claims)" data-body="Enrollment System of record — member demographics, plan enrollment, LOB, and contact detail, sourced in part from the 834 enrollment file / State broker feed. Claims Processing System captures utilization (date of service, provider, service detail), including Telehealth network claims, used to identify member-provider utilization patterns for access analysis." data-tags="QNXT|HMOPROD_PlanData|834 Enrollment File|Enrollment System|Claims|Telehealth">
+          <span class="sys-label">HMOPROD_PlanData · QNXT</span>
+          <div class="module-row">
+            <div class="module">Enrollment / Membership<span>834 file · LOB<br>demographics</span></div>
+            <div class="module">Claims Processing<span>Date of service<br>Telehealth utilization</span></div>
+          </div>
+        </div>
+
+        <div class="system-box npidb node" data-title="CHGAPP_PROD.dbo.tblNPIData — NPPES / NPI Registry Feed" data-body="Linked-server table joined by eVIPSGetProviderTaxonomy / eVIPSGetGroupTaxonomy / eVIPSGetSiteTaxonomy to cross NPI against ProviderRepository.dbo.Providers / Groups / Sites, supplying the TaxCode used to populate ProviderTaxonomy, GroupTaxonomy, and SiteTaxonomy each snapshot cycle." data-tags="NPPES|NPI|tblNPIData|CHGAPP_PROD|Taxonomy Join">
+          <span class="sys-label">CHGAPP_PROD · tblNPIData (NPI)</span>
+          <div class="module-row">
+            <div class="module">NPI → TaxCode<span>Joined by NPI<br>per Provider/Group/Site</span></div>
+          </div>
+        </div>
+
+        <div class="system-box dhcsfeed node" data-title="DHCS Regulator Feeds — SETUPTAXONOMY &amp; ArcGIS Membership" data-body="INFORMATICS.dbo.SETUPTAXONOMY: DHCS-published taxonomy-to-network-certification crosswalk, imported into SSMS from the annual DHCS 'Network Certification: Time or Distance Analysis' bulletin (crosswalk vintage tracked via CrosswalkDate, e.g. 2022-07-01). DHCSArcGIS: representative synthetic population points published by DHCS (ArcGIS Geo Hub) so plans can replicate DHCS time/distance results ahead of Annual Network Certification (ANC) submission." data-tags="DHCS|SETUPTAXONOMY|ArcGIS|Synthetic Population Points|ANC|CrosswalkDate">
+          <span class="sys-label">DHCS Regulator Feeds</span>
+          <div class="module-row">
+            <div class="module">SETUPTAXONOMY<span>Annual taxonomy<br>crosswalk bulletin</span></div>
+            <div class="module code">DHCSArcGIS<span>Synthetic population<br>points (Geo Hub)</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW B: PROCESSING STEPS -->
+      <div class="section-label">SQL Preproduction &amp; Integration — Provider Repository / 274 / STEP88</div>
+      <div class="step-row">
+
+        <div class="step-box s-blue node" data-title="STEP 1 — Provider Repository Taxonomy Refresh" data-body="eVIPSGetProviderTaxonomy / eVIPSGetGroupTaxonomy / eVIPSGetSiteTaxonomy execute against the latest [Snapshot], joining tblNPIData (CHGAPP_PROD) by NPI to insert TaxCode rows into ProviderTaxonomy, GroupTaxonomy, and SiteTaxonomy. Author: Niharika Thotapalli. Runs on every eVIPS snapshot cycle ahead of downstream ANC crosswalk build." data-tags="eVIPSGetProviderTaxonomy|eVIPSGetGroupTaxonomy|eVIPSGetSiteTaxonomy|Snapshot|NPI Join">
+          <span class="step-num">Step 1</span><strong>Taxonomy Refresh</strong>
+          NPI join → TaxCode<br>Provider/Group/Site
+        </div>
+
+        <div class="step-box s-purple node" data-title="STEP 2 — ANC Taxonomy Crosswalk Build (Annual Reset)" data-body="TRUNCATE + INSERT INTO ProviderRepository.dbo.ANCTaxonomyCrosswalk from INFORMATICS.dbo.SETUPTAXONOMY, filtered to the current DHCS CrosswalkDate vintage. Maps TaxonomyCode to DHCSNetCertGroup, DHCSNetCertCategory, NUCCClassification, and NUCCSpecialization — the backbone reference used by every downstream Adult/Kids/Both network certification bucket query." data-tags="ANCTaxonomyCrosswalk|TRUNCATE + INSERT|DHCSNetCertGroup|NUCCClassification|Annual Reset">
+          <span class="step-num">Step 2</span><strong>ANC Crosswalk</strong>
+          SETUPTAXONOMY →<br>ANCTaxonomyCrosswalk
+        </div>
+
+        <div class="step-box s-cyan node" data-title="STEP 3 — 274 EDI Provider Specialty Transaction" data-body="usp_EDI_DHCS_Type274_eVIPsProviderSpecialties (CHGAPP_PROD) cursors through udf_EDI_DHCS_Type274_eVIPsProviderSpecialties(@PR_SnapshotId, @SnapshotId) and inserts ProviderId/TaxonomyCode pairs into tblEDIDHCSType274ProviderSpecialization, routing failures (TRY/CATCH) to tblEDIDHCSType274ProviderSpecializationError for QC review. Snapshot lineage tracked via tblEDIDHCSType274Snapshot (DENSE_RANK by LOBCode, snapshotid, CreatedDate)." data-tags="usp_EDI_DHCS_Type274|tblEDIDHCSType274Snapshot|Error Table|DENSE_RANK|CHGAPP_PROD">
+          <span class="step-num">Step 3</span><strong>274 EDI Build</strong>
+          Cursor insert →<br>Specialization + Error
+        </div>
+
+        <div class="step-box s-green node" data-title="STEP 4 — Member Month / Duplicate Validation" data-body="ISCAT_NAV_DHCS_STEP88_MEMBER_COUNT populates INFORMATICS.dbo.DHCSADEQUACY_MM (member-month population). A dedicated DUP Validation query flags any row where memid + YEAR_MO + description repeats more than once (GROUP BY ... HAVING COUNT(1) &gt; 1) — the automated, SQL-based duplication control cited in the ISCAT response (no manual review required)." data-tags="STEP88_MEMBER_COUNT|DHCSADEQUACY_MM|DUP Validation|memid + YEAR_MO">
+          <span class="step-num">Step 4</span><strong>Member-Month + Dup QC</strong>
+          DHCSADEQUACY_MM<br>DUP Validation query
+        </div>
+
+        <div class="step-box s-gold node" data-title="STEP 5 — GeoAccess Extract for Quest Analytics" data-body="ISCAT_NAV_DHCS_STEP88_GEOACCESS_PROVGROUP (and SQIC variant) build the provider-group extract (e.g. SQIC_PCPs) joined to DHCSAnnualNetworkCertificationProviders by CertificationYear, formatted for direct import into the Quest Analytics GeoAccess module for time/distance and GMENAC ratio calculation." data-tags="STEP88_GEOACCESS_PROVGROUP|SQIC_PCPs|DHCSAnnualNetworkCertificationProviders|Quest Analytics|GeoAccess">
+          <span class="step-num">Step 5</span><strong>GeoAccess Extract</strong>
+          Provider group →<br>Quest Analytics import
+        </div>
+
+        <div class="step-box s-orange node" data-title="STEP 6 — Quarterly Network Adds / Terms" data-body="sp_NETWORKQTRADDTERM (INFORMATICS) generates the quarterly provider network add/term reconciliation used for SQIC/CQIC PNA (Provider Network Analysis) reporting and the DHCS quarterly network change submission." data-tags="sp_NETWORKQTRADDTERM|Quarterly Adds Terms|SQIC|CQIC|PNA">
+          <span class="step-num">Step 6</span><strong>Qtr Adds/Terms</strong>
+          sp_NETWORKQTRADDTERM<br>SQIC/CQIC PNA feed
+        </div>
+
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW C: DERIVED DATA ELEMENTS -->
+      <div class="section-label">Reconciliation &amp; Indicator Calculation</div>
+      <div class="data-elements-row">
+        <div class="data-element node" data-title="DHCS ANC Reconciliation vs. ArcGIS" data-body="EDGEOFZIPMEMBERSHIP / DHCSArcGIS synthetic population points are reconciled against the plan's own geocoded membership to replicate DHCS's own time/distance results ahead of Annual Network Certification submission — flags variance before DHCS sees it." data-tags="ArcGIS|EDGEOFZIPMEMBERSHIP|ANC Reconciliation">
+          <strong>ANC vs. ArcGIS</strong>Synthetic pop. points<br>vs. plan geocoding
+        </div>
+        <div class="data-element node" data-title="GMENAC Ratio &amp; Time/Distance (Quest Analytics)" data-body="Quest Analytics GeoAccess module calculates provider-to-member time/distance and NCQA GMENAC provider-ratio results per DHCS Medi-Cal / Medicare standards, using the GeoAccess extract from Step 5 and DHCS ArcGIS population points." data-tags="Quest Analytics|GMENAC|Time Distance|NCQA">
+          <strong>GMENAC / Time-Distance</strong>Quest Analytics<br>GeoAccess output
+        </div>
+        <div class="data-element node" data-title="SQIC / CQIC Access Analysis" data-body="Service Quality Improvement Council (SQIC) and Culturally Quality Improvement Council (CQIC) access-analysis rollups: PCP, Specialist, Facility ratios; Threshold Languages; Race/Ethnicity/Language membership overlays — produced quarterly per LOB." data-tags="SQIC|CQIC|Access Analysis|Threshold Languages|Race Ethnicity">
+          <strong>SQIC / CQIC Rollups</strong>PCP · SPE · FAC<br>ratio + language overlay
+        </div>
+        <div class="data-element node" data-title="274 Snapshot Summary Report" data-body="SSRS-scheduled summary of the 274 EDI provider specialty transaction (Step 3), cross-checked against the Quality Control Mechanism Error/Warning report before the snapshot is certified for downstream taxonomy and network-certification use." data-tags="274 Snapshot|SSRS|Quality Control Mechanism">
+          <strong>274 Snapshot Summary</strong>SSRS report<br>QC error/warning check
+        </div>
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- ROW D: CHECKPOINTS -->
+      <div class="section-label">Analyst Quality Checkpoints</div>
+      <div class="filter-row">
+        <div class="filter-box node" data-title="Checkpoint — Crosswalk Vintage Current?" data-body="ANCTaxonomyCrosswalk is only as current as the CrosswalkDate filter in the reset script (hard-coded per DHCS bulletin, e.g. '2022-07-01'). Confirm this matches the current DHCS Network Certification bulletin before each annual/quarterly rebuild." data-tags="Control|CrosswalkDate|Annual Bulletin">
+          <strong>Crosswalk Current?</strong>CrosswalkDate matches<br>latest DHCS bulletin
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — 274 Snapshot Latest?" data-body="Confirm @SnapshotId / @PR_SnapshotId passed into usp_EDI_DHCS_Type274_eVIPsProviderSpecialties reflects the current eVIPS snapshot (DENSE_RANK = 1 on tblEDIDHCSType274Snapshot) before certifying the 274 output." data-tags="Control|SnapshotId|DENSE_RANK|274">
+          <strong>274 Snapshot Latest?</strong>DENSE_RANK = 1<br>on tblEDIDHCSType274Snapshot
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — Duplicate Validation Clean?" data-body="DHCSADEQUACY_MM DUP Validation query (memid+YEAR_MO+description, COUNT &gt; 1) must return zero rows before the member-month population is used in any indicator calculation." data-tags="Control|Duplicate Validation|DHCSADEQUACY_MM">
+          <strong>Dup Validation Clean?</strong>Zero rows on<br>memid+YEAR_MO+desc check
+        </div>
+        <div class="filter-box node" data-title="Checkpoint — Naming &amp; Archive Compliant?" data-body="Verify the finished report follows the SQIC_{LOB}_{Type}_yyyymmdd naming convention and is saved to the designated fileserver01 NETWORK folder with prior versions archived (zipped) by year — see Governance &amp; Storage tab." data-tags="Control|Naming Convention|fileserver01|Archive">
+          <strong>Naming/Archive OK?</strong>SQIC_*_yyyymmdd<br>+ fileserver01 archive
+        </div>
+      </div>
+
+      <!-- arrows -->
+      <div class="flow-arrows">
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+        <div class="flow-arrow"><div class="shaft"></div><div class="head"></div></div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="output-box node" data-title="Final Output — SQIC/CQIC Reporting + DHCS Regulatory Submission" data-body="Certified indicator reports and maps are distributed and archived per the standardized naming/storage/retention approach, then submitted to DHCS on the quarterly/annual reporting cycle via the dedicated regulatory submission folder." data-tags="Final Output|SQIC|CQIC|DHCS Submission|Quarterly Cycle">
+        <span class="sys-label">Final Presentation / Regulatory Output</span>
+        <div class="out-modules">
+          <div class="out-module">SQIC_MCAL_PCP_AccessAnalysis_yyyymmdd.xlsx<span>PCP access analysis — quarterly</span></div>
+          <div class="out-module">SQIC_DSNP_Maps_yyyymmdd.pdf<span>GeoAccess map output</span></div>
+          <div class="out-module">Provider_Network_Analysis_Language_Race_Ethnicity_yyyymmdd.xlsx<span>Threshold language / demographic overlay</span></div>
+          <div class="out-module">DHCS Regulatory Submission Folder<span>Labeled by submission date + regulatory period</span></div>
+          <div class="out-module">fileserver01 · NETWORK Archive<span>Zipped, organized by year + reporting period</span></div>
+        </div>
+      </div>
+
+    </div><!-- /diagram -->
+
+    <!-- DETAIL + LEGEND -->
+    <div class="detail">
+      <div class="card detail-panel">
+        <div class="kicker">Selected Node</div>
+        <h3 id="detailTitle">Click any node in the diagram above</h3>
+        <p id="detailBody">Details will show the source system, SQL object, business rule, or control associated with the selected element.</p>
+        <div class="badge-row" id="detailTags">
+          <span class="badge">Interactive</span><span class="badge">ISCAT NAV 2026</span>
+          <span class="badge gold">eVIPS</span><span class="badge green">Quest Analytics</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="kicker">Legend</div>
+        <div class="legend">
+          <div class="legend-item"><div class="swatch" style="background:var(--blueFill);border-color:var(--blue)"></div>eVIPS · Simplyr credentialing / provider repository</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--purpleFill);border-color:var(--purple)"></div>HMOPROD_PlanData · QNXT membership &amp; claims</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--cyanFill);border-color:var(--cyan)"></div>CHGAPP_PROD · NPI / 274 EDI linked feeds</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--goldFill);border-color:var(--gold)"></div>DHCS regulator feeds (SETUPTAXONOMY, ArcGIS)</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--greenFill);border-color:var(--green)"></div>Reconciliation &amp; indicator calculation output</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--orangeFill);border-color:var(--orange)"></div>Quarterly network adds/terms &amp; PNA feed</div>
+          <div class="legend-item"><div class="swatch" style="background:var(--redFill);border-color:var(--red);border-style:dashed"></div>Analyst quality checkpoint</div>
+        </div>
+        <p class="print-note">Tip: browser print → Save as PDF to export a static copy for the audit binder. Tabs ② and ③ carry the storage/retention narrative and links to the detailed walkthrough.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- /Slide 0 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 1 — GOVERNANCE & STORAGE
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">ISCAT Section VI — Integration &amp; Control of Data for Network Adequacy Reporting</div>
+    <div class="title" style="font-size:26px">How Network Adequacy Reports Are Named, Stored &amp; Retained</div>
+    <div class="subtitle">Standardized approach applied to every SQIC/CQIC network adequacy indicator monitoring report, cited directly in ISCAT NAV readiness responses.</div>
+
+    <div class="mini-table" style="font-family:'Book Antiqua',Georgia,serif">
+      <table class="mini-table" style="width:100%">
+        <tr><th style="width:22%">Component</th><th>Standard</th></tr>
+        <tr><td>File naming</td><td>Report type + LOB + reporting period + version, e.g. <b>SQIC_MCAL_PCP_AccessAnalysis_yyyymmdd.xlsx</b>, <b>SQIC_DSNP_Maps_yyyymmdd.pdf</b></td></tr>
+        <tr><td>Primary storage</td><td>file://fileserver01/Corporate Shared Drive/Information Systems/Informatics/WCarr/NETWORK/ — subfoldered by reporting period, LOB, and report type; access restricted to authorized personnel</td></tr>
+        <tr><td>Archiving &amp; retention</td><td>Historical reports retained per data-retention policy in zipped, year-organized archive folders to support audit trails and historical comparison</td></tr>
+        <tr><td>Version control</td><td>Version numbers appended to file names; change log maintained documenting the nature/purpose of each revision</td></tr>
+        <tr><td>Regulatory submission</td><td>DHCS-bound reports stored in a dedicated submission folder labeled by submission date + regulatory period, e.g. Meetings/Regulatory Reports/Subcontracted Network Certification/{year}/Resubmission/</td></tr>
+        <tr><td>Reporting cycle</td><td>Quarterly (generated first week of the reporting quarter) and Annual, following the same generation/storage approach</td></tr>
+      </table>
+    </div>
+
+    <div class="callout"><b>Example archived report family:</b> SQIC_DSNP_AccessAnalysis_yyyymmdd.pdf · SQIC_DSNP_Maps_yyyymmdd.pdf · SQIC_MediCal_BehavioralHealth_Providers_AccessAnalysis_yyyymmdd.pdf · SQIC_MediCal_BehavioralHealth_Providers_Maps_yyyymmdd.pdf · SQIC_MCAL_FAC_AccessAnalysis_yyyymmdd.pdf · SQIC_MCAL_PCP_AccessAnalysis_yyyymmdd.pdf · SQIC_MCAL_SPE_AccessAnalysis_yyyymmdd.pdf · CQIC_Threshold_Languages_AccessAnalysis_yyyymmdd.pdf · Provider_Network_Analysis_Language_Race_Ethnicity_yyyymmdd.xlsx</div>
+
+    <div class="callout gold" style="margin-top:12px"><b>Why it matters for NAV:</b> ISCAT Section VI asks how data merges are controlled and how reasonableness is checked month-over-month. A consistent naming/storage/retention convention is the paper trail an auditor uses to confirm reports weren't altered after generation and that the correct version was the one submitted to DHCS.</div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Related ISCAT Narrative — Data Sources &amp; Integration (Section I.E / VI, as filed)</div>
+    <div class="timeline">
+      <div class="tl"><strong>Enrollment System</strong><p>Primary source of member demographic, plan enrollment, and contact data; regularly updated and maintained for accuracy.</p></div>
+      <div class="tl"><strong>Provider Data Management System (eVIPS)</strong><p>Comprehensive provider info — specialties, locations, contact detail, panel capacity — updated through contracting, credentialing, and verification.</p></div>
+      <div class="tl"><strong>Claims Processing System</strong><p>Utilization data (date of service, provider, service detail), including Telehealth network claims, supporting access-issue identification.</p></div>
+      <div class="tl"><strong>ETL → Data Warehouse → Data Mart</strong><p>Automated ETL validates, cleanses, and loads source data into a centralized warehouse (star schema); network-adequacy-specific data marts are pre-aggregated for reporting performance.</p></div>
+      <div class="tl"><strong>Geocoding → Time/Distance → Provider Capacity</strong><p>Member/provider addresses geocoded; time/distance computed via Quest Analytics; panel capacity analyzed to surface network gaps before they reach DHCS.</p></div>
+      <div class="tl"><strong>Supervisory Review &amp; Continuous Monitoring</strong><p>Designated staff review reports for accuracy/completeness/regulatory adherence prior to finalization; audits and feedback loops drive ongoing improvement.</p></div>
+    </div>
+  </div>
+</div><!-- /Slide 1 -->
+
+
+<!-- ══════════════════════════════════════════
+     SLIDE 2 — WALKTHROUGH & RESOURCES
+══════════════════════════════════════════ -->
+<div class="slide">
+  <div class="card">
+    <div class="kicker">Continue the Walkthrough</div>
+    <div class="title" style="font-size:26px">Detailed Walkthrough &amp; Supporting Material</div>
+    <div class="subtitle">This page is the audit-readiness entry point. Use the cards below to open the full image-backed walkthrough, the taxonomy crosswalk deep dive, or jump back into the interactive DFD.</div>
+
+    <div class="link-grid">
+      <a class="link-card" href="ISCAT_NAV_PRESENTATION_FINISH.html">
+        <div class="lk">Full Walkthrough</div>
+        <div class="lt">ISCAT NAV Audit Readiness — Detailed Flow Chart</div>
+        <div class="ld">Same process flow with the full evidentiary slideshow: Provider Repository &amp; 274 table samples, Quality Control error reports, 100 Points of Light, DHCS ArcGIS membership overlay, and SQIC/CQIC adds/terms exhibits.</div>
+        <div class="la">Open walkthrough →</div>
+      </a>
+      <a class="link-card" href="ISCAT-NAV-TAXONOMY-provider-mapping-infographic.html">
+        <div class="lk">Taxonomy Crosswalk</div>
+        <div class="lt">Provider Mapping Infographic</div>
+        <div class="ld">Deep dive on the eVIPS → NPI → ANCTaxonomyCrosswalk → NUCC / DHCSNetCertGroup mapping referenced in Steps 1–2 of the Data Flow tab.</div>
+        <div class="la">Open infographic →</div>
+      </a>
+      <a class="link-card" href="#" onclick="showSlide(0,document.querySelector('.nav button')); return false;">
+        <div class="lk">Back to Top</div>
+        <div class="lt">Interactive Data Flow Diagram</div>
+        <div class="ld">Return to the main DFD — click any node for the underlying SQL object, table, or business rule.</div>
+        <div class="la">Back to Data Flow →</div>
+      </a>
+    </div>
+
+    <div class="callout" style="margin-top:22px"><b>Source documentation:</b> 2024 ISCAT NAV Readiness Prep, Att. 2 (Information Systems Capabilities Assessment Tool, F2 20240412) · eVIPS taxonomy procedures ([eVIPSGetProviderTaxonomy], [eVIPSGetGroupTaxonomy], [eVIPSGetSiteTaxonomy], 20241215) · [usp_EDI_DHCS_Type274_eVIPsProviderSpecialties] (20230627) · ISCAT_NAV_DHCS_ADEQUACY_TAXONOMY_RESET (20230129) · ISCAT_NAV_DHCS_STEP88_MEMBER_COUNT / GEOACCESS_PROVGROUP scripts · ISCAT_NAV_NETWORK_QTR_ADD_TERM (20230929).</div>
+  </div>
+</div><!-- /Slide 2 -->
+
+</div><!-- /deck -->
+
+<script>
+function showSlide(idx, btn) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  if (btn && btn.classList) btn.classList.add('active');
+  else { const b = document.querySelectorAll('.nav button')[idx]; if (b) b.classList.add('active'); }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => {
+    document.querySelectorAll('.node').forEach(x => x.classList.remove('selected'));
+    n.classList.add('selected');
+    document.getElementById('detailTitle').textContent = n.dataset.title || 'Selected node';
+    document.getElementById('detailBody').textContent = n.dataset.body || '';
+    const tags = (n.dataset.tags || '').split('|').filter(Boolean);
+    document.getElementById('detailTags').innerHTML = tags.map(t => `<span class="badge">${t}</span>`).join('');
+  });
+});
+document.addEventListener('keydown', e => {
+  const buttons = [...document.querySelectorAll('.nav button')];
+  let idx = buttons.findIndex(b => b.classList.contains('active'));
+  if (e.key === 'ArrowRight') buttons[Math.min(buttons.length - 1, idx + 1)].click();
+  if (e.key === 'ArrowLeft') buttons[Math.max(0, idx - 1)].click();
+});
+</script>
+
+</body></html>
